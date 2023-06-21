@@ -1,0 +1,2 @@
+try-import %workspace%/bzel/bazel.rc
+try-import %workspace%/.mastiff.bazelrc

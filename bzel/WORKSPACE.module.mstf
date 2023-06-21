@@ -1,0 +1,325 @@
+workspace(name = "mastiff")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+load("//external/py:python_configure.bzl", "python_configure")
+python_configure(name = "local_config_python")
+
+load("//external/slam:repositories.bzl", "cartographer_repositories")
+cartographer_repositories()
+
+# nginx build
+load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
+nginx_repo()
+
+# valgrind build
+load("//tools/valgrind:bazel/valgrind.bzl", "valgrind_build")
+valgrind_build()
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
+
+load("@com_github_jupp0r_prometheus_cpp//:repositories.bzl", "prometheus_cpp_repositories")
+prometheus_cpp_repositories()
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+    strip_prefix = "protobuf-3.14.0",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/com_google_protobuf/v3.14.0.tar.gz",
+        "file://@urls_com_google_protobuf@",
+    ],
+)
+
+http_archive(
+    name = "com_github_google_glog",
+    sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
+    strip_prefix = "glog-0.4.0",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/com_github_google_glog/v0.4.0.tar.gz",
+        "file://@com_github_google_glog@",
+    ],
+)
+
+http_archive(
+    name = "com_google_googletest",
+    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
+    strip_prefix = "googletest-release-1.10.0",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/com_google_googletest/release-1.10.0.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "remote_coverage_tools",
+    sha256 = "cd14f1cb4559e4723e63b7e7b06d09fcc3bd7ba58d03f354cdff1439bd936a7d",
+    urls = [
+        "@REMOTE_HTTP_SERVER@//remote_coverage_tools/coverage_output_generator-v2.5.zip",
+    ],
+)
+
+http_archive(
+    name = "rules_java",
+    sha256 = "f5a3e477e579231fca27bf202bb0e8fbe4fc6339d63b38ccb87c2760b533d1c3",
+    strip_prefix = "rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/rules_java/981f06c3d2bd10225e85209904090eb7b5fb26bd.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "aa1ee19226f707d44bee44c720915199c20c84a23318bb0597ed4e5c873ccbd5",
+    strip_prefix = "rules_proto-40298556293ae502c66579620a7ce867d5f57311",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/rules_proto/40298556293ae502c66579620a7ce867d5f57311.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "rules_python",
+    sha256 = "b6d46438523a3ec0f3cead544190ee13223a52f6a6765a29eae7b7cc24cc83a0",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/rules_python/rules_python-0.1.0.tar.gz",
+        "file://@rules_python@",
+    ],
+)
+
+http_archive(
+    name = "com_github_grpc_grpc",
+    sha256 = "6801b00c592c4924ef963b6295a2ed0b5dba20245abed9b9beaa60d725c818ab",
+    strip_prefix = "grpc-1.30.0",
+    urls = [
+        #silver star file server archive
+        "@REMOTE_HTTP_SERVER@/com_github_grpc_grpc/grpc-1.30.0-silver-star.tar.gz",
+    ],
+)
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+grpc_deps()
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+grpc_extra_deps()
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/bazel_skylib/bazel-skylib-1.0.3.tar.gz",
+        "file://@bazel_skylib@",
+    ],
+)
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
+load("@bazel_skylib//lib:versions.bzl", "versions")
+versions.check(minimum_bazel_version = "3.7.0")
+
+http_archive(
+    name = "com_github_gflags_gflags",
+    sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
+    strip_prefix = "gflags-2.2.2",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/com_github_gflags_gflags/v2.2.2.tar.gz",
+        "file://@com_github_gflags_gflags@",
+    ],
+)
+
+http_archive(
+    name = "opencv3_4_10_x86_64",
+    sha256 = "db13555f77f461d48705ebfe44b0948d3cd2640a6746238dab6466994bb3eca0",
+    strip_prefix = "opencv-3.4.10-x86_64",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/opencv/opencv-3.4.10-x86_64.tar.gz",
+    ],
+    build_file = "@//external/opencv:opencv.BUILD",
+)
+
+http_archive(
+    name = "opencv3_4_10_aarch64",
+    sha256 = "c960ea83434e595280560e754b9ce200eb730a7d1dd92ec661bc46a6128c731d",
+    strip_prefix = "opencv-3.4.10-aarch64",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/opencv/opencv-3.4.10-aarch64.tar.gz",
+    ],
+    build_file = "@//external/opencv:opencv.BUILD",
+)
+
+http_archive(
+    name = "ss_ai_aarch64",
+    sha256 = "13ef4c668fb82707ec9bbd85bcd3c1d737df384e8016883943b61c2f39b43e02",
+    strip_prefix = "ss-ai-aarch64",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/silverstar_ai_lib/AI-aarch64.tar.gz",
+    ],
+    build_file = "@//external/ss_ai:ss_ai.BUILD",
+)
+
+http_archive(
+    name = "ss_ai_x64",
+    sha256 = "13ef4c668fb82707ec9bbd85bcd3c1d737df384e8016883943b61c2f39b43e02",
+    strip_prefix = "ss-ai-x64",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/silverstar_ai_lib/AI-aarch64.tar.gz",
+    ],
+    build_file = "@//external/ss_ai:ss_ai.BUILD",
+)
+
+http_archive(
+    name = "websocket_cpp",
+    sha256 = "3947404ab3da8f6fe0884a2d4316816fdd0850ed1e10291f4a04642a6ce3c7fd",
+    strip_prefix = "websocket_cpp",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/websocket/websocket_cpp.tgz",
+    ],
+    build_file = "@//external/websocket:websock.BUILD",
+)
+
+http_archive(
+    name = "lz4_silesia",
+    sha256 = "93ee251c078fc84cbdeba167c42ed62bb8db6bdb0af39784c59f5c0d4a51c9bd",
+    strip_prefix = "lz4_silesia",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/lz4/lz4_silesia.tgz",
+    ],
+)
+
+http_archive(
+    name = "flann_lib",
+    sha256 = "9930da126bd63dd7b1758b01ae13652e17ea8a8603616a93f4fe67a9af679783",
+    strip_prefix = "flann_lib",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/flann/flann_lib.tgz",
+    ],
+)
+
+http_archive(
+    name = "hdf5",
+    sha256 = "c079401c5a75517b8a3702aa00cb96a6de7286abc394f519c63a502159139de0",
+    strip_prefix = "hdf5_hdfgroup",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/hdf5/hdf5_hdfgroup.tgz",
+    ],
+)
+
+http_archive(
+    name = "pcl_lib",
+    sha256 = "303e0d151d6735b737b505e8ed945d380ee7cd3d3f1868c8b42a1cb36973031c",
+    strip_prefix = "pcl_lib",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/pcl/pcl_lib.tgz",
+    ],
+)
+
+http_archive(
+    name = "alsa_lib",
+    sha256 = "b802b867b5f86cf991ba51774b258f62248f18b93db51f5a4e4f97ad7ce4f489",
+    strip_prefix = "alsa_lib",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/alsa/alsa_lib.tar.gz",
+    ],
+    build_file = "@//external/alsa_lib:alsa.BUILD",
+)
+
+#new_local_repository(
+    #name = "behaviour_tree",
+    #path = "/home/lihu/tool/BehaviorTree.CPP",
+    #build_file = "@//external/behaviour_tree:bt.BUILD",
+#)
+
+http_archive(
+    name = "behaviour_tree",
+    sha256 = "6249a259500333a8b80a8c434d70b45920fa9408fd95efe38036723cb83b60eb",
+    strip_prefix = "BehaviorTree.CPP",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/BehaviorTree.CPP/BehaviorTree.CPP.tgz",
+    ],
+    build_file = "@//external/behaviour_tree:bt.BUILD",
+)
+
+http_archive(
+    name = "tinyxml2",
+    sha256 = "6308af7309abfa59a7aed32a7d20c1f81a85a0aea6e7feb898c8cbeeb6748f48",
+    strip_prefix = "tinyxml2",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/tinyxml2/tinyxml2.tgz",
+    ],
+    build_file = "@//external/tinyxml2:txml2.BUILD",
+)
+
+http_archive(
+    name = "lexy",
+    sha256 = "e0c40dbcbb7374172cca61dc4b6fabfe7e044a50447a0a5d229048fff5b8ae84",
+    strip_prefix = "lexy",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/lexy/lexy.tgz",
+    ],
+    build_file = "@//external/lexy:lxy.BUILD",
+)
+
+http_archive(
+    name = "minitrace",
+    sha256 = "9dadd1475aad84cb01914ddfbe1b42e573d562b1c7c8cd5b1071421ba6adc9e1",
+    strip_prefix = "minitrace",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/minitrace/minitrace.tgz",
+    ],
+    build_file = "@//external/minitrace:mt.BUILD",
+)
+
+http_archive(
+    name = "sqlite3",
+    sha256 = "e98c100dd1da4e30fa460761dab7c0b91a50b785e167f8c57acc46514fae9499",
+    strip_prefix = "sqlite-autoconf-3410200",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/amalgamation/sqlite-autoconf-3410200.tar.gz",
+    ],
+    build_file = "@//external/amalgamation:sq3.BUILD",
+)
+
+#local way
+load("//external/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
+#generate ros_ws/... workspace as native
+import_ros_workspace(
+    name = "ros_ws",
+    path = "@ROS_WORKSPACE@",
+)
+
+load("@ros_ws//:workspace.bzl", "ros_repositories")
+ros_repositories()
+
+http_archive(
+    name = "genmsg_repo",
+    build_file = "@//external/ros_ws/bazel:genmsg.BUILD",
+    #sha256 = "d7627a2df169e4e8208347d9215e47c723a015b67ef3ed8cda8b61b6cfbf94d2",
+    sha256 = "c63395eb43b6bc35b4687504afb473cd02f120339bc58d2d4d8bddd32938b444",
+    strip_prefix = "genmsg-0.5.8",
+    #urls = ["@REMOTE_HTTP_SERVER@/genmsg_repo/0.5.8.tar.gz"],
+    urls = ["@REMOTE_HTTP_SERVER@/genmsg_repo/genmsg-0.5.8-silverstar.tar.gz"],
+)
+
+http_archive(
+    name = "genpy_repo",
+    build_file = "@//external/ros_ws/bazel:genpy.BUILD",
+    sha256 = "35e5cd2032f52a1f77190df5c31c02134dc460bfeda3f28b5a860a95309342b9",
+    strip_prefix = "genpy-0.6.5",
+    urls = ["@REMOTE_HTTP_SERVER@/genpy_repo/0.6.5.tar.gz"],
+)
+
+http_archive(
+    name = "gencpp_repo",
+    build_file = "@//external/ros_ws/bazel:gencpp.BUILD",
+    sha256 = "1340928931d873e2d43801b663a4a8d87402b88173adb01e21e58037d490fda5",
+    strip_prefix = "gencpp-0.5.5",
+    urls = ["@REMOTE_HTTP_SERVER@/gencpp_repo/0.5.5.tar.gz"],
+)
+
+load("//external/nlohmann_json:workspace.bzl", nlohmann_json = "repo")
+nlohmann_json()
+
+###########################################################################################
+
+load("//@THIRDPARTY_PATH@/fastrtps:workspace.bzl", fastrtps = "repo")
+fastrtps()
+load("//@THIRDPARTY_PATH@/uuid:workspace.bzl", uuid = "repo")
+uuid()
+#load("//@THIRDPARTY_PATH@/ncurses5:workspace.bzl", ncurses5 = "repo")
+#ncurses5()

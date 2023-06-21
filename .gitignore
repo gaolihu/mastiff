@@ -1,0 +1,116 @@
+*.swp
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+build/
+out/
+.out/
+.build/
+
+# Bazel compilation
+*bazel-*
+out/
+
+*.INFO
+*.log
+*log.INFO*
+WORKSPACE
+
+external/ros_ws/workspace.bzl
+external/toolchain/cc_build_config.bzl
+
+.vscode/
+
+# Temporary files
+*.pyc
+*.swp
+*.swo
+
+# Generated files
+*.result
+py_proto
+
+# Eclipse IDE files
+.project
+.cproject
+.settings
+.classpath
+
+# IntelliJ files
+.idea
+
+# VS Code files
+.vscode
+
+# Atom IDE files
+*.gch
+
+# Logs
+nohup.out
+*.bak
+*.stderr
+*.stdout
+
+# Editor configs
+.ycm_extra_conf.py
+
+# python proto
+*_pb2.py
+
+# calibration files
+modules/calibration/data
+
+# Data bag
+docs/demo_guide/*.bag
+docs/demo_guide/*.record
+
+# Bash Environment
+.dev_bash_hist
+
+# Bazel cache and others
+.cache/
+.cache_build/
+.mastiff.bazelrc
+.errors.log
+
+# Directory for binary distribution
+output
+
+# Flamegraph files
+tools/FlameGraph
+
+# jetbrain profiler
+.DS_Store
+
+# Link files
+mstf_build.sh
+mstf_clean.sh

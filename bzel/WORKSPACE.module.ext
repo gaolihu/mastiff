@@ -1,0 +1,193 @@
+workspace(name = "mastiff")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+load("//third_party/py:python_configure.bzl", "python_configure")
+python_configure(name = "local_config_python")
+
+load("//algocore/slam/bazel/repositories.bzl", "cartographer_repositories")
+cartographer_repositories()
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
+
+load("@com_github_jupp0r_prometheus_cpp//:repositories.bzl", "prometheus_cpp_repositories")
+prometheus_cpp_repositories()
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+    strip_prefix = "protobuf-3.14.0",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/v3.14.0.tar.gz",
+        "https://github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_github_google_glog",
+    sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
+    strip_prefix = "glog-0.4.0",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/v0.4.0.tar.gz",
+        "https://github.com/google/glog/archive/v0.4.0.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_google_googletest",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/release-1.10.0.tar.gz",
+        "https://github.com/google/googletest/archive/release-1.10.0.tar.gz",
+    ],
+    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
+    #build_file = "@//:gtest.BUILD",
+    strip_prefix = "googletest-release-1.10.0",
+)
+
+http_archive(
+    name = "rules_java",
+    sha256 = "f5a3e477e579231fca27bf202bb0e8fbe4fc6339d63b38ccb87c2760b533d1c3",
+    strip_prefix = "rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/archive/981f06c3d2bd10225e85209904090eb7b5fb26bd.tar.gz"
+    ],
+)
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "aa1ee19226f707d44bee44c720915199c20c84a23318bb0597ed4e5c873ccbd5",
+    strip_prefix = "rules_proto-40298556293ae502c66579620a7ce867d5f57311",
+    urls = [
+        "https://github.com/bazelbuild/rules_proto/archive/40298556293ae502c66579620a7ce867d5f57311.tar.gz"
+    ],
+)
+
+http_archive(
+    name = "rules_python",
+    sha256 = "b6d46438523a3ec0f3cead544190ee13223a52f6a6765a29eae7b7cc24cc83a0",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/rules_python-0.1.0.tar.gz",
+        "https://github.com/bazelbuild/rules_python/releases/download/0.1.0/rules_python-0.1.0.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_github_grpc_grpc",
+    sha256 = "419dba362eaf8f1d36849ceee17c3e2ff8ff12ac666b42d3ff02a164ebe090e9",
+    strip_prefix = "grpc-1.30.0",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/v1.30.0.tar.gz",
+        "https://github.com/grpc/grpc/archive/v1.30.0.tar.gz",
+    ],
+)
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+grpc_deps()
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+grpc_extra_deps()
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/bazel-skylib-1.0.3.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+    ],
+)
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
+load("@bazel_skylib//lib:versions.bzl", "versions")
+versions.check(minimum_bazel_version = "3.7.0")
+
+http_archive(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
+    strip_prefix = "zlib-1.2.11",
+    urls = [
+        "https://github.com/madler/zlib/archive/v1.2.11.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_github_gflags_gflags",
+    sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
+    strip_prefix = "gflags-2.2.2",
+    urls = [
+        "https://apollo-system.cdn.bcebos.com/archive/6.0/v2.2.2.tar.gz",
+        "https://github.com/gflags/gflags/archive/v2.2.2.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "opencv3_4_10_x86_64",
+    sha256 = "db13555f77f461d48705ebfe44b0948d3cd2640a6746238dab6466994bb3eca0",
+    strip_prefix = "opencv-3.4.10-x86_64",
+    urls = [
+    ],
+    build_file = "@//third_party/opencv:opencv.BUILD",
+)
+
+http_archive(
+    name = "opencv3_4_10_aarch64",
+    sha256 = "c960ea83434e595280560e754b9ce200eb730a7d1dd92ec661bc46a6128c731d",
+    strip_prefix = "opencv-3.4.10-aarch64",
+    urls = [
+    ],
+    build_file = "@//third_party/opencv:opencv.BUILD",
+)
+
+###########################################################################################
+#local way
+#load("//third_party/ros_ws:workspace.bzl", "ros_repositories")
+#load("//third_party/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
+#import_ros_workspace(
+#    name = "ros_ws",
+#    sha256 = "9578754ee049499190a32b42ada1ba72f8fffb61417789dfc18a9685077a207e",
+#    strip_prefix = "ros_ws",
+#    urls = [
+#    ],
+#)
+#load("@ros_ws//:workspace.bzl", "ros_repositories")
+#ros_repositories()
+
+#local way
+load("//third_party/ros_ws:workspace.bzl", "ros_repositories")
+load("//third_party/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
+import_ros_workspace(
+    name = "ros_ws",
+    path = "@ROS_WORKSPACE@",
+)
+ros_repositories()
+
+http_archive(
+    name = "genmsg_repo",
+    build_file = "@//third_party/ros_ws/bazel:genmsg.BUILD",
+    sha256 = "d7627a2df169e4e8208347d9215e47c723a015b67ef3ed8cda8b61b6cfbf94d2",
+    strip_prefix = "genmsg-0.5.8",
+    urls = ["https://github.com/ros/genmsg/archive/0.5.8.tar.gz"],
+)
+
+http_archive(
+    name = "genpy_repo",
+    build_file = "@//third_party/ros_ws/bazel:genpy.BUILD",
+    sha256 = "35e5cd2032f52a1f77190df5c31c02134dc460bfeda3f28b5a860a95309342b9",
+    strip_prefix = "genpy-0.6.5",
+    urls = ["https://github.com/ros/genpy/archive/0.6.5.tar.gz"],
+)
+
+http_archive(
+    name = "gencpp_repo",
+    build_file = "@//third_party/ros_ws/bazel:gencpp.BUILD",
+    sha256 = "1340928931d873e2d43801b663a4a8d87402b88173adb01e21e58037d490fda5",
+    strip_prefix = "gencpp-0.5.5",
+    urls = ["https://github.com/ros/gencpp/archive/0.5.5.tar.gz"],
+)
+###########################################################################################
+
+load("//@THIRDPARTY_PATH@/fastrtps:workspace.bzl", fastrtps = "repo")
+load("//@THIRDPARTY_PATH@/uuid:workspace.bzl", uuid = "repo")
+load("//.build/third_party/ncurses5:workspace.bzl", ncurses5 = "repo")
+fastrtps()
+uuid()
+ncurses5()
