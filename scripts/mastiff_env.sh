@@ -229,7 +229,7 @@ install_bazel() {
     if [ ! -f $BUILD_PATH/bazel_tool/VERSION ] ||
         [ $BZL_VERSION != `cat $BUILD_PATH/bazel_tool/VERSION` ]; then
         info "install bazel version: $BZL_VERSION, previous: `cat $BUILD_PATH/bazel_tool/VERSION`"
-        $TOPDIR/bazel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
+        $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
         export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         source $BUILD_PATH/bazel_tool//lib/bazel/bin/bazel-complete.bash
         echo $BZL_VERSION > $BUILD_PATH/bazel_tool/VERSION

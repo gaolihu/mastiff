@@ -4,9 +4,9 @@ load("//tools:cpplint.bzl", "cpplint")
 
 package(default_visibility = ["//visibility:public"])
 
-
 cc_binary(
-    name = "libtimer_component_example.so",
+    #name = "libtimer_component_example.so",
+    name = "timer_component_example",
     linkshared = True,
     linkstatic = True,
     deps = [":timer_component_example_lib"],
