@@ -20,6 +20,8 @@ BUILD_PATH=$TOPDIR/$BUILD_DIR
 BZL_VERSION=5.4.1
 
 # Remote http server site
+#REMOTE_HTTP_SERVER=http://xxx.xx.x.xxx/third_party
+#REMOTE_HTTP_SERVER=http://172.16.1.133/third_party
 REMOTE_HTTP_SERVER=http://172.16.1.133/third_party
 
 # Platforms setting
@@ -249,7 +251,7 @@ install_bazel() {
         echo $BZL_VERSION > $BUILD_PATH/bazel_tool/VERSION
     else
         info "bazel has been installed, skip"
-        #export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
+        export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         if [ "$?" = "1" ]; then
             export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         fi

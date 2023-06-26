@@ -23,7 +23,7 @@ def _tpl(repository_ctx, tpl, substitutions = {}, out = None):
         out = tpl
     repository_ctx.template(
         out,
-        Label("//third_party/py:%s.tpl" % tpl),
+        Label("//external/py:%s.tpl" % tpl),
         substitutions,
     )
 
@@ -289,11 +289,11 @@ python_configure = repository_rule(
     ],
     attrs = {
         "_build_tpl": attr.label(
-            default = Label("//third_party/py:BUILD.tpl"),
+            default = Label("//external/py:BUILD.tpl"),
             allow_single_file = True,
         ),
         "_variety_tpl": attr.label(
-            default = Label("//third_party/py:variety.tpl"),
+            default = Label("//external/py:variety.tpl"),
             allow_single_file = True,
         ),
     },
