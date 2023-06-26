@@ -6,14 +6,21 @@
 ### Guide
 - 1, go to the main directory \
 usr@localhost: # cd /path/to/mastiff 
-- 2, set the working environmentt
+- 2, set the working environmentt \
  usr@localhost: # source mstf_env.sh
 - 3, choose workspace \
  2(bzel/WORKSPACE.module.mstf)
 - 4, choose a compiler \
- 4*(gcc9.4)
+  keyboard input '4'\
+  4*(gcc9.4)
 - 5, build modules \
  usr@localhost: # ./mstf_build.sh
 - 6, choose a modules to build \
- 3(//CyberRT_tutorials/examples/timer_component_example)
+  keyboard input '3'\
+  3(//CyberRT_tutorials/examples/timer_component_example)
+- 7, test the compiled module \
+ the target is:\
+bazel-bin/CyberRT_tutorials/examples/timer_component_example
+- 8, clean the project \
+ usr@localhost: # mstf_clean.sh
 #
