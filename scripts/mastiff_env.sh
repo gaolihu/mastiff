@@ -229,7 +229,21 @@ install_bazel() {
     if [ ! -f $BUILD_PATH/bazel_tool/VERSION ] ||
         [ $BZL_VERSION != `cat $BUILD_PATH/bazel_tool/VERSION` ]; then
         info "install bazel version: $BZL_VERSION, previous: `cat $BUILD_PATH/bazel_tool/VERSION`"
-        $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
+
+        #download bazel script for linux
+        #https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-installer-linux-x86_64.sh
+        #https://github.com/bazelbuild/bazel/releases/download/6.2.1/bazel-6.2.1-installer-linux-x86_64.sh
+        #https://github.com/bazelbuild/bazel/releases/download/6.2.0/bazel-6.2.0-installer-linux-x86_64.sh
+        #https://github.com/bazelbuild/bazel/releases/download/5.4.1/bazel-5.4.1-installer-linux-x86_64.sh
+
+        if [ -e $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh]; then
+            $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
+        else
+            wget -nv $REMOTE_HTTP_SERVER/bazel/$BZL_VERSION/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
+                $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh
+            $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
+        fi
+
         export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         source $BUILD_PATH/bazel_tool//lib/bazel/bin/bazel-complete.bash
         echo $BZL_VERSION > $BUILD_PATH/bazel_tool/VERSION
