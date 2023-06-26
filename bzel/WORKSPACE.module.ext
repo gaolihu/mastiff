@@ -158,7 +158,7 @@ import_ros_workspace(
     name = "ros_ws",
     path = "@ROS_WORKSPACE@",
 )
-load("//external/ros_ws:workspace.bzl", "ros_repositories")
+load("@ros_ws//:workspace.bzl", "ros_repositories")
 ros_repositories()
 
 http_archive(
