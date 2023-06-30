@@ -1,4 +1,5 @@
-def _tst_binary_impl(ctx):
+# 1, generate file by writing string
+def _write_file_by_string_impl(ctx):
     #pass
     print("ananlyzing", ctx.label)
     print("ananlyzing", ctx.label.name)
@@ -6,18 +7,19 @@ def _tst_binary_impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(
         output = out,
-        content = "test out:\n\tHello {}!\n".format(ctx.attr.usernam) + "\t{}\n".format(ctx.attr.say),
+        content = "write string:\n\tHello {}!\n".format(ctx.attr.usernam) + "\t{}\n".format(ctx.attr.say),
     )
     return [DefaultInfo(files = depset([out]))]
 
-tst_binary = rule(
-    implementation = _tst_binary_impl,
+write_file_by_string = rule(
+    implementation = _write_file_by_string_impl,
     attrs = {
         "usernam": attr.string(),
         "say": attr.string(),
     }
 )
 
+# 2, generate file by template
 def _hello_world_impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name + ".cc")
     ctx.actions.expand_template(
@@ -32,7 +34,7 @@ def _hello_world_impl(ctx):
     print("version: ", ctx.attr.version)
     return [DefaultInfo(files = depset([out]))]
 
-hello_world = rule(
+gen_file_by_micro_template = rule(
     implementation = _hello_world_impl,
     attrs = {
         "user": attr.string(default = "unknown person"),
@@ -43,5 +45,26 @@ hello_world = rule(
         ),
     },
 )
+
+#4, genrule generate file
+def gen_file_by_macro(name, content):
+    """Generate file by bzl macro"""
+    content = "Hello %s!\n" % name + content
+
+    native.genrule(
+        name = name + "_gen",
+        outs = [name + ".txt"],
+        cmd = "echo \"%s\" > $@" % content,
+    )
+
+#5, genrule get git version
+def git_version(name, **kwargs):
+    """Get git ref version of the project"""
+
+    native.genrule(
+        name = name,
+        cmd = "git rev-parse HEAD",
+        **kwargs
+    )
 
 print("bzl for test")
