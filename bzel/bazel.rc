@@ -21,12 +21,16 @@ common --color=yes
 # Make Bazel print out all options from rc files.
 build --announce_rc
 build --show_timestamps
+build --show_progress
+build --show_loading_progress
+build --subcommands
+build --subcommands=pretty_print
 
 # Setup stderr size
 build --experimental_ui_max_stdouterr_bytes=-1
 
 # Work around the sandbox issue.
-build --spawn_strategy=standalone
+build --spawn_strategy=local
 
 # Enable colorful output of GCC
 build --cxxopt="-fdiagnostics-color=always"
@@ -59,8 +63,9 @@ build --copt="-Werror=unused-but-set-variable"
 build --copt="-Werror=switch"
 build --cxxopt="-Werror=reorder"
 
-build --cxxopt="-fPIC"
-build --copt="-fPIC"
+#build --cxxopt="-fPIC"
+#build --copt="-fPIC"
+build --force_pic
 
 # Default paths for SYSTEM LIBRARIES
 build --define=PREFIX=/usr

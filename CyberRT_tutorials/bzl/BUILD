@@ -59,5 +59,5 @@ genrule(
 # //CyberRT_tutorials/bzl:get_git_version_by_micro
 git_version(
     name = "get_git_version_by_micro",
-    outs = ["_version"],
+    outs = ["_iversion"],
 )

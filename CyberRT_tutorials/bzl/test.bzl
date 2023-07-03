@@ -7,7 +7,9 @@ def _write_file_by_string_impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(
         output = out,
-        content = "write string:\n\tHello {}!\n".format(ctx.attr.usernam) + "\t{}\n".format(ctx.attr.say),
+        content = "write string:\n\tHello {}!\n".
+        format(ctx.attr.usernam) +
+        "\t{}\n".format(ctx.attr.say),
     )
     return [DefaultInfo(files = depset([out]))]
 
