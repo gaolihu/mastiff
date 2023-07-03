@@ -1,4 +1,5 @@
 # Mastiff Bazel configuration file.
+
 # This file tries to group and simplify build options for Mastiff
 # +------------------------------------------------------------+
 # | Startup Options                                            |
@@ -19,12 +20,13 @@ common --color=yes
 # | Build Configurations                                       |
 # +------------------------------------------------------------+
 # Make Bazel print out all options from rc files.
+build --color=yes
 build --announce_rc
 build --show_timestamps
 build --show_progress
 build --show_loading_progress
-build --subcommands
-build --subcommands=pretty_print
+#build --subcommands
+#build --subcommands=pretty_print
 
 # Setup stderr size
 build --experimental_ui_max_stdouterr_bytes=-1
