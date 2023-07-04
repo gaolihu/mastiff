@@ -28,19 +28,23 @@ def _hello_world_impl(ctx):
         output = out,
         template = ctx.file.template,
         substitutions = {
-            "{NAME}": ctx.attr.user,
-            "{VERSION}": ctx.attr.version,
+            "@NAME@": ctx.attr.user,
+            "@GREETING@": ctx.attr.greeting,
         },
     )
+
     print("name: ", ctx.attr.user)
-    print("version: ", ctx.attr.version)
+    print("greeting: ", ctx.attr.greeting)
+    print("file template: ", ctx.file.template)
+    print("file out: ", out)
+
     return [DefaultInfo(files = depset([out]))]
 
 gen_file_by_micro_template = rule(
     implementation = _hello_world_impl,
     attrs = {
         "user": attr.string(default = "unknown person"),
-        "version": attr.string(mandatory = True),
+        "greeting": attr.string(mandatory = True),
         "template": attr.label(
             allow_single_file = [".cc.tpl"],
             mandatory = True,
