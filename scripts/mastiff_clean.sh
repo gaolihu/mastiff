@@ -28,12 +28,14 @@ function clean_bazel() {
 function clean_bazdir() {
     info "bazel directory clean!"
     clean_bazel
-    rm -fr ~/.cache_build/bazel
+    rm -fr ~/.cache/bazel
 }
 
 function clean_build() {
     info "build cache directory clean!"
     clean_bazdir
+
+    rm -fr $TOPDIR/.cache_build/
 
     rm -fr external/toolchain/cc_build_config.bzl
     rm -fr external/ros_ws/workspace.bzl
