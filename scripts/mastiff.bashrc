@@ -54,6 +54,10 @@ function log() {
     (echo >&2 -e "${STYLE_LMAGENTA}$*${STYLE_NORMAL}")
 }
 
+function log1() {
+    (echo >&2 -e "${STYLE_LYELLOW}$*${STYLE_NORMAL}")
+}
+
 function info() {
     (echo >&2 -e "[${STYLE_BLUE}${STYLE_BOLD}INFO${STYLE_NORMAL}] ${STYLE_LCYAN}$*${STYLE_NORMAL}")
 }

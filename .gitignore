@@ -46,7 +46,11 @@ out/
 WORKSPACE
 
 external/ros_ws/workspace.bzl
+external/slam/repositories.bzl
+external/nlohmann_json/workspace.bzl
+external/valgrind/bazel/valgrind.bzl
 external/toolchain/cc_build_config.bzl
+external/fringe_nginx/bazel/fringe_nginx.bzl
 
 .vscode/
 

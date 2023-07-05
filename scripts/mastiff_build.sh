@@ -13,13 +13,17 @@ unset TOPDIR
 TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 function choose_pkg() {
-    info "choose package to build"
+    log "\n       Witch packages to build?"
 
-    echo ${BUILD_PKG_ARRAY[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"
+    echo -e $STYLE_LRED
+    echo ${BUILD_PKG_ARRAY[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"\
+        | sed 's/^/      /g'
+
+    echo -e "\n"
 
     local INDEX
     while true; do
-        read -p " Choose a package to build [0]: " INDEX
+        read -p "       Choose package ---> : " INDEX
         INDEX=$((${INDEX:-0} - 1))
 
         if [ "$INDEX" -eq -1 ]; then
@@ -40,6 +44,7 @@ function choose_pkg() {
         error " Choice not available.  Please try again."
 
     done
+    echo -e $STYLE_NORMAL
 }
 
 function build_pkg() {
@@ -51,106 +56,85 @@ function build_pkg() {
 
 option=$1
 
+function copy_arm() {
+    cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_arm32 $PKG_R_PATH/fastrtps/fastrtps.BUILD
+    cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_arm32 $PKG_R_PATH/fastrtps/fastcdr.BUILD
+    cp $PKG_R_PATH/fastrtps/_workspace.bzl_arm32 $PKG_R_PATH/fastrtps/workspace.bzl
+    cp $PKG_R_PATH/uuid/_uuid.BUILD_arm32 $PKG_R_PATH/uuid/uuid.BUILD
+    cp $PKG_R_PATH/uuid/_workspace.bzl_arm32 $PKG_R_PATH/uuid/workspace.bzl
+}
+
+function copy_aarch() {
+    cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
+    cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
+    cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
+    cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
+    cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+}
+
+function copy_x86() {
+    cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
+    cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
+    cp $PKG_R_PATH/fastrtps/_workspace.bzl_x86_64 $PKG_R_PATH/fastrtps/workspace.bzl
+    cp $PKG_R_PATH/uuid/_uuid.BUILD_x86_64 $PKG_R_PATH/uuid/uuid.BUILD
+    cp $PKG_R_PATH/uuid/_workspace.bzl_x86_64 $PKG_R_PATH/uuid/workspace.bzl
+}
+
 function main() {
     info "Mastiff project building!"
 
-    log "\tWhich platform do you want to compile?"
-    info "options:\n\tarm32\n\taarch64\n\tx86_64 (x*)\n\tgcc9.3 (3*)\n\tgcc9.4 (4*)\n\tgcc10.3 (0*)\n\tgcc11.3 (1*)]"
+    log "\n       Which platform to compile for?"
+    echo -e $STYLE_LRED
+    echo -e "[options]:\n\tarm32 (arm)\n\tgcc6.4.1 (a*)\n\tx86_64 (x*)\n\tgcc9.3 (3*)\n\tgcc9.4 (4*)\n\tgcc10.3 (0*)\n\tgcc11.3 (1*)]\n"
 
     while true; do
-        read -t 60 -p " choose a gcc compiler " plat
+        read -t 60 -p "       Choose compiler ---> " plat
+        echo -e "\n"
         case $plat in
             arm ) info "cross compile for arm32";
                 PLAT="--config cross_arm32";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_arm32 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_arm32 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_arm32 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_arm32 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_arm32 $PKG_R_PATH/uuid/workspace.bzl
+                copy_arm
                 break;;
             [93]* ) info "cross compile for aarch64 9.3 compiler";
                 PLAT="--config cross_arm64_93";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_aarch
                 break;;
             [4]* ) info "cross compile for aarch64 9.4 compiler";
                 PLAT="--config cross_arm64_94";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_aarch
                 break;;
             [0]* ) info "cross compile for aarch64 10.3 compiler";
                 PLAT="--config cross_arm64_103";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_aarch
                 break;;
             [1]* ) info "cross compile for aarch64 11.3 compiler";
                 PLAT="--config cross_arm64_113";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
-                break;;
-            aarch ) info "cross compile for aarch64";
-                PLAT="--config cross_arm64";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_aarch
                 break;;
             [aA]* ) info "cross compile for aarch64";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_aarch64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_aarch64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_aarch64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_aarch64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_aarch
                 PLAT="--config cross_arm64";
                 break;;
             x86 ) info "cross compile for x86_64\n";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_x86_64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_x86_64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_x86_64 $PKG_R_PATH/uuid/workspace.bzl
+                copy_x86
                 PLAT="--config plat_x86";
                 break;;
             x64 ) info "cross compile for x86_64\n";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_x86_64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_x86_64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_x86_64 $PKG_R_PATH/uuid/workspace.bzl
                 PLAT="--config plat_x86";
+                copy_x86
                 break;;
             [xX]* ) info "Use default platform: x86_64\n";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_x86_64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_x86_64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_x86_64 $PKG_R_PATH/uuid/workspace.bzl
                 PLAT="--config plat_x86";
+                copy_x86
                 break;;
             * ) info "Use default x64 platform: x86 64\n";
-                cp $PKG_R_PATH/fastrtps/_fastrtps.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastrtps.BUILD
-                cp $PKG_R_PATH/fastrtps/_fastcdr.BUILD_x86_64 $PKG_R_PATH/fastrtps/fastcdr.BUILD
-                cp $PKG_R_PATH/fastrtps/_workspace.bzl_x86_64 $PKG_R_PATH/fastrtps/workspace.bzl
-                cp $PKG_R_PATH/uuid/_uuid.BUILD_x86_64 $PKG_R_PATH/uuid/uuid.BUILD
-                cp $PKG_R_PATH/uuid/_workspace.bzl_x86_64 $PKG_R_PATH/uuid/workspace.bzl
                 PLAT="--config plat_default --define defaut_arch=x86_64";
+                copy_x86
                 break;;
             [eENno]* )
                 exit;;
         esac
+        echo -e $STYLE_NORMAL
     done
 
     BUILD_PKG_ARRAY=(

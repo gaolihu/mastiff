@@ -13,7 +13,7 @@ load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
 nginx_repo()
 
 # valgrind build
-load("//tools/valgrind:bazel/valgrind.bzl", "valgrind_build")
+load("//external/valgrind:bazel/valgrind.bzl", "valgrind_build")
 valgrind_build()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")

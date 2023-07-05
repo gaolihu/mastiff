@@ -24,7 +24,7 @@ build --color=yes
 build --announce_rc
 build --show_timestamps
 build --show_progress
-build --show_loading_progress
+#build --show_loading_progress
 #build --subcommands
 #build --subcommands=pretty_print
 

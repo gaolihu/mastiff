@@ -10,7 +10,7 @@ def nginx_repo():
         sha256 = "4a49f981d4c4122f16fa8f13f16db8338f67c6731a5422d6f5690be92bd0cfd6",
         strip_prefix = "nginx_for_fringe",
         urls = [
-            "http://172.16.1.133/third_party/nginx/nginx_source_raw_balls.tar",
+            "@REMOTE_HTTP_SERVER@/nginx/nginx_source_raw_balls.tar",
         ],
     )
 

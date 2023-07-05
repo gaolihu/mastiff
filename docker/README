@@ -1,0 +1,21 @@
+1, install docker
+    sudo apt install docker.io
+
+2, restart docker service
+    sudo service docker restart
+
+3, load mstfsvr_img.tar
+    docker load -i mstfsvr_img.tar
+
+4, run mstfsvr container
+    ./start.sh 2
+
+5, get local host IP
+    ifconfig
+    (get IP)
+
+6, test file server
+    curl IP
+
+7, change mstf_env.sh
+    REMOTE_HTTP_SERVER=http://IP/third_party

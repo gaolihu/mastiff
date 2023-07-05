@@ -27,7 +27,7 @@ def cartographer_repositories():
         #strip_prefix = "rules_boost-a5a95642f6097f8949020646ffe89d7243008981",
         strip_prefix = "rules_boost_silver_star",
         urls = [
-            "http://172.16.1.133/third_party/com_github_nelhage_rules_boost/rules_boost_silver_star.tgz",
+            "@REMOTE_HTTP_SERVER@/com_github_nelhage_rules_boost/rules_boost_silver_star.tgz",
         ],
     )
 
@@ -37,7 +37,7 @@ def cartographer_repositories():
         sha256 = "2f5327a2dc9a0cc8ead93953a5d2ae2e0308aece685e46cc89c27538a7e9a73a",
         strip_prefix = "bazel_rules-c76e47ebe6f0a03b9dd99e245d5a0611813c36f9",
         urls = [
-            "http://172.16.1.133/third_party/com_github_antonovvk_bazel_rules/c76e47ebe6f0a03b9dd99e245d5a0611813c36f9.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_github_antonovvk_bazel_rules/c76e47ebe6f0a03b9dd99e245d5a0611813c36f9.tar.gz",
         ],
     )
 
@@ -47,7 +47,7 @@ def cartographer_repositories():
         sha256 = "6e16c8bc91b1310a44f3965e616383dbda48f83e8c1eaa2370a215057b00cabe",
         strip_prefix = "gflags-77592648e3f3be87d6c7123eb81cbad75f9aef5a",
         urls = [
-            "http://172.16.1.133/third_party/com_github_gflags_gflags/77592648e3f3be87d6c7123eb81cbad75f9aef5a.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_github_gflags_gflags/77592648e3f3be87d6c7123eb81cbad75f9aef5a.tar.gz",
         ],
     )
 
@@ -57,7 +57,7 @@ def cartographer_repositories():
         sha256 = "dfc074b41a5b86fc5dda4f0e2e2d6cc5b21f798c9fcc8ed5fea9c8f7c4613be6",
         strip_prefix = "glog-dd2b93d761a19860190cb3fa92066c8031e912e3",
         urls = [
-            "http://172.16.1.133/third_party/com_google_glog/dd2b93d761a19860190cb3fa92066c8031e912e3.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_google_glog/dd2b93d761a19860190cb3fa92066c8031e912e3.tar.gz",
         ],
     )
 
@@ -68,29 +68,29 @@ def cartographer_repositories():
         build_file = "//external/slam/slam_3rd:zlib.BUILD",
         strip_prefix = "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f",
         urls = [
-            "http://172.16.1.133/third_party/net_zlib_zlib/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+            "@REMOTE_HTTP_SERVER@/net_zlib_zlib/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
         ],
     )
 
     _maybe(
         http_archive,
         name = "org_cairographics_pixman",
-        build_file = "//external/slam/third_party/pixman:pixman.BUILD",
+        build_file = "//external/slam/slam_3rd/pixman/pixman:pixman.BUILD",
         sha256 = "21b6b249b51c6800dc9553b65106e1e37d0e25df942c90531d4c3997aa20a88e",
         strip_prefix = "pixman-0.34.0",
         urls = [
-            "http://172.16.1.133/third_party/org_cairographics_pixman/pixman-0.34.0.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_cairographics_pixman/pixman-0.34.0.tar.gz",
         ],
     )
 
     _maybe(
         http_archive,
         name = "org_cairographics_cairo",
-        build_file = "//external/slam/third_party/cairo:cairo.BUILD",
+        build_file = "//external/slam/slam_3rd/cairo/cairo:cairo.BUILD",
         sha256 = "7e87878658f2c9951a14fc64114d4958c0e65ac47530b8ac3078b2ce41b66a09",
         strip_prefix = "cairo-1.14.10",
         urls = [
-            "http://172.16.1.133/third_party/org_cairographics_cairo/cairo-1.14.10.tar.xz",
+            "@REMOTE_HTTP_SERVER@/org_cairographics_cairo/cairo-1.14.10.tar.xz",
         ],
     )
 
@@ -101,7 +101,7 @@ def cartographer_repositories():
         sha256 = "33a28fabac471891d0523033e99c0005b95e5618dc8ffa7fa47f9dadcacb1c9b",
         strip_prefix = "freetype-2.8",
         urls = [
-            "http://172.16.1.133/third_party/org_freetype_freetype2/freetype-2.8.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_freetype_freetype2/freetype-2.8.tar.gz",
         ],
     )
 
@@ -112,18 +112,18 @@ def cartographer_repositories():
         sha256 = "a66111c9b4a04e818e9e2a37d7ae8d4aae0939a100a36b0ffb52c706a09074b5",
         strip_prefix = "libgd-2.2.5",
         urls = [
-            "http://172.16.1.133/third_party/org_libgd_libgd/libgd-2.2.5.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_libgd_libgd/libgd-2.2.5.tar.gz",
         ],
     )
 
     _maybe(
         http_archive,
         name = "org_freedesktop_fontconfig",
-        build_file = "//external/slam/third_party/fontconfig:fontconfig.BUILD",
+        build_file = "//external/slam/slam_3rd/fontconfig/fontconfig:fontconfig.BUILD",
         sha256 = "fd5a6a663f4c4a00e196523902626654dd0c4a78686cbc6e472f338e50fdf806",
         strip_prefix = "fontconfig-2.12.4",
         urls = [
-            "http://172.16.1.133/third_party/org_freedesktop_fontconfig/fontconfig-2.12.4.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_freedesktop_fontconfig/fontconfig-2.12.4.tar.gz",
         ],
     )
 
@@ -134,7 +134,7 @@ def cartographer_repositories():
         sha256 = "ede5b4205ee8d7c7e029e9da74c7ee759fee6961f7e6bfa694274e4a55b8c7ca",
         strip_prefix = "ceres-solver-58c5edae2f7c4d2533fe8a975c1f5f0b892dfd3e",
         urls = [
-            "http://172.16.1.133/third_party/org_ceres_solver_ceres_solver/58c5edae2f7c4d2533fe8a975c1f5f0b892dfd3e.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_ceres_solver_ceres_solver/58c5edae2f7c4d2533fe8a975c1f5f0b892dfd3e.tar.gz",
         ],
     )
 
@@ -145,7 +145,7 @@ def cartographer_repositories():
         sha256 = "ca7beac153d4059c02c8fc59816c82d54ea47fe58365e8aded4082ded0b820c4",
         strip_prefix = "eigen-eigen-f3a22f35b044",
         urls = [
-            "http://172.16.1.133/third_party/org_tuxfamily_eigen/f3a22f35b044.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_tuxfamily_eigen/f3a22f35b044.tar.gz",
         ],
     )
 
@@ -156,7 +156,7 @@ def cartographer_repositories():
         sha256 = "b5dcb503e40f615a0296a18acc6d975f2f1a3d01c7b3a4b3bb69de27bc9475c3",
         strip_prefix = "libexpat-R_2_2_4/expat",
         urls = [
-            "http://172.16.1.133/third_party/com_github_libexpat_libexpat/R_2_2_4.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_github_libexpat_libexpat/R_2_2_4.tar.gz",
         ],
     )
 
@@ -167,7 +167,7 @@ def cartographer_repositories():
         sha256 = "240fd398da741669bf3c90366f58452ea59041cacc741a489b99f2f6a0bad052",
         strip_prefix = "jpeg-9b",
         urls = [
-            "http://172.16.1.133/third_party/libjpeg/jpegsrc.v9b.tar.gz",
+            "@REMOTE_HTTP_SERVER@/libjpeg/jpegsrc.v9b.tar.gz",
         ],
     )
 
@@ -178,7 +178,7 @@ def cartographer_repositories():
         sha256 = "7f415186d38ca71c23058386d7cf5135c8beda821ee1beecdc2a7a26c0356615",
         strip_prefix = "libpng-1.2.57",
         urls = [
-            "http://172.16.1.133/third_party/org_libpng_libpng/v1.2.57.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_libpng_libpng/v1.2.57.tar.gz",
         ],
     )
 
@@ -188,7 +188,7 @@ def cartographer_repositories():
         sha256 = "c18f281fd6621bb264570b99860a0241939b4a251c9b1af709b811d33bc63af8",
         strip_prefix = "googletest-e3bd4cbeaeef3cee65a68a8bd3c535cb779e9b6d",
         urls = [
-            "http://172.16.1.133/third_party/com_google_googletest/e3bd4cbeaeef3cee65a68a8bd3c535cb779e9b6d.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_google_googletest/e3bd4cbeaeef3cee65a68a8bd3c535cb779e9b6d.tar.gz",
         ],
     )
 
@@ -198,7 +198,7 @@ def cartographer_repositories():
         sha256 = "e5d90f0ec952883d56747b7604e2a15ee36e288bb556c3d0ed33e818a4d971f2",
         strip_prefix = "bazel-skylib-1.0.2",
         urls = [
-            "http://172.16.1.133/third_party/bazel_skylib/1.0.2.tar.gz",
+            "@REMOTE_HTTP_SERVER@/bazel_skylib/1.0.2.tar.gz",
         ],
     )
 
@@ -208,7 +208,7 @@ def cartographer_repositories():
         sha256 = "1c744a6a1f2c901e68c5521bc275e22bdc66256eeb605c2781923365b7087e5f",
         strip_prefix = "protobuf-3.13.0",
         urls = [
-            "http://172.16.1.133/third_party/com_google_protobuf/v3.13.0.zip",
+            "@REMOTE_HTTP_SERVER@/com_google_protobuf/v3.13.0.zip",
         ],
         repo_mapping = {"@zlib": "@net_zlib_zlib"},
     )
@@ -220,9 +220,20 @@ def cartographer_repositories():
         sha256 = "b9e2e4aad6789b3b63a056d442f7b39f0ecfca3ae0f1fc0ae4e9614401b69f4b",
         strip_prefix = "lua-5.2.4",
         urls = [
-            "http://172.16.1.133/third_party/org_lua_lua/lua-5.2.4.tar.gz",
+            "@REMOTE_HTTP_SERVER@/org_lua_lua/lua-5.2.4.tar.gz",
         ],
     )
+
+    #_maybe(
+        #http_archive,
+        #name = "com_github_grpc_grpc",
+        #sha256 = "f869c648090e8bddaa1260a271b1089caccbe735bf47ac9cd7d44d35a02fb129",
+        #strip_prefix = "grpc-1.19.1",
+        #urls = [
+            #"https://mirror.bazel.build/github.com/grpc/grpc/archive/v1.19.1.tar.gz",
+            #"https://github.com/grpc/grpc/archive/v1.19.1.tar.gz",
+        #],
+    #)
 
     _maybe(
         http_archive,
@@ -230,7 +241,7 @@ def cartographer_repositories():
         sha256 = "07a704819cb90ed619cbf1a2713ba39faab27b8898b4561cc11a3c8b3ace83ea",
         strip_prefix = "prometheus-cpp-4b11ee7a0aa7157494df06c4a324bf6d11bd0eec",
         urls = [
-            "http://172.16.1.133/third_party/com_github_jupp0r_prometheus_cpp/4b11ee7a0aa7157494df06c4a324bf6d11bd0eec.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_github_jupp0r_prometheus_cpp/4b11ee7a0aa7157494df06c4a324bf6d11bd0eec.tar.gz",
         ],
     )
 
@@ -240,7 +251,7 @@ def cartographer_repositories():
         sha256 = "83c2a27c92979787f38810adc4b6bb67aa09607c53dbadca3430a5f29e0a1cd3",
         strip_prefix = "async_grpc-771af45374af7f7bfc3b622ed7efbe29a4aba403",
         urls = [
-            "http://172.16.1.133/third_party/com_github_googlecartographer_async_grpc/771af45374af7f7bfc3b622ed7efbe29a4aba403.tar.gz",
+            "@REMOTE_HTTP_SERVER@/com_github_googlecartographer_async_grpc/771af45374af7f7bfc3b622ed7efbe29a4aba403.tar.gz",
         ],
     )
 
@@ -250,7 +261,7 @@ def cartographer_repositories():
         sha256 = "971190e9c3c074020a5627fc8c8d62a1bf65f34e76d2ab98acfec5a8a191c95c",
         strip_prefix = "abseil-cpp-master",
         urls = [
-            "http://172.16.1.133/third_party/com_google_absl/master.zip",
+            "@REMOTE_HTTP_SERVER@/com_google_absl/master.zip",
         ],
     )
 
@@ -260,7 +271,7 @@ def cartographer_repositories():
         sha256 = "e5470e92a18aa51830db99a4d9c492cc613761d5bdb7131c04bd92b9834380f6",
         strip_prefix = "rules_python-4b84ad270387a7c439ebdccfd530e2339601ef27",
         urls = [
-            "http://172.16.1.133/third_party/rules_python/4b84ad270387a7c439ebdccfd530e2339601ef27.tar.gz",
+            "@REMOTE_HTTP_SERVER@/rules_python/4b84ad270387a7c439ebdccfd530e2339601ef27.tar.gz",
         ],
     )
 

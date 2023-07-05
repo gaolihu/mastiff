@@ -23,6 +23,13 @@ function clean_bazel() {
     rm -fr $TOPDIR/mstf_clean.sh
     rm -fr $TOPDIR/WORKSPACE
     rm -fr out/
+
+    rm -fr $TOPDIR/external/ros_ws/workspace.bzl
+    rm -fr $TOPDIR/external/slam/repositories.bzl
+    rm -fr $TOPDIR/external/nlohmann_json/workspace.bzl
+    rm -fr $TOPDIR/external/valgrind/bazel/valgrind.bzl
+    rm -fr $TOPDIR/external/toolchain/cc_build_config.bzl
+    rm -fr $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
 }
 
 function clean_bazdir() {
@@ -34,17 +41,13 @@ function clean_bazdir() {
 function clean_build() {
     info "build cache directory clean!"
     clean_bazdir
-
-    rm -fr $TOPDIR/.cache_build/
-
-    rm -fr external/toolchain/cc_build_config.bzl
-    rm -fr external/ros_ws/workspace.bzl
 }
 
 function clean_all() {
-    info "totally all clean!"
+    warning "totally all clean!"
     clean_bazdir
     clean_build
+    rm -fr $TOPDIR/.cache_build/
 }
 
 function clean_dft() {
