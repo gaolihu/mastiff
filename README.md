@@ -21,7 +21,7 @@ usr@localhost: # cd /path/to/mastiff
 usr@localhost: # ./mstf_build.sh 
 - 2, choose a compiler \
   keyboard input '4'\
-  4*(gcc9.4) \
+  4 (gcc9.4) \
   ![2_20230705141602](https://github.com/gaolihu/mastiff/assets/15341193/21c3095d-3a8e-4b55-835f-7b5e577398e7)
 
 - 3, choose a modules to build \
@@ -32,6 +32,6 @@ usr@localhost: # ./mstf_build.sh
 - 4, test the compiled module \
  the target is:\
 bazel-bin/CyberRT_tutorials/examples/timer_component_example
-- 8, clean the project \
+- 5, clean the project \
  usr@localhost: # mstf_clean.sh
 #

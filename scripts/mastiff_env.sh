@@ -242,7 +242,7 @@ function install_toolchain() {
     sed -i "s#@PATH_TO_GCC_X86@#$X86_TOOL_CHAIN_DIR#g" cc_build_config.bzl
     sed -i "s#@GCC_ARCH_X86@#$X86_TOOL_CHAIN#g" cc_build_config.bzl
 
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TOPDIR/.build/tool_chains/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BUILD_PATH/tool_chains/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/lib
 
     info "check & install cross toolchains OK!"
 
