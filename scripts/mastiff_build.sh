@@ -17,13 +17,13 @@ function choose_pkg() {
 
     echo -e $STYLE_LRED
     echo ${BUILD_PKG_ARRAY[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"\
-        | sed 's/^/      /g'
+        | sed 's/^/        /g'
 
-    echo -e "\n"
+    echo -e "$STYLE_BLUE$STYLE_BOLD\n"
 
     local INDEX
     while true; do
-        read -p "       Choose package ---> : " INDEX
+        read -p "       Choose package ---> " INDEX
         INDEX=$((${INDEX:-0} - 1))
 
         if [ "$INDEX" -eq -1 ]; then
@@ -44,7 +44,7 @@ function choose_pkg() {
         error " Choice not available.  Please try again."
 
     done
-    echo -e $STYLE_NORMAL
+    echo -e "$STYLE_NORMAL"
 }
 
 function build_pkg() {
@@ -87,9 +87,11 @@ function main() {
     echo -e $STYLE_LRED
     echo -e "[options]:\n\tarm32 (arm)\n\tgcc6.4.1 (a*)\n\tx86_64 (x*)\n\tgcc9.3 (3*)\n\tgcc9.4 (4*)\n\tgcc10.3 (0*)\n\tgcc11.3 (1*)]\n"
 
+    echo -e "$STYLE_BLUE$STYLE_BOLD"
+
     while true; do
         read -t 60 -p "       Choose compiler ---> " plat
-        echo -e "\n"
+        echo -e "\n$STYLE_NORMAL"
         case $plat in
             arm ) info "cross compile for arm32";
                 PLAT="--config cross_arm32";
@@ -134,7 +136,6 @@ function main() {
             [eENno]* )
                 exit;;
         esac
-        echo -e $STYLE_NORMAL
     done
 
     BUILD_PKG_ARRAY=(

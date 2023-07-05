@@ -453,12 +453,13 @@ function choose_config() {
     log "\n       Which one would you like? [default 2]: "
     echo -e $STYLE_LRED
     echo -e ${MASTIFF_CONFIG_ARRAYS[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"\
-        | sed 's/^/      /g'
+        | sed 's/^/        /g'
 
     local INDEX
     while true; do
-        echo -e ""
+        echo -e "$STYLE_BLUE$STYLE_BOLD"
         read -p "         Choose workspace ---> " INDEX
+        echo -e "$STYLE_NORMAL"
         INDEX=$((${INDEX:-0} - 1))
 
         if [ "$INDEX" -eq -1 ]; then
@@ -474,8 +475,6 @@ function choose_config() {
 
         error "Choice not available.  Please try again."
     done
-
-    echo -e $STYLE_NORMAL
 }
 
 function install_ros() {
