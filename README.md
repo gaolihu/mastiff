@@ -6,10 +6,10 @@
 ### Users' Guide
 
 #### Environment prepare
-- 1, system ubuntu 18.04 / 20.04\
-- 2, install make, gcc, g++, wget, curl, docker\
+- 1, system ubuntu 18.04 / 20.04 \
+- 2, install make, gcc, g++, wget, curl, docker \
 - 3, go to the project main directory \
-usr@localhost: # cd /path/to/mastiff 
+usr@localhost: # cd /path/to/mastiff
 - 4, set the working environmentt \
  usr@localhost: # source mstf_env.sh
 - 5, choose workspace \
@@ -20,7 +20,7 @@ usr@localhost: # cd /path/to/mastiff
 - 1, execute the build script: mstf_build.sh \
 usr@localhost: # ./mstf_build.sh 
 - 2, choose a compiler \
-  keyboard input '4'\
+  keyboard input '4' \
   4 (gcc9.4) \
   ![2_20230705141602](https://github.com/gaolihu/mastiff/assets/15341193/21c3095d-3a8e-4b55-835f-7b5e577398e7)
 
