@@ -14,12 +14,12 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 #include "cyber/cyber.h"
 
 void MessageCallback(
-    const std::shared_ptr<apollo::cyber::examples::proto::Chatter>& msg) {
+    const std::shared_ptr<apollo::cyber::cbr_examples::proto::Chatter>& msg) {
   AINFO << "Received message seq-> " << msg->seq();
   AINFO << "msgcontent->" << msg->content();
 }
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   auto listener_node = apollo::cyber::CreateNode("listener");
   // create listener
   auto listener =
-      listener_node->CreateReader<apollo::cyber::examples::proto::Chatter>(
+      listener_node->CreateReader<apollo::cyber::cbr_examples::proto::Chatter>(
           "channel/chatter", MessageCallback);
   apollo::cyber::WaitForShutdown();
   return 0;

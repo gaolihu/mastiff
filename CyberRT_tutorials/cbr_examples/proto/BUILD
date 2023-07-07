@@ -9,36 +9,38 @@ package(default_visibility = ["//visibility:public"])
 
 
 install_files(
-    name = "cyber_examples_proto_hdrs",
+    name = "cyber_cbr_examples_proto_hdrs",
     dest = "cyber/include/proto",
     files = [
-        ":examples_cc_proto_hdrs",
+        ":cbr_examples_cc_proto_hdrs",
     ],
 )
 
 install(
-    name = "cyber_examples_proto_so",
+    name = "cyber_cbr_examples_proto_so",
     library_dest = "cyber/lib",
     targets = [
-        ":libexamples_cc_proto.so",
+        ":libcbr_examples_cc_proto.so",
     ],
 )
 
 cc_so_proto_library(
-    name = "examples_cc_proto",
+    name = "cbr_examples_cc_proto",
     srcs = [
-        ":examples_proto",
+        ":cbr_examples_proto",
     ],
 )
 
 proto_library(
-    name = "examples_proto",
-    srcs = ["examples.proto"],
+    name = "cbr_examples_proto",
+    srcs = [
+        "cbr_examples.proto"
+    ],
 )
 
 py_proto_library(
-    name = "examples_py_pb2",
+    name = "cbr_examples_py_pb2",
     deps = [
-        ":examples_proto",
+        ":cbr_examples_proto",
     ],
 )

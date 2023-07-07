@@ -15,13 +15,13 @@
  *****************************************************************************/
 
 #include "cyber/cyber.h"
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
-using apollo::cyber::examples::proto::Driver;
+using apollo::cyber::cbr_examples::proto::Driver;
 
 int main(int argc, char *argv[]) {
   // init cyber framework

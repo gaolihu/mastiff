@@ -2727,13 +2727,7 @@ def _impl_x86(ctx):
         cc_target_os = "Linux",
     )
 
-cc_mastiff_toolchain_config_arm32 = rule(
-    implementation = _impl_arm,
-    attrs = {},
-    provides = [CcToolchainConfigInfo],
-)
-
-cc_mastiff_toolchain_config_aarch64 = rule(
+cc_mastiff_toolchain_config_aarch64_641 = rule(
     implementation = _impl_aarch,
     attrs = { "disable_static_cc_toolchains" : attr.bool()},
     provides = [CcToolchainConfigInfo],
@@ -2759,6 +2753,12 @@ cc_mastiff_toolchain_config_aarch64_103 = rule(
 
 cc_mastiff_toolchain_config_aarch64_113 = rule(
     implementation = _impl_aarch113,
+    attrs = {},
+    provides = [CcToolchainConfigInfo],
+)
+
+cc_mastiff_toolchain_config_arm32 = rule(
+    implementation = _impl_arm,
     attrs = {},
     provides = [CcToolchainConfigInfo],
 )

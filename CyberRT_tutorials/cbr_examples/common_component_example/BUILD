@@ -20,7 +20,7 @@ cc_library(
     alwayslink = True,
     deps = [
         "//cyber",
-        "//CyberRT_tutorials/examples/proto:examples_cc_proto",
+        "//CyberRT_tutorials/cbr_examples/proto:cbr_examples_cc_proto",
     ],
 )
 
@@ -29,7 +29,7 @@ cc_binary(
     srcs = ["channel_test_writer.cc"],
     deps = [
         "//cyber",
-        "//CyberRT_tutorials/examples/proto:examples_cc_proto",
+        "//CyberRT_tutorials/cbr_examples/proto:cbr_examples_cc_proto",
     ],
 )
 
@@ -38,7 +38,7 @@ cc_binary(
     srcs = ["channel_prediction_writer.cc"],
     deps = [
         "//cyber",
-        "//CyberRT_tutorials/examples/proto:examples_cc_proto",
+        "//CyberRT_tutorials/cbr_examples/proto:cbr_examples_cc_proto",
     ],
 )
 
@@ -57,7 +57,7 @@ install(
     ],
     # We want to install channel_*_writer into runtime_dest
     # rather than bin/
-    runtime_dest = "CyberRT_tutorials/examples/common_component_example",
+    runtime_dest = "CyberRT_tutorials/cbr_examples/common_component_example",
     targets = [
         ":channel_prediction_writer",
         ":channel_test_writer",

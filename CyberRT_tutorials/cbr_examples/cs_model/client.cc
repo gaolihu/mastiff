@@ -1,9 +1,9 @@
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
 
-using apollo::cyber::examples::proto::Driver;
+using apollo::cyber::cbr_examples::proto::Driver;
 using apollo::cyber::Rate;
 
 int main(int argc, char* argv[])

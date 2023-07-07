@@ -16,11 +16,11 @@
 #include <memory>
 
 #include "cyber/component/component.h"
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 using apollo::cyber::Component;
 using apollo::cyber::ComponentBase;
-using apollo::cyber::examples::proto::Driver;
+using apollo::cyber::cbr_examples::proto::Driver;
 
 class CommonComponentSample : public Component<Driver, Driver> {
  public:

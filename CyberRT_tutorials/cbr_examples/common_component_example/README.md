@@ -10,7 +10,7 @@
 Or if you use Bazel directly,
 
 ```
-bazel build //CyberRT_tutorials/examples/common_component_example/...
+bazel build //CyberRT_tutorials/cbr_examples/common_component_example/...
 ```
 
 ## How to Run
@@ -27,13 +27,13 @@ export GLOG_alsologtostderr=1
 ### Start the sample component
 
 ```
-cyber_launch start CyberRT_tutorials/examples/common_component_example/common.launch
+cyber_launch start CyberRT_tutorials/cbr_examples/common_component_example/common.launch
 ```
 
 Or
 
 ```
-mainboard -d CyberRT_tutorials/examples/common_component_example/common.dag
+mainboard -d CyberRT_tutorials/cbr_examples/common_component_example/common.dag
 ```
 
 ### Start the writer nodes
@@ -41,13 +41,13 @@ mainboard -d CyberRT_tutorials/examples/common_component_example/common.dag
 Open two more terminals, run the following commands respectively.
 
 ```
-bazel run  //CyberRT_tutorials/examples/common_component_example:channel_test_writer
+bazel run  //CyberRT_tutorials/cbr_examples/common_component_example:channel_test_writer
 ```
 
 and ...
 
 ```
-bazel run //CyberRT_tutorials/examples/common_component_example:channel_prediction_writer
+bazel run //CyberRT_tutorials/cbr_examples/common_component_example:channel_prediction_writer
 ```
 
 Now you should see console output of the `CommonComponentSample` example from the first terminal.

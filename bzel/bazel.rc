@@ -1,6 +1,7 @@
 # Mastiff Bazel configuration file.
-
+#
 # This file tries to group and simplify build options for Mastiff
+#
 # +------------------------------------------------------------+
 # | Startup Options                                            |
 # +------------------------------------------------------------+
@@ -17,7 +18,7 @@ query --experimental_multi_threaded_digest=true
 common --color=yes
 
 # +------------------------------------------------------------+
-# | Build Configurations                                       |
+# | Bazel Configurations                                       |
 # +------------------------------------------------------------+
 # Make Bazel print out all options from rc files.
 build --color=yes
@@ -37,18 +38,20 @@ build --spawn_strategy=local
 # Enable colorful output of GCC
 build --cxxopt="-fdiagnostics-color=always"
 
-# Enable gdb info
-#build --cxxopt="-g"
-build --compilation_mode=dbg
-build --copt=-ggdb
-build --cxxopt=-ggdb
-#build --copt=-g
-#build --cxxopt=-g
-build --strip=always
-#build --strip=never
-
+# +------------------------------------------------------------+
+# | Gdb Configurations                                         |
+# +------------------------------------------------------------+
+build:dbg --compilation_mode=dbg
+build:dbg --copt=-ggdb
+build:dbg --cxxopt=-ggdb
+build:dbg --copt=-g
+build:dbg --cxxopt=-g
+build:dbg --strip=never
 # dbg config, as a shorthand for '--config=optimize -c dbg'
 build:dbg -c dbg
+
+build:opt --strip=always
+build:opt --compilation_mode=opt
 build:opt -c opt
 
 # Do not show warnings from external dependencies.
@@ -58,6 +61,9 @@ build --per_file_copt=external/upb/.*@-Wno-sign-compare
 build --per_file_copt=external/upb/.*@-Wno-error=stringop-truncation
 #build --per_file_copt=external/upb/.*@-Werror=stringop-truncation
 #
+# +------------------------------------------------------------+
+# | C/C++ Options                                              |
+# +------------------------------------------------------------+
 #build --copt="-Werror=sign-compare"
 build --copt="-Werror=return-type"
 build --copt="-Werror=unused-variable"
@@ -80,48 +86,58 @@ build --define=use_fast_cpp_protos=true
 build:optimize --copt=-march=native
 build:optimize --host_copt=-march=native
 
-#build --config=cross_arm64
-# cross compile for other platforms
-# aarch
-build:cross_arm64 --crosstool_top=//external/toolchain:mastiff_clang_suite_93
-build:cross_arm64 --cpu=aarch64
-build:cross_arm64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 9.3 compiler
-build:cross_arm64_93 --crosstool_top=//external/toolchain:mastiff_clang_suite_93
-build:cross_arm64_93 --cpu=aarch64_93
-build:cross_arm64_93 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 9.4 compiler
-build:cross_arm64_94 --crosstool_top=//external/toolchain:mastiff_clang_suite_94
-build:cross_arm64_94 --cpu=aarch64_94
-build:cross_arm64_94 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 10.3 compiler
-build:cross_arm64_103 --crosstool_top=//external/toolchain:mastiff_clang_suite_103
-build:cross_arm64_103 --cpu=aarch64_103
-build:cross_arm64_103 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 11.3 compiler
-build:cross_arm64_113 --crosstool_top=//external/toolchain:mastiff_clang_suite_113
-build:cross_arm64_113 --cpu=aarch64_113
-build:cross_arm64_113 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# arm32
-build:cross_arm32 --crosstool_top=//external/toolchain:mastiff_clang_suite_93
-build:cross_arm32 --cpu=arm32
-build:cross_arm32 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# x86
-build:plat_x86 --crosstool_top=//external/toolchain:mastiff_clang_suite_93
-build:plat_x86 --cpu=x86_64
-build:plat_x86 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# build:plat_x86 --linkopt=-shared
-# build:plat_x86 --cxxopt=-fPIC
-# build:plat_x86 --copt=-fPIC
-# default x64
-build:plat_default --verbose_failures
-
+# +------------------------------------------------------------+
+# | Platform Configurations                                    |
+# +------------------------------------------------------------+
+# HOST, hardware: x64, os: Linux, toolchain: gcc
+#build:host_platforms --host_platform=@bazel_tools//platforms:host_platform
+#build:platforms --platform=@bazel_tools//platforms:target_platform
 # Spectial platform setting for boost coroutie
 #build --host_platform=@bazel_tools//platforms:linux
 #build --host_platform=@bazel_tools//platforms:x86_64
 #build --platforms=@bazel_tools//platforms:linux
 #build --platforms=@bazel_tools//platforms:aarch64
 #build --platforms=@behaviour_tree//behaviour_tree:linux_aarch_64
+
+# +------------------------------------------------------------+
+# | ToolChains Configurations                                  |
+# +------------------------------------------------------------+
+# TARGET, hardware: aarch_64, os: Linux
+#build --config=cross_aarch_64
+#build --incompatible_enable_cc_toolchain_resolution
+
+# aarch 6.4.1 compiler
+build:cross_arm64_64 --cpu=aarch64 --define buildtool=gcc_aarch64_641
+build:cross_arm64_64 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_641
+build:cross_arm64_64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# aarch 9.3 compiler
+build:cross_arm64_93 --cpu=aarch64  --define buildtool=gcc_aarch64_93
+build:cross_arm64_93 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_93
+build:cross_arm64_93 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# aarch 9.4 compiler
+build:cross_arm64_94 --cpu=aarch64 --define buildtool=gcc_aarch64_94
+build:cross_arm64_94 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_94
+build:cross_arm64_94 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# aarch 10.3 compiler
+build:cross_arm64_103 --cpu=aarch64 --define buildtool=gcc_aarch64_103
+build:cross_arm64_103 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_103
+build:cross_arm64_103 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# aarch 11.3 compiler
+build:cross_arm64_113 --cpu=aarch64 --define buildtool=gcc_aarch64_113
+build:cross_arm64_113 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_113
+build:cross_arm64_113 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# arm32
+build:cross_arm32 --cpu=arm --define buildtool=gcc_arm
+build:cross_arm32 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_arm
+build:cross_arm32 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# x86
+build:plat_x86 --cpu=x86_64 --define buildtool=gcc_x64
+build:plat_x86 --crosstool_top=//external/toolchain:mastiff_gcc_suite_local
+build:plat_x86 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# build:plat_x86 --linkopt=-shared
+
+# default x64
+build:plat_default --verbose_failures
 
 # Build with profiling
 build:prof --linkopt=-lprofiler

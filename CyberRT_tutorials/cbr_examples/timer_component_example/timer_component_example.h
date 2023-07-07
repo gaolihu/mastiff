@@ -18,13 +18,13 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "cyber/component/timer_component.h"
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 using apollo::cyber::Component;
 using apollo::cyber::ComponentBase;
 using apollo::cyber::TimerComponent;
 using apollo::cyber::Writer;
-using apollo::cyber::examples::proto::Driver;
+using apollo::cyber::cbr_examples::proto::Driver;
 
 class TimerComponentSample : public TimerComponent {
  public:

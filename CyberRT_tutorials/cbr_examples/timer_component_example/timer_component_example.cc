@@ -14,11 +14,11 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "CyberRT_tutorials/examples/timer_component_example/timer_component_example.h"
+#include "CyberRT_tutorials/cbr_examples/timer_component_example/timer_component_example.h"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 bool TimerComponentSample::Init() {
   driver_writer_ = node_->CreateWriter<Driver>("/carstatus/channel");

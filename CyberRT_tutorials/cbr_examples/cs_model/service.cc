@@ -14,11 +14,11 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "CyberRT_tutorials/examples/proto/examples.pb.h"
+#include "CyberRT_tutorials/cbr_examples/proto/cbr_examples.pb.h"
 
 #include "cyber/cyber.h"
 
-using apollo::cyber::examples::proto::Driver;
+using apollo::cyber::cbr_examples::proto::Driver;
 
 int main(int argc, char* argv[]) {
   apollo::cyber::Init(argv[0]);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
-#include "CyberRT_tutorials/examples/common_component_example/common_component_example.h"
+#include "CyberRT_tutorials/cbr_examples/common_component_example/common_component_example.h"
 
 bool CommonComponentSample::Init() {
   AINFO << "Commontest component init";

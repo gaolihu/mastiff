@@ -115,22 +115,14 @@ function main() {
                 break;;
             [aA]* ) info "cross compile for aarch64";
                 copy_aarch
-                PLAT="--config cross_arm64";
-                break;;
-            x86 ) info "cross compile for x86_64\n";
-                copy_x86
-                PLAT="--config plat_x86";
-                break;;
-            x64 ) info "cross compile for x86_64\n";
-                PLAT="--config plat_x86";
-                copy_x86
+                PLAT="--config cross_arm64_64";
                 break;;
             [xX]* ) info "Use default platform: x86_64\n";
                 PLAT="--config plat_x86";
                 copy_x86
                 break;;
             * ) info "Use default x64 platform: x86 64\n";
-                PLAT="--config plat_default --define defaut_arch=x86_64";
+                PLAT="--config plat_x86";
                 copy_x86
                 break;;
             [eENno]* )
