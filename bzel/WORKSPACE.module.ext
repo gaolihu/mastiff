@@ -196,6 +196,46 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "behaviour_tree",
+    sha256 = "f9f7a16c545172a7e361cbd815be368913f730a0b20d78d9824672eba3823c46",
+    strip_prefix = "BehaviorTree.CPP-00c798977d3a22cdf27e3da8a7329c95c88aeddc",
+    urls = [
+        "https://github.com/BehaviorTree/BehaviorTree.CPP/archive/00c798977d3a22cdf27e3da8a7329c95c88aeddc.zip",
+    ],
+    build_file = "@//external/behaviour_tree:bt.BUILD",
+)
+
+http_archive(
+    name = "tinyxml2",
+    sha256 = "2fcdfa4eb1728a27c346dfff7e2788bbdb78270bd4344e7a2023359578830b10",
+    strip_prefix = "tinyxml2-e05956094c27117f989d22f25b75633123d72a83",
+    urls = [
+        "https://github.com/leethomason/tinyxml2/archive/e05956094c27117f989d22f25b75633123d72a83.zip",
+    ],
+    build_file = "@//external/tinyxml2:txml2.BUILD",
+)
+
+http_archive(
+    name = "lexy",
+    sha256 = "2548cc183c227537a244598fc000daf626343fd03c3c91d147857bfd83499769",
+    strip_prefix = "lexy-d324122c5a9311cf9fae660d126249adff66d96f",
+    urls = [
+        "https://github.com/foonathan/lexy/archive/d324122c5a9311cf9fae660d126249adff66d96f.zip",
+    ],
+    build_file = "@//external/lexy:lxy.BUILD",
+)
+
+http_archive(
+    name = "minitrace",
+    sha256 = "09b0ea8dc867e21f77d09fe15419d6291dfe6daf7399477fcd27d8dca6720a6a",
+    strip_prefix = "minitrace-a45ca4f58c8af2fc4d4d6042e68aa68bfea422c9",
+    urls = [
+        "https://github.com/hrydgard/minitrace/archive/a45ca4f58c8af2fc4d4d6042e68aa68bfea422c9.zip",
+    ],
+    build_file = "@//external/minitrace:mt.BUILD",
+)
+
 ###########################################################################################
 
 load("//@THIRDPARTY_PATH@/fastrtps:workspace.bzl", fastrtps = "repo")

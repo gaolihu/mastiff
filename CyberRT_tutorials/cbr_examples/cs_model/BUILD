@@ -26,6 +26,7 @@ cc_binary(
     deps = [
         "//cyber",
         "//CyberRT_tutorials/examples/proto:examples_cc_proto",
+        "@behaviour_tree//:bt",
     ],
 )
 
