@@ -20,8 +20,9 @@ BUILD_PATH=$TOPDIR/$BUILD_DIR
 BZL_VERSION=5.4.1
 
 # Remote http server site
-#REMOTE_HTTP_SERVER=http://xxx.xx.x.xxx/third_party
-REMOTE_HTTP_SERVER=http://10.10.3.27/third_party
+REMOTE_IP=xxx.xxx.xxx.xxx
+#REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
+REMOTE_HTTP_SERVER=""
 
 # Platforms setting
 PLAT_X64=x86_64
@@ -101,7 +102,14 @@ UUID_LIB_ARM32="$UUID_INSTALL_ARM_PATH/lib"
 ROS_PATH=$BUILD_PATH/ros/melodic/
 
 function check_remote_server() {
-    REMOTE_IP=$(echo "$REMOTE_HTTP_SERVER" | grep -oE '([0-9]*\.){3}[0-9]*')
+    if [[ "$REMOTE_IP" = "xxx.xxx.xxx.xxx" ]]; then
+        REMOTE_IP=$(echo "`ifconfig`" | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*')
+        REMOTE_IP=`echo "$REMOTE_IP" | sed -e '/127.0.0.1/d;/172.17.0.1/d'`  # localhost / docker ip
+        REMOTE_IP=`echo "$REMOTE_IP" | sed -e 's@inet @@'`
+        REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
+    fi
+
+    info "test file server, IP: $REMOTE_HTTP_SERVER"
     #ping $REMOTE_IP -c 3
 
     if [ $? -eq 0 ]; then
@@ -256,9 +264,8 @@ function install_bazel() {
         mkdir -p $BUILD_PATH/bazel_tool
     fi
 
-    if [ ! -f $BUILD_PATH/bazel_tool/VERSION ] ||
-        [ $BZL_VERSION != `cat $BUILD_PATH/bazel_tool/VERSION` ]; then
-        info "install bazel version: $BZL_VERSION, previous: `cat $BUILD_PATH/bazel_tool/VERSION`"
+    if [ ! -f $BUILD_PATH/bazel_tool/VERSION ]; then
+        info "install bazel version: $BZL_VERSION"
 
         #download bazel script for linux
         #https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-installer-linux-x86_64.sh
@@ -267,8 +274,13 @@ function install_bazel() {
         #https://github.com/bazelbuild/bazel/releases/download/5.4.1/bazel-5.4.1-installer-linux-x86_64.sh
 
         if [ -e $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh ]; then
-            $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/
+            info "bazel install locally"
+            chmod a+x $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh
+            $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
+            --prefix=$BUILD_PATH/bazel_tool/ > /dev/null
+            echo "$TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/ > /dev/null"
         else
+            info "download bazel & install"
             wget -nv $REMOTE_HTTP_SERVER/bazel/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
                 -P $TOPDIR/bzel/install/
             if [ $? -ne 0 ]; then
@@ -285,6 +297,8 @@ function install_bazel() {
         echo $BZL_VERSION > $BUILD_PATH/bazel_tool/VERSION
     else
         info "bazel has been installed, skip"
+        info " previous version: `cat $BUILD_PATH/bazel_tool/VERSION`"
+
         export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         if [ "$?" = "1" ]; then
             export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
@@ -448,6 +462,32 @@ function install_uuid() {
     fi
 }
 
+function install_ros() {
+    cd $TOPDIR
+
+    if [ ! -d $BUILD_PATH/ros ];then
+        mkdir -p $BUILD_PATH/ros
+    fi
+
+    if [ ! -d $BUILD_PATH/ros ] ||
+        [ ! -f $BUILD_PATH/ros/.ROS_READY ]; then
+        info "install melodic ros-x64 lib"
+        rm -fr $BUILD_PATH/ros
+        mkdir -p $BUILD_PATH/ros
+        cd $BUILD_PATH/ros
+        wget -nv $REMOTE_HTTP_SERVER/melodic/melodic.tar.gz
+        if [ $? -ne 0 ]; then
+            error "can not get melodic.tar.gz!"
+            return -1
+        fi
+        tar zxf melodic.tar.gz
+        info "ros path: $ROS_PATH"
+        touch $BUILD_PATH/ros/.ROS_READY
+    else
+        info "ros has been installed"
+    fi
+}
+
 function choose_config() {
     info "Mastiff ws configuration"
     log "\n       Which one would you like? [default 2]: "
@@ -475,32 +515,6 @@ function choose_config() {
 
         error "Choice not available.  Please try again."
     done
-}
-
-function install_ros() {
-    cd $TOPDIR
-
-    if [ ! -d $BUILD_PATH/ros ];then
-        mkdir -p $BUILD_PATH/ros
-    fi
-
-    if [ ! -d $BUILD_PATH/ros ] ||
-        [ ! -f $BUILD_PATH/ros/.ROS_READY ]; then
-        info "install melodic ros-x64 lib"
-        rm -fr $BUILD_PATH/ros
-        mkdir -p $BUILD_PATH/ros
-        cd $BUILD_PATH/ros
-        wget -nv $REMOTE_HTTP_SERVER/melodic/melodic.tar.gz
-        if [ $? -ne 0 ]; then
-            error "can not get melodic.tar.gz!"
-            return -1
-        fi
-        tar zxf melodic.tar.gz
-        info "ros path: $ROS_PATH"
-        touch $BUILD_PATH/ros/.ROS_READY
-    else
-        info "ros has been installed"
-    fi
 }
 
 function config_bazel_ws() {
@@ -640,6 +654,8 @@ if [ $? -eq 0 ]; then
     else
         error "toolchains install"
     fi
+else
+    error "file sever check failed!"
 fi
 
 cd $TOPDIR
