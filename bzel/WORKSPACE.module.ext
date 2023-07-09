@@ -236,6 +236,26 @@ http_archive(
     build_file = "@//external/minitrace:mt.BUILD",
 )
 
+http_archive(
+    name = "minicoro",
+    sha256 = "4f26c2dd10151353641189ba3dc815653689701c1a28f1aa531731a44550baeb",
+    strip_prefix = "minicoro-8673ca62ed938c0b436bc2a548f172865f65bf1d",
+    urls = [
+        "https://github.com/edubart/minicoro/archive/8673ca62ed938c0b436bc2a548f172865f65bf1d.zip",
+    ],
+    build_file = "@//external/minicoro:mc.BUILD",
+)
+
+http_archive(
+    name = "wildcards",
+    sha256 = "4963d5dda8b5d07deb69f6bb47476541bbf4ca58b09dd90e2a839f3ad592a403",
+    strip_prefix = "wildcards-5662507f01f5d0a4ec22f45749214276ed366d1b",
+    urls = [
+        "https://github.com/zemasoft/wildcards/archive/5662507f01f5d0a4ec22f45749214276ed366d1b.zip",
+    ],
+    build_file = "@//external/wildcards:wc.BUILD",
+)
+
 ###########################################################################################
 
 load("//@THIRDPARTY_PATH@/fastrtps:workspace.bzl", fastrtps = "repo")

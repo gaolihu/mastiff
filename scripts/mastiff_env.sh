@@ -20,9 +20,9 @@ BUILD_PATH=$TOPDIR/$BUILD_DIR
 BZL_VERSION=5.4.1
 
 # Remote http server site
-REMOTE_IP=xxx.xxx.xxx.xxx
-#REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
-REMOTE_HTTP_SERVER=""
+#REMOTE_IP=xxx.xxx.xxx.xxx
+REMOTE_IP=10.10.3.27
+REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
 
 # Platforms setting
 PLAT_X64=x86_64
@@ -109,16 +109,16 @@ function check_remote_server() {
         REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
     fi
 
-    info "test file server, IP: $REMOTE_HTTP_SERVER"
     #ping $REMOTE_IP -c 3
 
     if [ $? -eq 0 ]; then
-        wget -nv $REMOTE_HTTP_SERVER/TEST_FILE_SEVER
+        wget -q $REMOTE_HTTP_SERVER/TEST_FILE_SEVER
         if [ $? -eq 0 ]; then
             rm TEST_FILE_SEVER
+            good "server OK: $REMOTE_HTTP_SERVER"
             return 0
         else
-            error "file server($REMOTE_IP) is not available!"
+            error "server($REMOTE_IP) is not available!"
             return -1
         fi
     else
@@ -141,6 +141,9 @@ function install_toolchain() {
         fi
         cd $ARM_AARCH_6_4_TOOL_PATH
         tar xzf gcc-6.4.1-x86_64-arm-aarch64-linux-gnu.tgz
+        [[ $? -eq 0 ]] && \
+            good "install cross toolchains gcc 6.4.1 OK!" || \
+            error "install cross toolchains gcc 6.4.1 NG!"
     fi
     ARM_AARCH_6_4_TOOL_PATH=$ARM_AARCH_6_4_TOOL_PATH/gcc-6.4.1-x86_64-arm-aarch64-linux-gnu/
 
@@ -152,6 +155,9 @@ function install_toolchain() {
         fi
         cd $AARCH_9_3_TOOL_PATH
         tar xzf gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz
+        [[ $? -eq 0 ]] && \
+            good "install cross toolchains gcc 9.3 OK!" || \
+            error "install cross toolchains gcc 9.3 NG!"
     fi
     AARCH_9_3_TOOL_PATH=$AARCH_9_3_TOOL_PATH/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/
 
@@ -163,6 +169,9 @@ function install_toolchain() {
         fi
         cd $AARCH_9_4_TOOL_PATH
         tar xzf gcc-buildroot-9.4.0-2021.01-x86_64_aarch64-rockchip-linux-gnu.tgz
+        [[ $? -eq 0 ]] && \
+            good "install cross toolchains gcc 9.4 OK!" || \
+            error "install cross toolchains gcc 9.4 NG!"
     fi
     AARCH_9_4_TOOL_PATH=$AARCH_9_4_TOOL_PATH/gcc-buildroot-9.4.0-2021.01-x86_64_aarch64-rockchip-linux-gnu/
 
@@ -174,6 +183,9 @@ function install_toolchain() {
         fi
         cd $AARCH_10_3_TOOL_PATH
         tar xzf gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tgz
+        [[ $? -eq 0 ]] && \
+            good "install cross toolchains gcc 10.3 OK!" || \
+            error "install cross toolchains gcc 10.3 NG!"
     fi
     AARCH_10_3_TOOL_PATH=$AARCH_10_3_TOOL_PATH/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/
 
@@ -185,6 +197,9 @@ function install_toolchain() {
         fi
         cd $AARCH_11_3_TOOL_PATH
         tar xzf gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz
+        [[ $? -eq 0 ]] && \
+            good "install cross toolchains gcc 11.3 OK!" || \
+            error "install cross toolchains gcc 11.3 NG!"
     fi
     AARCH_11_3_TOOL_PATH=$AARCH_11_3_TOOL_PATH/gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/
 
@@ -227,28 +242,28 @@ function install_toolchain() {
 
     cd $TOPDIR/$EXTERNAL_DIR/toolchain/
 
-    cp cc_build_config.bzl.tpl cc_build_config.bzl
+    cp mastiff_build_conf.bzl.tpl cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_ARM@#$ARM_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_ARM@#$ARM_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_ARM@#$ARM_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_ARM@#$ARM_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH93@#$AARCH93_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_AARCH93@#$AARCH93_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH93@#$AARCH93_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH93@#$AARCH93_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH94@#$AARCH94_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_AARCH94@#$AARCH94_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH94@#$AARCH94_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH94@#$AARCH94_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH103@#$AARCH103_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_AARCH103@#$AARCH103_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH103@#$AARCH103_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH103@#$AARCH103_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH113@#$AARCH113_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_AARCH113@#$AARCH113_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH113@#$AARCH113_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH113@#$AARCH113_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH@#$AARCH_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_AARCH@#$AARCH64_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH@#$AARCH_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH@#$AARCH64_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_X86@#$X86_TOOL_CHAIN_DIR#g" cc_build_config.bzl
-    sed -i "s#@GCC_ARCH_X86@#$X86_TOOL_CHAIN#g" cc_build_config.bzl
+    sed -i "s#@PATH_TO_GCC_X86@#$X86_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
+    sed -i "s#@GCC_ARCH_X86@#$X86_TOOL_CHAIN#g" cc_mstf_conf.bzl
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BUILD_PATH/tool_chains/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/lib
 
@@ -277,8 +292,9 @@ function install_bazel() {
             info "bazel install locally"
             chmod a+x $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh
             $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
-            --prefix=$BUILD_PATH/bazel_tool/ > /dev/null
-            echo "$TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh --prefix=$BUILD_PATH/bazel_tool/ > /dev/null"
+                --prefix=$BUILD_PATH/bazel_tool/ > /dev/null
+            [[ $? -eq 0 ]] && good "install bazel locally OK!" || \
+                {error "install bazel locally NG" return -1}
         else
             info "download bazel & install"
             wget -nv $REMOTE_HTTP_SERVER/bazel/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
@@ -289,7 +305,9 @@ function install_bazel() {
             fi
             chmod a+x $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh
             $TOPDIR/bzel/install/bazel-$BZL_VERSION-installer-linux-x86_64.sh \
-            --prefix=$BUILD_PATH/bazel_tool/ > /dev/null
+                --prefix=$BUILD_PATH/bazel_tool/ > /dev/null
+            [[ $? -eq 0 ]] && good "install bazel OK!" || \
+                {error "install bazel NG" return -1}
         fi
 
         export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
@@ -372,7 +390,7 @@ function install_fastrtps() {
         sed -i "s#@FASTRTPS_PKG_PATH@#$FASTRTPS_INSTALL_ARM64_PATH#g" $FASTRTPS_PKG_PATH/_${EX_WORKSPACK}_$PLAT_ARM64
         sed -i "s#@FASTRTPS_PKG_PATH@#$FASTRTPS_INSTALL_ARM_PATH#g" $FASTRTPS_PKG_PATH/_${EX_WORKSPACK}_$PLAT_ARM32
 
-        info "fast rtps & cdr installed OK"
+        good "fast rtps & cdr installed OK"
     else
         info "fast rtps & cdr already OK"
     fi
@@ -437,10 +455,10 @@ function install_uuid() {
         info "start to compile x64 uuid library!"
         cd $UUID_PKG_PATH/$UUID_PKG_VERSION/$PLAT_X64
         ../configure --prefix=$UUID_INSTALL_X64_PATH > /dev/null
-        info "config uuid x86 library ok!"
+        good "config uuid x86 library ok!"
         [[ $? -eq 0 ]] && make > /dev/null && make install > /dev/null
 
-        [[ $? -eq 0 ]] && info "compile x64 uuid x86 library OK" ||
+        [[ $? -eq 0 ]] && good "compile x64 uuid x86 library OK" ||
             error "compile x86 uuid library NG"
 
         info "start to compile aarch uuid library!"
@@ -449,11 +467,11 @@ function install_uuid() {
         ../configure --prefix=$UUID_INSTALL_ARM64_PATH --host=arm-linux\
             CC=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}gcc\
             CXX=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}g++ > /dev/null
-        info "config uuid aarch library ok!"
+        good "config uuid aarch library ok!"
         [[ $? -eq 0 ]] && make > /dev/null && make install > /dev/null && touch \
             $UUID_PKG_PATH/.compiled
 
-        [[ $? -eq 0 ]] && info "compile aarch uuid library OK" ||
+        [[ $? -eq 0 ]] && good "compile aarch uuid library OK" ||
             error "compile aarch uuid library NG"
 
         info "UUID installed OK"
@@ -481,7 +499,7 @@ function install_ros() {
             return -1
         fi
         tar zxf melodic.tar.gz
-        info "ros path: $ROS_PATH"
+        good "ros install OK, path: $ROS_PATH"
         touch $BUILD_PATH/ros/.ROS_READY
     else
         info "ros has been installed"
@@ -569,45 +587,45 @@ function config_bazel_ws() {
 
     #if [ ! -f $TOPDIR/external/slam/repositories.bzl ]; then
     if [ 1 ]; then
-        info "generate project thirdparty repos"
-
         SOURCE=$(echo "$MASTIFF_BUILD_CONF" | awk '{print substr($0, 16, 12)}')
 
         if [[ "$SOURCE" = "module.mstf" ]]; then
-            warning "generate mastiff slam repos"
+            #warning "generate mastiff slam repos"
             cp $TOPDIR/external/slam/repositories.bzl.tpl $TOPDIR/external/slam/repositories.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
 
-            warning "generate mastiff nginx repos"
+            #warning "generate mastiff nginx repos"
             cp $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
 
-            warning "generate mastiff nlohmann json repos"
+            #warning "generate mastiff nlohmann json repos"
             cp $TOPDIR/external/nlohmann_json/workspace.bzl.tpl $TOPDIR/external/nlohmann_json/workspace.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/nlohmann_json/workspace.bzl
 
-            warning "generate mastiff valgrind repos"
+            #warning "generate mastiff valgrind repos"
             cp $TOPDIR/external/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/external/valgrind/bazel/valgrind.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/valgrind/bazel/valgrind.bzl
         elif [[ "$SOURCE" = "module.ext" ]]; then
-            warning "generate external slam repos"
+            #warning "generate external slam repos"
             cp $TOPDIR/external/slam/repositories1.bzl.tpl $TOPDIR/external/slam/repositories.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
 
-            warning "generate mastiff nginx repos"
+            #warning "generate mastiff nginx repos"
             cp $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
 
-            warning "generate mastiff nlohmann json repos"
+            #warning "generate mastiff nlohmann json repos"
             cp $TOPDIR/external/nlohmann_json/workspace.bzl.tpl $TOPDIR/external/nlohmann_json/workspace.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/nlohmann_json/workspace.bzl
 
-            warning "generate mastiff valgrind repos"
+            #warning "generate mastiff valgrind repos"
             cp $TOPDIR/external/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/external/valgrind/bazel/valgrind.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/valgrind/bazel/valgrind.bzl
         fi
+        good "generate thirdparty source repos OK!"
     else
-        info "$MASTIFF_BUILD_CONF not exist!!"
+        error "$MASTIFF_BUILD_CONF not exist!!"
+        return -1
     fi
 }
 

@@ -60,36 +60,12 @@ config_setting(
     values = { "cpu": "aarch64" }
 )
 
-config_setting(
-    name = "aarch64_93",
-    values = { "cpu": "aarch64_93" }
-)
-
-config_setting(
-    name = "aarch64_94",
-    values = { "cpu": "aarch64_94" }
-)
-
-config_setting(
-    name = "aarch64_103",
-    values = { "cpu": "aarch64_103" }
-)
-
-config_setting(
-    name = "aarch64_113",
-    values = { "cpu": "aarch64_113" }
-)
-
 cc_library(
     name = "swap",
     srcs = select(
         {
             "x86_64": [ "detail/swap_x86_64.S", ],
             "aarch64": [ "detail/swap_aarch64.S", ],
-            "aarch64_93": [ "detail/swap_aarch64.S", ],
-            "aarch64_94": [ "detail/swap_aarch64.S", ],
-            "aarch64_103": [ "detail/swap_aarch64.S", ],
-            "aarch64_113": [ "detail/swap_aarch64.S", ],
             "//conditions:default": [ "detail/swap_x86_64.S", ],
         },
         no_match_error = "Please Build with a Linux aarch64 or x86_64 platform",

@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-load(":cc_build_config.bzl",
+load(":cc_mstf_conf.bzl",
     "cc_mastiff_toolchain_config_aarch64_641",
     "cc_mastiff_toolchain_config_aarch64_93",
     "cc_mastiff_toolchain_config_aarch64_94",

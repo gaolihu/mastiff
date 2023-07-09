@@ -48,7 +48,7 @@ function choose_pkg() {
 }
 
 function build_pkg() {
-    info "building package: [ $BUILD_PKG ]"
+    log "       [ $BUILD_PKG ]\n"
     local BUILD_CMD="bazel build $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
     info "$BUILD_CMD"
     $BUILD_CMD
