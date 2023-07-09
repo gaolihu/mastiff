@@ -20,7 +20,7 @@ cc_library(
         "src/control_node.cpp",
         "src/controls/fallback_node.cpp",
         "src/controls/if_then_else_node.cpp",
-        "src/controls/manual_node.cpp",
+#"src/controls/manual_node.cpp",
         "src/controls/parallel_node.cpp",
         "src/controls/reactive_fallback.cpp",
         "src/controls/reactive_sequence.cpp",
