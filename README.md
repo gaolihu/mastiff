@@ -6,8 +6,11 @@
 ### Users' Guide
 
 #### Environment prepare
-- 1, system ubuntu 18.04 / 20.04 \
-- 2, install make, gcc, g++, wget, curl, docker \
+- 1, system ubuntu 18.04 / 20.04
+- 2, install make, gcc, g++, wget, curl, docker, python3 \
+usr@localhost: # sudo apt-get update \
+usr@localhost: # sudo ln -s /usr/bin/python3 /usr/bin/python \
+usr@localhost: # sudo apt-get install --reinstall build-essential
 - 3, go to the project main directory \
 usr@localhost: # cd /path/to/mastiff
 - 4, set the working environmentt \
