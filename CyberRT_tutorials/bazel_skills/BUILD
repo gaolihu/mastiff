@@ -66,7 +66,7 @@ gen_file_by_macro(
 gen_file_by_micro_template(
     name = "gen_hello_world_by_template_cc",
     user = "Lihu",
-    greeting = "Handsome",
+    greeting = "U're Handsome",
     template = ":hello.cc.tpl",
 )
 # bazel build //CyberRT_tutorials/bazel_skills:gen_hello_monkey_by_template_cc
@@ -74,7 +74,7 @@ gen_file_by_micro_template(
 gen_file_by_micro_template(
     name = "gen_hello_monkey_by_template_cc",
     user = "Tarzen",
-    greeting = "Strong",
+    greeting = "I'm Strong",
     template = ":hello.cc.tpl",
 )
 # bazel build //CyberRT_tutorials/bazel_skills:gen_hello_god_by_template_cc

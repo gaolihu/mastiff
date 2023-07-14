@@ -4,12 +4,12 @@ TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "${TOPDIR}/scripts/mastiff.bashrc"
 
 BAZEL_BUILD_OPTS="--host_force_python=PY2 --python_version=PY2 --verbose_failures --jobs 8 --spawn_strategy=standalone"
-#BAZEL_BUILD_REMOTE="--remote_cache=http://172.16.1.133/cache"
+#BAZEL_BUILD_REMOTE="--remote_cache=http://xx.xx.xx.xx/cache"
 BAZEL_BUILD_REMOTE=""
 
 PLAT=""
 
-BUILD_PROMPT=""
+BUILD_PROMPT="bazel info"
 build_prompt_arrary=()
 
 unset TOPDIR
@@ -28,7 +28,7 @@ function choose_pkg() {
 
         if [[ $sub_del != "this" ]]; then
             sub_packages[$j]="$base_pack"
-            build_prompt_arrary[$j]="bazel build"
+            build_prompt_arrary[$j]=" bazel build"
             #good "self j: $j: ${sub_packages[$j]}"
             j=$(expr $j + 1)
         fi
@@ -49,26 +49,36 @@ function choose_pkg() {
             sed "s|}||")
         sub_run_pkg=($(echo "$sub_run" | grep "$1" | sort))
         #sub_run_pkg=(`echo "$sub_run" | tr '\n' ' '`)
-        #error "${sub_run_pkg[@]}"
+
         for ((n = 0; n < ${#sub_run_pkg[@]}; n++, j++))
         do
             sub_packages[$j]="$base_pack:${sub_run_pkg[$n]}"
             build_prompt_arrary[$j]="bazel run"
-            good "run: j: $j: ${sub_packages[$j]}"
+            #good "run j: $j: ${sub_packages[$j]}"
         done
     done
 
-    echo -e $STYLE_LRED
+    echo -e $STYLE_MAGENTA
 
     for ((s = 0; s < ${#sub_packages[@]}; s++))
     do
+        if [[ ${build_prompt_arrary[$s]} == " bazel build" ]]; then
+            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+                | sed 's/^/     /g' | \
+                sed 's/~/ /g' | \
+                sed -E -e "s#^#     [DEFAULT]    [ $(expr $s + 1) ]#"
+        fi
         if [[ ${build_prompt_arrary[$s]} == "bazel build" ]]; then
             echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
-                | sed 's/^/     /g' | sed -E -e "s#^#     BUILD   [ $(expr $s + 1) ]#"
+                | sed 's/^/     /g' | \
+                sed 's/~/ /g' | \
+                sed -E -e "s#^#     [BUILD  ]    [ $(expr $s + 1) ]#"
         fi
         if [[ ${build_prompt_arrary[$s]} == "bazel run" ]]; then
             echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
-                | sed 's/^/     /g' | sed -E -e "s#^#     RUN     [ $(expr $s + 1) ]#"
+                | sed 's/^/     /g' | \
+                sed 's/~/ /g' | \
+                sed -E -e "s#^#     [RUN    ]    [ $(expr $s + 1) ]#"
         fi
     done
 
@@ -82,17 +92,17 @@ function choose_pkg() {
         if [ "$INDEX" -eq -1 ]; then
             error " Lunching for invalid configs..."
             unset BUILD_PKG
-            unset BUILD_PROMPT
 
             break;
         fi
-        if echo $INDEX | grep -vq [^0-9]; then
-            BUILD_PKG="${sub_packages[$INDEX]}"
+
+        #if echo $INDEX | grep -e -vq [^0-9]; then
+        if [[ $INDEX =~ ^[0-9]+$ ]]; then
+            BUILD_PKG=$(echo "${sub_packages[$INDEX]}" | sed 's/~/ /g')
             BUILD_PROMPT="${build_prompt_arrary[$INDEX]}"
             if [ "x$option" != x ]
             then
                 BUILD_PKG=$BUILD_PKG:$option
-                BUILD_PROMPT=$BUILD_PROMPT:$option
             fi
             [ -n "$BUILD_PKG" ] && break
         fi
