@@ -49,7 +49,7 @@ external/ros_ws/workspace.bzl
 external/slam/repositories.bzl
 external/nlohmann_json/workspace.bzl
 external/valgrind/bazel/valgrind.bzl
-external/toolchain/cc_mstf_conf.bzl
+external/toolchain/mastiff_build_conf.bzl
 external/fringe_nginx/bazel/fringe_nginx.bzl
 
 .vscode/

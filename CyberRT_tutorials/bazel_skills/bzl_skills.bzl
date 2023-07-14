@@ -1,8 +1,8 @@
 # 1, generate file by writing string
 def _write_file_by_string_impl(ctx):
     #pass
-    print("ananlyzing", ctx.label)
-    print("ananlyzing", ctx.label.name)
+    print("label: ", ctx.label)
+    print("label name: ", ctx.label.name)
 
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(
@@ -21,7 +21,18 @@ write_file_by_string = rule(
     }
 )
 
-# 2, generate file by template
+# 2, genrule generate file
+def gen_file_by_macro(name, content):
+    """Generate file by bzl macro"""
+    content = "%s\nHello !\n" % name + content
+
+    native.genrule(
+        name = name + "_gen",
+        outs = [name + ".txt"],
+        cmd = "echo \"%s\" > $@" % content,
+    )
+
+# 3, generate file by template
 def _hello_world_impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name + ".cc")
     ctx.actions.expand_template(
@@ -51,17 +62,6 @@ gen_file_by_micro_template = rule(
         ),
     },
 )
-
-#4, genrule generate file
-def gen_file_by_macro(name, content):
-    """Generate file by bzl macro"""
-    content = "Hello %s!\n" % name + content
-
-    native.genrule(
-        name = name + "_gen",
-        outs = [name + ".txt"],
-        cmd = "echo \"%s\" > $@" % content,
-    )
 
 #5, genrule get git version
 def git_version(name, **kwargs):

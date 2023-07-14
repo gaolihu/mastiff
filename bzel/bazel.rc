@@ -115,7 +115,7 @@ build:cross_arm64_93 --cpu=aarch64  --define buildtool=gcc_aarch64_93
 build:cross_arm64_93 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_93
 build:cross_arm64_93 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 # aarch 9.4 compiler
-build:cross_arm64_94 --cpu=aarch64 --define os=linux --platforms=@local_config_platform//:host
+build:cross_arm64_94 --cpu=aarch64 --platforms=@local_config_platform//:host build --host_platform=@local_config_platform//:host
 #--host_platform=//CyberRT_tutorials/bzl_test:pl_android_arm
 build:cross_arm64_94 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_94
 build:cross_arm64_94 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain

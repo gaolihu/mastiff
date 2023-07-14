@@ -242,28 +242,28 @@ function install_toolchain() {
 
     cd $TOPDIR/$EXTERNAL_DIR/toolchain/
 
-    cp mastiff_build_conf.bzl.tpl cc_mstf_conf.bzl
+    cp mastiff_build_conf.bzl.tpl mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_ARM@#$ARM_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_ARM@#$ARM_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_ARM@#$ARM_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_ARM@#$ARM_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH93@#$AARCH93_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH93@#$AARCH93_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH93@#$AARCH93_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH93@#$AARCH93_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH94@#$AARCH94_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH94@#$AARCH94_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH94@#$AARCH94_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH94@#$AARCH94_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH103@#$AARCH103_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH103@#$AARCH103_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH103@#$AARCH103_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH103@#$AARCH103_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH113@#$AARCH113_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH113@#$AARCH113_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH113@#$AARCH113_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH113@#$AARCH113_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH@#$AARCH_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH@#$AARCH64_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_AARCH@#$AARCH_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_AARCH@#$AARCH64_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_X86@#$X86_TOOL_CHAIN_DIR#g" cc_mstf_conf.bzl
-    sed -i "s#@GCC_ARCH_X86@#$X86_TOOL_CHAIN#g" cc_mstf_conf.bzl
+    sed -i "s#@PATH_TO_GCC_X86@#$X86_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
+    sed -i "s#@GCC_ARCH_X86@#$X86_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BUILD_PATH/tool_chains/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/lib
 
@@ -346,6 +346,8 @@ function install_fastrtps() {
         rm $FASTRTPS_PKG_PATH/$FASTRTPS_PKG_NAME.BUILD
         rm $FASTRTPS_PKG_PATH/$FASTCDR_PKG_NAME.BUILD
         rm $FASTRTPS_PKG_PATH/$EX_WORKSPACK
+
+        cp $TOPDIR/$EXTERNAL_DIR/$FASTRTPS_PKG_NAME/$EX_WORKSPACK $FASTRTPS_PKG_PATH/${EX_WORKSPACK}
     fi
 
     if [ ! -d $FASTRTPS_INSTALL_X64_PATH ] ||
@@ -429,6 +431,8 @@ function install_uuid() {
 
         rm $UUID_PKG_PATH/$UUID_PKG_NAME.BUILD
         rm $UUID_PKG_PATH/$EX_WORKSPACK
+
+        cp $TOPDIR/$EXTERNAL_DIR/$UUID_PKG_NAME/$EX_WORKSPACK $UUID_PKG_PATH/${EX_WORKSPACK}
     else
         info "uuid already installed"
     fi

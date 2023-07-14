@@ -28,7 +28,7 @@ function clean_bazel() {
     rm -fr $TOPDIR/external/slam/repositories.bzl
     rm -fr $TOPDIR/external/nlohmann_json/workspace.bzl
     rm -fr $TOPDIR/external/valgrind/bazel/valgrind.bzl
-    rm -fr $TOPDIR/external/toolchain/cc_mstf_conf.bzl
+    rm -fr $TOPDIR/external/toolchain/mastiff_build_conf.bzl
     rm -fr $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
 }
 

@@ -1,3 +1,59 @@
+# 1, masstiff library
+def _mstf_library_impl(ctx):
+    mstf_toolchain = ctx.toolchains["//external/toolchain:mstf_toolchain_type"]
+    print("\n" + "\n".join([
+        "mstf_library(",
+        "  name = '" + ctx.attr.name + "',",
+        "  toolchain = {",
+        "    'targetting_cpu': '" + mstf_toolchain.targetting_cpu + "',",
+        "    'targetting_os': '" + mstf_toolchain.targetting_os + "',",
+        "    'executing_on_cpu': '" + mstf_toolchain.executing_on_cpu + "',",
+        "    'executing_on_os': '" + mstf_toolchain.executing_on_os + "',",
+        "  },",
+        ")",
+    ]))
+    return []
+
+mstf_library = rule(
+    implementation = _mstf_library_impl,
+    toolchains = ["//external/toolchain:mstf_toolchain_type"],
+)
+
+# 2, masstiff toolchain
+def _mstf_toolchain_impl(ctx):
+    toolchain_info = platform_common.ToolchainInfo(
+        targetting_cpu = ctx.attr.targetting_cpu,
+        targetting_os = ctx.attr.targetting_os,
+        executing_on_cpu = ctx.attr.executing_on_cpu,
+        executing_on_os = ctx.attr.executing_on_os,
+    )
+    return [toolchain_info]
+
+mstf_toolchain = rule(
+    implementation = _mstf_toolchain_impl,
+    attrs = {
+        "targetting_cpu": attr.string(mandatory = True),
+        "targetting_os": attr.string(mandatory = True),
+        "executing_on_cpu": attr.string(mandatory = True),
+        "executing_on_os": attr.string(mandatory = True),
+    },
+)
+
+# 3, fail msgs
+def _fail_with_msg(ctx):
+    mstf_toolchain = ctx.toolchains["//external/toolchain:mstf_toolchain_type"]
+    fail(ctx.attr.msg + " Selected toolchain: " + str(mstf_toolchain) + ".")
+
+fail_with_msg = rule(
+    implementation = _fail_with_msg,
+    attrs = {
+        "msg": attr.string(mandatory = True),
+    },
+    toolchains = ["//external/toolchain:mstf_toolchain_type"],
+)
+
+"""
+####
 TOOLCHAIN_SUPPORT_MATRIX = {
     "hisi": {
         TOOLCHAIN_HOST_OS : "linux",
@@ -136,3 +192,4 @@ def generate_toolchain_suite():
             name = "compiler_suite",
             toolchains = toolchains
         )
+        """

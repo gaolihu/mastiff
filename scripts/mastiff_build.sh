@@ -9,15 +9,68 @@ BAZEL_BUILD_REMOTE=""
 
 PLAT=""
 
+BUILD_PROMPT=""
+build_prompt_arrary=()
+
 unset TOPDIR
 TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 function choose_pkg() {
     log "\n       Witch packages to build?"
 
+    local sub_packages=()
+
+    for ((i = 0, j = 0; i < $BUILD_PKG_ARRAY_LEN; i++))
+    do
+        base_pack=$(echo ${BUILD_PKG_ARRAY[i]} | xargs -n 1 | sed "N;s/\n/. /")
+
+        sub_del=$(grep -e "##BZL.DEL:" ${SUB_PKG_PATH_ARRAY[$i]} | sed 's|^##BZL.DEL:||')
+
+        if [[ $sub_del != "this" ]]; then
+            sub_packages[$j]="$base_pack"
+            build_prompt_arrary[$j]="bazel build"
+            #good "self j: $j: ${sub_packages[$j]}"
+            j=$(expr $j + 1)
+        fi
+
+        sub_build=$(grep -e "##BZL.BUILD:" ${SUB_PKG_PATH_ARRAY[$i]} | \
+            sed 's|^##BZL.BUILD:||')
+        sub_build_pkg=($(echo $sub_build | grep "$1" | sort))
+
+        for ((m = 0; m < ${#sub_build_pkg[@]}; m++, j++))
+        do
+            sub_packages[$j]="$base_pack:${sub_build_pkg[$m]}"
+            build_prompt_arrary[$j]="bazel build"
+            #good "build j: $j: ${sub_packages[$j]}"
+        done
+
+        sub_run=$(grep -e "##BZL.RUN:" ${SUB_PKG_PATH_ARRAY[$i]} | sed \
+            's|^##BZL.RUN:||' | sed "s| |~|g" | sed "s|##BZL.OPTS:{|~|" | \
+            sed "s|}||")
+        sub_run_pkg=($(echo "$sub_run" | grep "$1" | sort))
+        #sub_run_pkg=(`echo "$sub_run" | tr '\n' ' '`)
+        #error "${sub_run_pkg[@]}"
+        for ((n = 0; n < ${#sub_run_pkg[@]}; n++, j++))
+        do
+            sub_packages[$j]="$base_pack:${sub_run_pkg[$n]}"
+            build_prompt_arrary[$j]="bazel run"
+            good "run: j: $j: ${sub_packages[$j]}"
+        done
+    done
+
     echo -e $STYLE_LRED
-    echo ${BUILD_PKG_ARRAY[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"\
-        | sed 's/^/        /g'
+
+    for ((s = 0; s < ${#sub_packages[@]}; s++))
+    do
+        if [[ ${build_prompt_arrary[$s]} == "bazel build" ]]; then
+            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+                | sed 's/^/     /g' | sed -E -e "s#^#     BUILD   [ $(expr $s + 1) ]#"
+        fi
+        if [[ ${build_prompt_arrary[$s]} == "bazel run" ]]; then
+            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+                | sed 's/^/     /g' | sed -E -e "s#^#     RUN     [ $(expr $s + 1) ]#"
+        fi
+    done
 
     echo -e "$STYLE_BLUE$STYLE_BOLD\n"
 
@@ -29,14 +82,17 @@ function choose_pkg() {
         if [ "$INDEX" -eq -1 ]; then
             error " Lunching for invalid configs..."
             unset BUILD_PKG
+            unset BUILD_PROMPT
 
             break;
         fi
         if echo $INDEX | grep -vq [^0-9]; then
-            BUILD_PKG="${BUILD_PKG_ARRAY[$INDEX]}"
+            BUILD_PKG="${sub_packages[$INDEX]}"
+            BUILD_PROMPT="${build_prompt_arrary[$INDEX]}"
             if [ "x$option" != x ]
             then
                 BUILD_PKG=$BUILD_PKG:$option
+                BUILD_PROMPT=$BUILD_PROMPT:$option
             fi
             [ -n "$BUILD_PKG" ] && break
         fi
@@ -49,7 +105,7 @@ function choose_pkg() {
 
 function build_pkg() {
     log "       [ $BUILD_PKG ]\n"
-    local BUILD_CMD="bazel build $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
+    local BUILD_CMD="$BUILD_PROMPT $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
     info "$BUILD_CMD"
     $BUILD_CMD
 }
@@ -130,6 +186,22 @@ function main() {
         esac
     done
 
+    SUB_PKG_PATH_ARRAY=(
+        $(cd $TOPDIR; \
+        find . -name BUILD |\
+        sed  "/.build/d" |
+        sed  "/.bzel/d" |
+        sed  "/.cache/d" |
+        sed  "/.cache_build/d" |
+        sed  "/.build_cache/d" |
+        sed  "/proto/d" |
+        sed  "/cyber/d" |
+        sed  "/tools/d" |
+        sed  "/docker/d" |
+        sed  "/cartographer_ros_msgs/d" |
+        sed  "/external/d" |
+        grep "$1" | sort)
+    )
     BUILD_PKG_ARRAY=(
         $(cd $TOPDIR; \
         find . -name BUILD |\
