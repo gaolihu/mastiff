@@ -16,7 +16,7 @@ unset TOPDIR
 TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 function choose_pkg() {
-    log "       Which packages to build?"
+    log "       Which package to build?"
 
     local sub_packages=()
 

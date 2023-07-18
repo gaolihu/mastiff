@@ -6,7 +6,8 @@ source ${TOPDIR}/scripts/mastiff.bashrc
 
 RTPS_LIB=$TOPDIR/.cache_build/external/fastrtps/x86_64/fast-rtps-1.5.0-1/lib
 UUID_LIB=$TOPDIR/.cache_build/external/uuid/libuuid-1.0.3/x86_64//lib/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$UUID_LIB:$RTPS_LIB
+CBR_LIB=$TOPDIR/bazel-bin/cyber/proto/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$UUID_LIB:$RTPS_LIB:$CBR_LIB
 
 cd `find . -maxdepth 1 -name "cyber"`
 export CYBER_PATH=`realpath .`
