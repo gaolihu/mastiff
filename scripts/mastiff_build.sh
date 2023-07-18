@@ -151,7 +151,7 @@ function main() {
 
     log "\n       Which platform to compile for?"
     echo -e $STYLE_LRED
-    echo -e "[options]:\n\tarm32 (arm)\n\tgcc6.4.1 (a*)\n\tx86_64 (x*)\n\tgcc9.3 (3*)\n\tgcc9.4 (4*)\n\tgcc10.3 (0*)\n\tgcc11.3 (1*)]"
+    echo -e "[options]:\n\t(arm) arm32\n\t(a*) gcc6.4.1\n\t(x*) x86_64\n\t(3*) gcc9.3\n\t(4*) gcc9.4\n\t(0*) gcc10.3\n\t(1*) gcc11.3]"
 
     echo -e "$STYLE_BLUE$STYLE_BOLD"
 
