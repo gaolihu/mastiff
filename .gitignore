@@ -118,3 +118,4 @@ tools/FlameGraph
 # Link files
 mstf_build.sh
 mstf_clean.sh
+mstf_x86_run.sh

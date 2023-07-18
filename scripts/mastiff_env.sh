@@ -20,8 +20,8 @@ BUILD_PATH=$TOPDIR/$BUILD_DIR
 BZL_VERSION=5.4.1
 
 # Remote http server site
-REMOTE_IP=xxx.xxx.xxx.xxx
-#REMOTE_IP=10.10.3.27
+#REMOTE_IP=xxx.xxx.xxx.xxx
+REMOTE_IP=10.10.3.27
 REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
 
 # Platforms setting
@@ -66,6 +66,10 @@ fi
 
 if [ ! -L $TOPDIR/mstf_clean.sh ]; then
     ln -fs $TOPDIR/scripts/mastiff_clean.sh mstf_clean.sh
+fi
+
+if [ ! -L $TOPDIR/mstf_x86_run.sh ]; then
+    ln -fs $TOPDIR/scripts/mastiff_run.sh mstf_x86_run.sh
 fi
 
 PKG_R_PATH=$BUILD_DIR/$EXTERNAL_DIR
