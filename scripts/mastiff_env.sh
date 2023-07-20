@@ -21,6 +21,12 @@ BZL_VERSION=5.4.1
 
 # Remote http server site
 REMOTE_IP=xxx.xxx.xxx.xxx
+
+if [ -f /.dockerenv ]; then
+    REMOTE_IP=172.17.0.2
+    info "project for docker environment"
+fi
+
 #REMOTE_IP=10.10.3.27
 REMOTE_HTTP_SERVER=http://$REMOTE_IP/third_party
 
@@ -319,7 +325,7 @@ function install_bazel() {
         echo $BZL_VERSION > $BUILD_PATH/bazel_tool/VERSION
     else
         info "bazel has been installed, skip"
-        info " previous version: `cat $BUILD_PATH/bazel_tool/VERSION`"
+        info "previous version: `cat $BUILD_PATH/bazel_tool/VERSION`"
 
         export PATH=$PATH:$BUILD_PATH/bazel_tool/bin/
         if [ "$?" = "1" ]; then
