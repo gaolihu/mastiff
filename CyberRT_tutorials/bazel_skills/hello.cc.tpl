@@ -1,4 +1,5 @@
-// Test for template
+// Package: @PACKAGE@
+// @WARNING@
 
 #include <cstdio>
 

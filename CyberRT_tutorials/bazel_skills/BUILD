@@ -3,28 +3,7 @@
 #
 
 ##BZL.DEL:this
-
-##BZL.BUILD:write_file_by_write_string.txt
-##BZL.BUILD:write_file_by_bzl_macro_gen
-##BZL.BUILD:gen_hello_world_by_template_cc
-##BZL.BUILD:gen_hello_monkey_by_template_cc
-##BZL.BUILD:gen_hello_god_by_template_cc
-##BZL.BUILD:gen_file_by_genrule
-##BZL.BUILD:gen_file_by_cmd_in_build
-
-##BZL.RUN:hello_by_template_bin
-##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c opt}
-##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c dbg}
-##BZL.RUN:hello_by_template_bin##BZL.OPTS:{--define foo=bar -c dbg}
-##BZL.RUN:my_rocks
-##BZL.RUN:your_rocks
-##BZL.RUN:sh_arm_lib
-##BZL.RUN:sh_x86_dev_lib
-##BZL.RUN:sh_generic_lib
-##BZL.RUN:arm_lib
-##BZL.RUN:x86_dev_lib
-##BZL.RUN:generic_lib
-##BZL.RUN:mybinary
+#BZL.DEL:all
 
 load("@rules_cc//cc:defs.bzl",
      "cc_library",
@@ -33,101 +12,83 @@ load("@rules_cc//cc:defs.bzl",
 
 load(":bzl_skills.bzl",
      "write_file_by_string",
-     "gen_file_by_micro_template",
+     "gen_cc_by_template",
      "gen_file_by_macro",
      "git_version")
 
 package(default_testonly = True)
 
-print("BUILD for bazel skills tutorial")
+print("BUILD file for bazel tutorials")
 
 ###### ======================  1, generate file by writing string ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:write_file_by_write_string.txt
+##BZL.BUILD:write_file_by_write_string.txt
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/write_file_by_write_string.txt
 write_file_by_string(
     name = "write_file_by_write_string.txt",
-    usernam = "Lihu",
+    usr = "Lihu",
     say = "Are U OK?"
 )
 ###### ======================  1, generate file by writing string ====================== ######
 
-###### ====================== 2, write file by bzl macro ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:write_file_by_bzl_macro_gen
+###### ====================== 2, write file by bzl native macro ====================== ######
+##BZL.BUILD:write_file_by_bzl_macro.txt
+# write_file_by_bzl_macro_gen
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/write_file_by_bzl_macro.txt
 gen_file_by_macro(
     name = "write_file_by_bzl_macro",
-    content = "Hi Monkey, Get Funky!",
+    usr = "Tarzen",
+    say = "Hi Monkey, Get Funky!",
 )
-###### ====================== 2, write file by bzl macro ====================== ######
+###### ====================== 2, write file by bzl native macro ====================== ######
 
 ###### ====================== 3, generate file by template ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:gen_hello_world_by_template_cc
+##BZL.BUILD:gen_hello_world_by_template_cc
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/gen_hello_world_by_template_cc.cc
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_hello_world_by_template_cc",
     user = "Lihu",
     greeting = "U're Handsome",
     template = ":hello.cc.tpl",
 )
-# bazel build //CyberRT_tutorials/bazel_skills:gen_hello_monkey_by_template_cc
+##BZL.BUILD:gen_hello_monkey_by_template_cc
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/gen_hello_monkey_by_template_cc.cc
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_hello_monkey_by_template_cc",
     user = "Tarzen",
     greeting = "I'm Strong",
     template = ":hello.cc.tpl",
 )
-# bazel build //CyberRT_tutorials/bazel_skills:gen_hello_god_by_template_cc
+##BZL.BUILD:gen_hello_god_by_template_cc
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/gen_hello_god_by_template_cc.cc
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_hello_god_by_template_cc",
     user = "God",
     greeting = "All men are created equal",
     template = ":hello.cc.tpl",
 )
-config_setting(
-    name = "gen_hello_world",
-    values = {
-        #"cpu": "x86_64", #--cpu x86_64
-        "compilation_mode": "opt", #-c opt
-        #"force_pic": "false", #--noforce_pic
-    },
-)
-config_setting(
-    name = "gen_hello_monkey",
-    values = {
-        #"cpu": "aarch64_94", #--cpu aarch64_94
-        "compilation_mode": "dbg", #-c dbg
-        #"force_pic": "true", #--force_pic=1
-        "define": "foo=bar", #--define foo=bar
-    },
-)
-# bazel run //CyberRT_tutorials/bazel_skills:hello_by_template_bin -c opt
-# bazel run //CyberRT_tutorials/bazel_skills:hello_by_template_bin -c dbg
-# bazel run //CyberRT_tutorials/bazel_skills:hello_by_template_bin --define foo=bar  -c dbg
-# bazel run //CyberRT_tutorials/bazel_skills:hello_by_template_bin
-cc_binary(
-    name = "hello_by_template_bin",
-    srcs = select({
-        "gen_hello_world" : [":gen_hello_world_by_template_cc"], #gen_hello_world_by_template_cc.cc
-        "gen_hello_monkey" : [":gen_hello_monkey_by_template_cc"], #gen_hello_monkey_by_template_cc.cc
-        "//conditions:default": [":gen_hello_god_by_template_cc"], #gen_hello_god_by_template_cc.cc
-    }),
-)
 ###### ====================== 3, generate file by template ====================== ######
 
 ###### ====================== 4, generate file by genrule in BUILD ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:gen_file_by_genrule
-#cat bazel-bin/CyberRT_tutorials/bazel_skills/gen_file_by_genrule.txt
+##BZL.BUILD:gen_file_by_genrule
+# gen_file_by_genrule.txt
+# cat bazel-bin/CyberRT_tutorials/bazel_skills/gen_file_by_genrule.txt
 genrule(
     name = "gen_file_by_genrule",
     outs = ["gen_file_by_genrule.txt"],
     cmd = "echo \"Hello World!\ngenerated by genrule!\" > $@",
 )
+
+##BZL.RUN:gen_file_by_genrule_show
+sh_binary(
+    name = "gen_file_by_genrule_show",
+    srcs = [
+        "test_sh/echo.sh",
+    ],
+)
 ###### ====================== 4, generate file by genrule in BUILD ====================== ######
 
 ###### ====================== 5, write file by bzl macro ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:gen_file_by_cmd_in_build
+##BZL.BUILD:gen_file_by_cmd_in_build
 # cat bazel-bin/CyberRT_tutorials/bazel_skills/_version
 # TODO, cd directory error, FIXME 
 genrule(
@@ -151,15 +112,44 @@ git_version(
 ###### ====================== 6, get git version by bzl macro ====================== ######
 
 ###### ====================== 7, platform constraint ====================== ######
-# bazel run //CyberRT_tutorials/bazel_skills:my_rocks
-# bazel run //CyberRT_tutorials/bazel_skills:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:basalt_platform
-# bazel run //CyberRT_tutorials/bazel_skills:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
+config_setting(
+    name = "gen_hello_world",
+    values = {
+        #"cpu": "x86_64", #--cpu x86_64
+        "compilation_mode": "opt", #-c opt
+        #"force_pic": "false", #--noforce_pic
+    },
+)
+config_setting(
+    name = "gen_hello_monkey",
+    values = {
+        #"cpu": "aarch64_94", #--cpu aarch64_94
+        "compilation_mode": "dbg", #-c dbg
+        #"force_pic": "true", #--force_pic=1
+        "define": "foo=bar", #--define foo=bar
+    },
+)
+##BZL.RUN:hello_by_template_bin
+##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c opt}
+##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c dbg}
+##BZL.RUN:hello_by_template_bin##BZL.OPTS:{--define foo=bar -c dbg}
+cc_binary(
+    name = "hello_by_template_bin",
+    srcs = select({
+        "gen_hello_world" : [":gen_hello_world_by_template_cc"], #gen_hello_world_by_template_cc.cc
+        "gen_hello_monkey" : [":gen_hello_monkey_by_template_cc"], #gen_hello_monkey_by_template_cc.cc
+        "//conditions:default": [":gen_hello_god_by_template_cc"], #gen_hello_god_by_template_cc.cc
+    }),
+)
+##BZL.RUN:my_rocks
+##BZL.RUN:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:basalt_platform
+##BZL.RUN:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
 sh_binary(
     name = "my_rocks",
     srcs = select({
-        ":basalt": ["pyroxene.sh"],
-        ":marble": ["calcite.sh"],
-        "//conditions:default": ["feldspar.sh"],
+        ":basalt": ["test_sh/pyroxene.sh"],
+        ":marble": ["test_sh/calcite.sh"],
+        "//conditions:default": ["test_sh/feldspar.sh"],
     }),
 )
 
@@ -207,55 +197,56 @@ platform(
 )
 
 # choose directly by reading constraint_value s
-# bazel run //CyberRT_tutorials/bazel_skills:your_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
-# bazel run //CyberRT_tutorials/bazel_skills:your_rocks --platforms=//CyberRT_tutorials/bazel_skills:basalt_platform
+##BZL.RUN:your_rocks
+##BZL.RUN:your_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
+##BZL.RUN:your_rocks --platforms=//CyberRT_tutorials/bazel_skills:basalt_platform
 sh_binary(
     name = "your_rocks",
     srcs = select({
-        ":igneous": ["igneous.sh"],
-        ":metamorphic": ["metamorphic.sh"],
+        ":igneous": ["test_sh/igneous.sh"],
+        ":metamorphic": ["test_sh/metamorphic.sh"],
     }),
 )
 ###### ====================== 7, platform constraint ====================== ######
 
 ###### ====================== 8, Configurable attributes ====================== ######
-# bazel run //CyberRT_tutorials/bazel_skills:sh_arm_lib
+##BZL.RUN:sh_arm_lib
 sh_binary(
     name = "sh_arm_lib",
     srcs = [
-        "arm_lib.sh",
+        "test_sh/arm_lib.sh",
     ],
 )
-# bazel run //CyberRT_tutorials/bazel_skills:sh_x86_dev_lib
+##BZL.RUN:sh_x86_dev_lib
 sh_binary(
     name = "sh_x86_dev_lib",
     srcs = [
-        "x86_dev_lib.sh",
+        "test_sh/x86_dev_lib.sh",
     ],
 )
-# bazel run //CyberRT_tutorials/bazel_skills:sh_generic_lib
+##BZL.RUN:sh_generic_lib
 sh_binary(
     name = "sh_generic_lib",
     srcs = [
-        "generic_lib.sh",
+        "test_sh/generic_lib.sh",
     ],
 )
 
-# bazel run //CyberRT_tutorials/bazel_skills:arm_lib
+##BZL.RUN:arm_lib
 cc_library(
     name = "arm_lib",
     srcs = [
         "gen_hello_world_by_template_cc",
     ],
 )
-# bazel run //CyberRT_tutorials/bazel_skills:x86_dev_lib
+##BZL.RUN:x86_dev_lib
 cc_library(
     name = "x86_dev_lib",
     srcs = [
         "gen_hello_monkey_by_template",
     ],
 )
-# bazel run //CyberRT_tutorials/bazel_skills:generic_lib
+##BZL.RUN:generic_lib
 cc_library(
     name = "generic_lib",
     srcs = [
@@ -319,6 +310,7 @@ platform(
     ],
 )
 
+##BZL.RUN:mybinary
 # bazel run //CyberRT_tutorials/bazel_skills:mybinary
 # bazel run //CyberRT_tutorials/bazel_skills:mybinary --define exec_arch=aarm
 # bazel run //CyberRT_tutorials/bazel_skills:mybinary --define exec_arch=xx64
@@ -489,7 +481,7 @@ platform(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_linux_arm_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_linux_arm_hello_world_by_template",
     #generate gen_linux_arm_hello_world_by_template.c
     user = "ARM",
@@ -498,7 +490,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_linux_ppc_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_linux_ppc_hello_world_by_template",
     #generate gen_linux_ppc_hello_world_by_template.c
     user = "PPC",
@@ -507,7 +499,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_linux_aarch64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_linux_aarch64_hello_world_by_template",
     #generate gen_linux_aarch64_hello_world_by_template.c
     user = "AARCH64",
@@ -516,7 +508,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_linux_x86_64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_linux_x86_64_hello_world_by_template",
     #generate gen_linux_x86_64_hello_world_by_template.c
     user = "X64",
@@ -525,7 +517,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_osx_aarch64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_osx_aarch64_hello_world_by_template",
     #generate gen_osx_aarch64_hello_world_by_template.c
     user = "AARCH64",
@@ -534,7 +526,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_osx_x86_64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_osx_x86_64_hello_world_by_template",
     #generate gen_osx_x86_64_hello_world_by_template.c
     user = "X64",
@@ -543,7 +535,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_windows_x86_64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_windows_x86_64_hello_world_by_template",
     #generate gen_windows_x86_64_hello_world_by_template.c
     user = "X64",
@@ -552,7 +544,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_android_arm_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_android_arm_hello_world_by_template",
     #generate gen_android_arm_hello_world_by_template.c
     user = "ARM",
@@ -561,7 +553,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_android_aarch64_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_android_aarch64_hello_world_by_template",
     #generate gen_android_aarch64_hello_world_by_template.c
     user = "AARCH64",
@@ -570,7 +562,7 @@ gen_file_by_micro_template(
 )
 
 # bazel build //CyberRT_tutorials/bazel_skills:gen_xx_xxx_hello_world_by_template
-gen_file_by_micro_template(
+gen_cc_by_template(
     name = "gen_xx_xxx_hello_world_by_template",
     #generate gen_xx_xxx_hello_world_by_template.c
     user = "ARCH Unkown",
@@ -633,16 +625,16 @@ config_setting(
 )
 sh_binary(
     name = "my_target",
-    srcs = ["always_include.sh"] +
+    srcs = ["test_sh/always_include.sh"] +
     select({
-        ":x86_mode": ["x86_src.sh"],
-        ":armeabi_mode": ["armeabi_src.sh"],
+        ":x86_mode": ["test_sh/x86_src.sh"],
+        ":armeabi_mode": ["test_sh/armeabi_src.sh"],
     },
     no_match_error = "Please build with x86 or arm platform",
     ) +
     select({
-        ":opt_mode": ["opt_extras.sh"],
-        ":dbg_mode": ["dbg_extras.sh"],
+        ":opt_mode": ["test_sh/opt_extras.sh"],
+        ":dbg_mode": ["test_sh/dbg_extras.sh"],
     },
     no_match_error = "Please build with an opt or debug param",
     ),
