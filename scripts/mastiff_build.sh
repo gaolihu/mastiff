@@ -208,7 +208,7 @@ function choose_pkg() {
 
 function build_pkg() {
     log "       [ $BUILD_PKG ]\n"
-    local BUILD_CMD="$BUILD_PKG $BUILD_PROMPT $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
+    local BUILD_CMD="$BUILD_PKG $BUILD_PROMPT $PLAT $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
     info "$BUILD_CMD"
     $BUILD_CMD
 }
