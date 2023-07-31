@@ -9,82 +9,166 @@ BAZEL_BUILD_REMOTE=""
 
 PLAT=""
 
+PKG_RUN_CMD="##BZL.RUN:"
+PKG_BUILD_CMD="##BZL.BUILD:"
+PKG_BUILD_OPTS="##BZL.OPTS:"
+PKG_DELETE_DFT_CMD="##BZL.RUN:"
+PKG_DELETE_DFT_CMD="##BZL.RUN:"
+
 BUILD_PROMPT="bazel info"
-build_prompt_arrary=()
 
 unset TOPDIR
 TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
+function parse_sub_build() {
+    sub_builds=$(grep -e "##BZL.BUILD:" ${SUB_PKG_PATH_ARRAY[$i]} | \
+        sed 's|^##BZL.BUILD:||')
+    sub_builds_seq=$(grep -n "##BZL.BUILD:" ${SUB_PKG_PATH_ARRAY[$i]} | \
+        sed 's|:##BZL.BUILD:||')
+    sub_build_array=($(echo $sub_builds | grep "$1" | sort))
+    sub_build_seq_array=($(echo $sub_builds_seq | grep "$1" | sort))
+
+    for ((m = 0; m < ${#sub_build_array[@]}; m++, j++))
+    do
+        sub_build_seq_array[$m]=$(echo ${sub_build_seq_array[$m]} | \
+            sed "s|${sub_build_array[$m]}||")
+
+        sub_build_packages_array[$m]="$base_pkg:${sub_build_array[$m]}"
+        sub_build_packages_array[$m]="bazel~build~${sub_build_packages_array[m]}"
+    done
+
+    #if [ $m -eq 0 ]; then
+        #warning "no packges for building in ${SUB_PKG_PATH_ARRAY[$i]}"
+    #fi
+}
+
+function parse_sub_run() {
+    sub_runs=$(grep -e "##BZL.RUN:" ${SUB_PKG_PATH_ARRAY[$i]} | sed \
+        's|^##BZL.RUN:||' | sed "s| |~|g" | sed "s|##BZL.OPTS:{|~|" | \
+        sed "s|}||")
+    sub_runs_seq=$(grep -n "##BZL.RUN:" ${SUB_PKG_PATH_ARRAY[$i]} | sed \
+        's|:##BZL.RUN:||' | sed "s| |~|g" | sed "s|##BZL.OPTS:{|~|" | \
+        sed "s|}||")
+    sub_run_pkg_array=($(echo "$sub_runs" | grep "$1"))
+    sub_run_pkg_seq_array=($(echo "$sub_runs_seq" | grep "$1"))
+
+    for ((n = 0; n < ${#sub_run_pkg_array[@]}; n++, j++))
+    do
+        sub_run_pkg_seq_array[$n]=$(echo ${sub_run_pkg_seq_array[$n]} | \
+            sed "s|${sub_run_pkg_array[$n]}||")
+
+        sub_run_packages_array[n]="$base_pkg:${sub_run_pkg_array[$n]}"
+        sub_run_packages_array[n]="bazel~run~${sub_run_packages_array[n]}"
+    done
+
+    #if [ $n -eq 0 ]; then
+        #warning "no packges for running in ${SUB_PKG_PATH_ARRAY[$i]}"
+    #fi
+}
+
 function choose_pkg() {
     log "       Which package to build?"
 
-    local sub_packages=()
+    local m
+    local n
+    local r
+    local t
+    local o
+
+    local ranked_cmd_and_package=()
+    local sub_run_packages_array=()
+    local sub_build_packages_array=()
 
     for ((i = 0, j = 0; i < $BUILD_PKG_ARRAY_LEN; i++))
     do
-        base_pack=$(echo ${BUILD_PKG_ARRAY[i]} | xargs -n 1 | sed "N;s/\n/. /")
+        base_pkg=$(echo ${BUILD_PKG_ARRAY[i]} | xargs -n 1 | sed "N;s/\n/. /")
 
-        sub_del=$(grep -e "##BZL.DEL:" ${SUB_PKG_PATH_ARRAY[$i]} | sed 's|^##BZL.DEL:||')
+        sub_del_all=$(grep -e "##BZL.DEL:all" ${SUB_PKG_PATH_ARRAY[$i]})
+        sub_del_this=$(grep -e "##BZL.DEL:this" ${SUB_PKG_PATH_ARRAY[$i]})
 
-        if [[ $sub_del == "all" ]]; then
+        if [[ $sub_del_all ]]; then
             #delet all of the modules
             info "ignore all modules in: ${SUB_PKG_PATH_ARRAY[$i]}"
         else
             #partial delete
-            if [[ $sub_del == "this" ]]; then
-                #delet default module
+            if [[ $sub_del_this ]]; then
+                #delete default module
                 info "delete default module in: ${SUB_PKG_PATH_ARRAY[$i]}"
             else
-                #enable all modules
-                sub_packages[$j]="$base_pack"
-                build_prompt_arrary[$j]=" bazel build"
-                #good "1, self j: $j: ${sub_packages[$j]}"
+                #enable default module
+                ranked_cmd_and_package[$j]="bazel~~build~$base_pkg"
+                #good "[DFT] $j: ${ranked_cmd_and_package[$j]}"
                 j=$(expr $j + 1)
             fi
 
-            sub_build=$(grep -e "##BZL.BUILD:" ${SUB_PKG_PATH_ARRAY[$i]} | \
-                sed 's|^##BZL.BUILD:||')
-            sub_build_pkg=($(echo $sub_build | grep "$1" | sort))
+            parse_sub_run
+            parse_sub_build
 
-            for ((m = 0; m < ${#sub_build_pkg[@]}; m++, j++))
+            o=$(expr $m + $n)
+            r=$(expr $j - $o)
+
+            #good "${SUB_PKG_PATH_ARRAY[$i]}, from: $r, build: $m, run: $n, loop: $t, all: $o, ALL: $j"
+
+            ty=0 #build queue idx
+            tx=0 #run queue idx
+
+            for ((; r < o; r++))
             do
-                sub_packages[$j]="$base_pack:${sub_build_pkg[$m]}"
-                build_prompt_arrary[$j]="bazel build"
-                #good "2, build j: $j: ${sub_packages[$j]}"
+                if [ ! ${sub_run_pkg_seq_array[$tx]} ]; then
+                    ranked_cmd_and_package[r]=${sub_build_packages_array[ty]}
+                    #good "RUN2, tx($tx): r($r), ${ranked_cmd_and_package[r]}"
+                    ty=$(expr $ty + 1)
+                    continue
+                fi
+
+                if [ ! ${sub_build_seq_array[$ty]} ]; then
+                    ranked_cmd_and_package[r]=${sub_run_packages_array[tx]}
+                    #good "BUILD2, ty($ty): r($r), ${ranked_cmd_and_package[r]}"
+                    tx=$(expr $tx + 1)
+                    continue
+                fi
+
+                if [ ${sub_run_pkg_seq_array[$tx]} -lt ${sub_build_seq_array[$ty]} ]; then
+                    ranked_cmd_and_package[r]=${sub_run_packages_array[tx]}
+                    #good "RUN1, tx($tx): r($r), ${ranked_cmd_and_package[r]}"
+                    tx=$(expr $tx + 1)
+                else
+                    ranked_cmd_and_package[r]=${sub_build_packages_array[ty]}
+                    #good "BUILD1, ty($ty): r($r), ${ranked_cmd_and_package[r]}"
+                    ty=$(expr $ty + 1)
+                fi
             done
 
-            sub_run=$(grep -e "##BZL.RUN:" ${SUB_PKG_PATH_ARRAY[$i]} | sed \
-                's|^##BZL.RUN:||' | sed "s| |~|g" | sed "s|##BZL.OPTS:{|~|" | \
-                sed "s|}||")
-            sub_run_pkg=($(echo "$sub_run" | grep "$1" | sort))
-            #sub_run_pkg=(`echo "$sub_run" | tr '\n' ' '`)
-
-            for ((n = 0; n < ${#sub_run_pkg[@]}; n++, j++))
-            do
-                sub_packages[$j]="$base_pack:${sub_run_pkg[$n]}"
-                build_prompt_arrary[$j]="bazel run"
-                #good "3, run j: $j: ${sub_packages[$j]}"
-            done
+            #ranking
+            #for ((r = 0; r < o; r++))
+            #do
+                #line=$(echo ${cmd_and_package[$r]} | cut -d '~' -f 1)
+                #echo "${ranked_cmd_and_package[$r]}"
+            #done
         fi
     done
     echo -e $STYLE_MAGENTA
 
-    for ((s = 0; s < ${#sub_packages[@]}; s++))
+    for ((s = 0; s < ${#ranked_cmd_and_package[@]}; s++))
     do
-        if [[ ${build_prompt_arrary[$s]} == " bazel build" ]]; then
-            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+        echo "${ranked_cmd_and_package[$s]}" | grep -q "bazel~~build"
+        if [ $? -eq 0 ]; then
+            echo ${ranked_cmd_and_package[s]} | xargs -n 1 | sed "N;s/\n/. /"\
                 | sed 's/^/     /g' | \
                 sed 's/~/ /g' | \
                 sed -E -e "s#^#     [DEFAULT]    [ $(expr $s + 1) ]#"
         fi
-        if [[ ${build_prompt_arrary[$s]} == "bazel build" ]]; then
-            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+        echo "${ranked_cmd_and_package[$s]}" | grep -q "bazel~build"
+        #if [[ ${ranked_cmd_and_package[$s]} == "*bazel build*" ]]; then
+        if [ $? -eq 0 ]; then
+            echo ${ranked_cmd_and_package[s]} | xargs -n 1 | sed "N;s/\n/. /"\
                 | sed 's/^/     /g' | \
                 sed 's/~/ /g' | \
                 sed -E -e "s#^#     [BUILD  ]    [ $(expr $s + 1) ]#"
         fi
-        if [[ ${build_prompt_arrary[$s]} == "bazel run" ]]; then
-            echo ${sub_packages[s]} | xargs -n 1 | sed "N;s/\n/. /"\
+        echo "${ranked_cmd_and_package[$s]}" | grep -q "bazel~run"
+        if [ $? -eq 0 ]; then
+            echo ${ranked_cmd_and_package[s]} | xargs -n 1 | sed "N;s/\n/. /"\
                 | sed 's/^/     /g' | \
                 sed 's/~/ /g' | \
                 sed -E -e "s#^#     [RUN    ]    [ $(expr $s + 1) ]#"
@@ -107,8 +191,8 @@ function choose_pkg() {
 
         #if echo $INDEX | grep -e -vq [^0-9]; then
         if [[ $INDEX =~ ^[0-9]+$ ]]; then
-            BUILD_PKG=$(echo "${sub_packages[$INDEX]}" | sed 's/~/ /g')
-            BUILD_PROMPT="${build_prompt_arrary[$INDEX]}"
+            BUILD_PKG=$(echo "${ranked_cmd_and_package[$INDEX]}" | sed 's/~/ /g')
+            BUILD_PROMPT="${cmd_and_package[$INDEX]}"
             if [ "x$option" != x ]
             then
                 BUILD_PKG=$BUILD_PKG:$option
@@ -124,7 +208,7 @@ function choose_pkg() {
 
 function build_pkg() {
     log "       [ $BUILD_PKG ]\n"
-    local BUILD_CMD="$BUILD_PROMPT $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
+    local BUILD_CMD="$BUILD_PKG $BUILD_PROMPT $PLAT $BUILD_PKG $BAZEL_BUILD_OPTS $BAZEL_BUILD_REMOTE"
     info "$BUILD_CMD"
     $BUILD_CMD
 }

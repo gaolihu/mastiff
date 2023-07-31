@@ -3,7 +3,7 @@
 #
 
 ##BZL.DEL:this
-#BZL.DEL:all
+##BZL.DEL:all
 
 load("@rules_cc//cc:defs.bzl",
      "cc_library",
