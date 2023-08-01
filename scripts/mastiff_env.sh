@@ -213,12 +213,12 @@ function install_toolchain() {
     fi
     AARCH_11_3_TOOL_PATH=$AARCH_11_3_TOOL_PATH/gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/
 
-    arm64_tool=`ls $ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM32/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/${ARM_TOOL_CHAIN}gcc`
-    aarch64_tool=`ls $ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/${AARCH64_TOOL_CHAIN}gcc`
-    aarch93_tool=`ls $AARCH_9_3_TOOL_PATH/bin/${AARCH93_TOOL_CHAIN}gcc`
-    aarch94_tool=`ls $AARCH_9_4_TOOL_PATH/bin/${AARCH94_TOOL_CHAIN}gcc`
-    aarch103_tool=`ls $AARCH_10_3_TOOL_PATH/bin/${AARCH103_TOOL_CHAIN}gcc`
-    aarch113_tool=`ls $AARCH_11_3_TOOL_PATH/bin/${AARCH113_TOOL_CHAIN}gcc`
+    arm64_tool="$ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM32/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/${ARM_TOOL_CHAIN}gcc"
+    aarch64_tool="$ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/${AARCH64_TOOL_CHAIN}gcc"
+    aarch93_tool="$AARCH_9_3_TOOL_PATH/bin/${AARCH93_TOOL_CHAIN}gcc"
+    aarch94_tool="$AARCH_9_4_TOOL_PATH/bin/${AARCH94_TOOL_CHAIN}gcc"
+    aarch103_tool="$AARCH_10_3_TOOL_PATH/bin/${AARCH103_TOOL_CHAIN}gcc"
+    aarch113_tool="$AARCH_11_3_TOOL_PATH/bin/${AARCH113_TOOL_CHAIN}gcc"
     x86_tool=`which ${X86_TOOL_CHAIN}gcc`
 
     ARM_TOOL_CHAIN_DIR=`dirname $arm64_tool`
@@ -468,25 +468,33 @@ function install_uuid() {
 
         info "start to compile x64 uuid library!"
         cd $UUID_PKG_PATH/$UUID_PKG_VERSION/$PLAT_X64
-        ../configure --prefix=$UUID_INSTALL_X64_PATH > /dev/null
-        good "config uuid x86 library ok!"
-        [[ $? -eq 0 ]] && make > /dev/null && make install > /dev/null
 
-        [[ $? -eq 0 ]] && good "compile x64 uuid x86 library OK" ||
-            error "compile x86 uuid library NG"
+        ../configure --prefix=$UUID_INSTALL_X64_PATH > /dev/null
+
+        if [ $? -eq 0 ]; then
+            make > /dev/null && make install > /dev/null
+            [[ $? -eq 0 ]] && good "compile x64 uuid x86 library OK" || \
+                return -1
+        else
+            error "config x64 uuid library NG"
+            return -1
+        fi
 
         info "start to compile aarch uuid library!"
         cd $UUID_PKG_PATH/$UUID_PKG_VERSION/$PLAT_ARM64
-        echo $AARCH_TOOL_CHAIN_DIR/$AARCH64_TOOL_CHAIN-gcc
-        ../configure --prefix=$UUID_INSTALL_ARM64_PATH --host=arm-linux\
-            CC=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}gcc\
-            CXX=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}g++ > /dev/null
-        good "config uuid aarch library ok!"
-        [[ $? -eq 0 ]] && make > /dev/null && make install > /dev/null && touch \
-            $UUID_PKG_PATH/.compiled
 
-        [[ $? -eq 0 ]] && good "compile aarch uuid library OK" ||
-            error "compile aarch uuid library NG"
+        ../configure --prefix=$UUID_INSTALL_ARM64_PATH --host=arm-linux \
+            CC=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}gcc \
+            CXX=$AARCH_TOOL_CHAIN_DIR/${AARCH64_TOOL_CHAIN}g++ > /dev/null
+        if [ $? -eq 0 ]; then
+            make > /dev/null && make install > /dev/null
+            [[ $? -eq 0 ]] && good "compile aarch uuid library OK" || \
+                return -1
+            touch $UUID_PKG_PATH/.compiled
+        else
+            error "config aarch uuid library NG"
+            return -1
+        fi
 
         info "UUID installed OK"
     else
