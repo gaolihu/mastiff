@@ -8,14 +8,6 @@ python_configure(name = "local_config_python")
 load("//external/slam:repositories.bzl", "cartographer_repositories")
 cartographer_repositories()
 
-# nginx build
-load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
-nginx_repo()
-
-# valgrind build
-load("//external/valgrind:bazel/valgrind.bzl", "valgrind_build")
-valgrind_build()
-
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
 
@@ -24,10 +16,14 @@ prometheus_cpp_repositories()
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
-    strip_prefix = "protobuf-3.14.0",
+    sha256 = "e1bb923eef56a53a0752e79dc0cf418088ffa44d150f65fedb0695190da7b5bd",
+    #sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+    # commit: 3511f8acf9ea095c1c872343d2e725ed90217414, 2023/8/1
+    strip_prefix = "protobuf-3511f8acf9ea095c1c872343d2e725ed90217414",
+    #strip_prefix = "protobuf-3.14.0",
     urls = [
-        "https://apollo-system.cdn.bcebos.com/archive/6.0/v3.14.0.tar.gz",
+        "https://github.com/protocolbuffers/protobuf/archive/3511f8acf9ea095c1c872343d2e725ed90217414.zip",
+        #"https://apollo-system.cdn.bcebos.com/archive/6.0/v3.14.0.tar.gz",
         #"https://github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
     ],
 )
@@ -59,14 +55,15 @@ http_archive(
         #"@REMOTE_HTTP_SERVER@//remote_coverage_tools/coverage_output_generator-v2.5.zip",
     ],
 )
-http_archive(
-    name = "rules_java",
-    sha256 = "f5a3e477e579231fca27bf202bb0e8fbe4fc6339d63b38ccb87c2760b533d1c3",
-    strip_prefix = "rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd",
-    urls = [
-        "https://github.com/bazelbuild/rules_java/archive/981f06c3d2bd10225e85209904090eb7b5fb26bd.tar.gz"
-    ],
-)
+
+#http_archive(
+#    name = "rules_java",
+#    sha256 = "f5a3e477e579231fca27bf202bb0e8fbe4fc6339d63b38ccb87c2760b533d1c3",
+#    strip_prefix = "rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd",
+#    urls = [
+#        "https://github.com/bazelbuild/rules_java/archive/981f06c3d2bd10225e85209904090eb7b5fb26bd.tar.gz"
+#    ],
+#)
 
 http_archive(
     name = "rules_proto",
@@ -88,11 +85,11 @@ http_archive(
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "419dba362eaf8f1d36849ceee17c3e2ff8ff12ac666b42d3ff02a164ebe090e9",
-    strip_prefix = "grpc-1.30.0",
+    # commit: 7e63a2f3820e8857572aed246f398ce2d8193049, 2023/8/3
+    sha256 = "2ec63f57c9f251e09329447a031772431059bff931f0b9871908dfa064ed66b8",
+    strip_prefix = "grpc-7e63a2f3820e8857572aed246f398ce2d8193049",
     urls = [
-        "https://apollo-system.cdn.bcebos.com/archive/6.0/v1.30.0.tar.gz",
-        #"https://github.com/grpc/grpc/archive/v1.30.0.tar.gz",
+        "https://github.com/grpc/grpc/archive/7e63a2f3820e8857572aed246f398ce2d8193049.zip",
     ],
 )
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
@@ -102,10 +99,10 @@ grpc_extra_deps()
 
 http_archive(
     name = "bazel_skylib",
-    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    sha256 = "08c0386f45821ce246bbbf77503c973246ed6ee5c3463e41efc197fa9bc3a7f4",
     urls = [
-        "https://apollo-system.cdn.bcebos.com/archive/6.0/bazel-skylib-1.0.3.tar.gz",
-        #"https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        #288731ef9f7f688932bd50e704a91a45ec185f9b, Jun 1, 2023
+        "https://github.com/bazelbuild/bazel-skylib/archive/288731ef9f7f688932bd50e704a91a45ec185f9b.zip",
     ],
 )
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
@@ -113,15 +110,15 @@ bazel_skylib_workspace()
 load("@bazel_skylib//lib:versions.bzl", "versions")
 versions.check(minimum_bazel_version = "3.7.0")
 
-http_archive(
-    name = "zlib",
-    build_file = "@com_google_protobuf//:external/zlib.BUILD",
-    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
-    strip_prefix = "zlib-1.2.11",
-    urls = [
-        "https://github.com/madler/zlib/archive/v1.2.11.tar.gz",
-    ],
-)
+#http_archive(
+#    name = "zlib",
+#    build_file = "@com_google_protobuf//:external/zlib.BUILD",
+#    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
+#    strip_prefix = "zlib-1.2.11",
+#    urls = [
+#        "https://github.com/madler/zlib/archive/v1.2.11.tar.gz",
+#    ],
+#)
 
 http_archive(
     name = "com_github_gflags_gflags",
@@ -150,7 +147,6 @@ http_archive(
     ],
     build_file = "@//external/opencv:opencv.BUILD",
 )
-
 
 #local way
 load("//external/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
@@ -255,6 +251,14 @@ http_archive(
     ],
     build_file = "@//external/wildcards:wc.BUILD",
 )
+
+# nginx build
+load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
+nginx_repo()
+
+# valgrind build
+load("//external/valgrind:bazel/valgrind.bzl", "valgrind_build")
+valgrind_build()
 
 ###########################################################################################
 

@@ -17,7 +17,7 @@ BUILD_DIR=.cache_build
 BUILD_PATH=$TOPDIR/$BUILD_DIR
 
 # Use bazel version
-BZL_VERSION=5.4.1
+BZL_VERSION=6.2.0
 
 # Remote http server site
 REMOTE_IP=xxx.xxx.xxx.xxx
@@ -613,7 +613,7 @@ function config_bazel_ws() {
 
         if [[ "$SOURCE" = "module.mstf" ]]; then
             #warning "generate mastiff slam repos"
-            cp $TOPDIR/external/slam/repositories.bzl.tpl $TOPDIR/external/slam/repositories.bzl
+            cp $TOPDIR/external/slam/repositories_mstf.bzl.tpl $TOPDIR/external/slam/repositories.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
 
             #warning "generate mastiff nginx repos"
@@ -629,7 +629,7 @@ function config_bazel_ws() {
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/valgrind/bazel/valgrind.bzl
         elif [[ "$SOURCE" = "module.ext" ]]; then
             #warning "generate external slam repos"
-            cp $TOPDIR/external/slam/repositories1.bzl.tpl $TOPDIR/external/slam/repositories.bzl
+            cp $TOPDIR/external/slam/repositories_ext.bzl.tpl $TOPDIR/external/slam/repositories.bzl
             sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
 
             #warning "generate mastiff nginx repos"
