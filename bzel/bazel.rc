@@ -104,15 +104,18 @@ build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 # arm32
 build:gcc_cross_arm32 --cpu=arm
 build:gcc_cross_arm32 --define buildtool=gcc_arm
+build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_arm
 build:gcc_cross_arm32 --crosstool_top=//external/toolchain:mstf_cc_arm_gcc64_suite
 
 # aarch 6.4.1 compiler
 build:gcc64_cross_aarch64 --cpu=aarch64
 build:gcc64_cross_aarch64 --define buildtool=gcc_aarch64_641
+build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
 build:gcc64_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc64_suite
 
 # aarch 9.4 compiler
 build:gcc94_cross_aarch64 --cpu=aarch64
+build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
 build:gcc94_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc94_suite
 
 # x86

@@ -208,6 +208,7 @@ platform(
         ":igneous",
     ],
 )
+
 platform(
     name = "marble_platform",
     constraint_values = [
@@ -217,6 +218,22 @@ platform(
     ],
 )
 
+#mstf aarch64
+platform(
+    name = "mstf_aarch64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+#mstf arm
+platform(
+    name = "mstf_arm",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm",
+    ],
+)
 # choose directly by reading constraint_value s
 ##BZL.RUN:your_rocks
 ##BZL.RUN:your_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
