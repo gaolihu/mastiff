@@ -36,6 +36,9 @@ mstf_toolchain = rule(
         "targetting_os": attr.string(mandatory = True),
         "executing_on_cpu": attr.string(mandatory = True),
         "executing_on_os": attr.string(mandatory = True),
+        #"compiler_path": attr.string(),
+        #"system_lib": attr.string(),
+        #"arch_flags": attr.string_list(),
     },
 )
 

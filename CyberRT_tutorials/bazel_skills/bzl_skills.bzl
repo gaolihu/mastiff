@@ -60,13 +60,54 @@ gen_cc_by_template = rule(
 )
 
 #5, genrule get git version
-def git_version(name, **kwargs):
-    """Get git ref version of the project"""
-
+def git_version_m(name, out, version):
     native.genrule(
         name = name,
-        cmd = "git rev-parse HEAD",
-        **kwargs
+        outs = out,
+        cmd = "\
+            cd CyberRT_tutorials/ && \
+            echo -e \"commit: \\c\" > ../$(@) && \
+            git log -1 --pretty=format:%h >> ../$(@) && \
+            echo -e \", author: \\c\" >> ../$(@) && \
+            git log -1 --pretty=format:%an >> ../$(@) && \
+            echo -e \", date: \\c\" >> ../$(@) && \
+            git log -1 --pretty=format:%cD >> ../$(@) && \
+            echo -e \", branch: \\c\" >> ../$(@) && \
+            git symbolic-ref --short -q HEAD >> ../$(@) && \
+            cd - && cat $(@) && version=`cat $(@)`"
+    )
+
+    #, linkopts, visibility, include_prefix):
+##!/bin/bash
+#cat > $@ <<"EOF"
+#EOF
+#'''.format(int(with_gflags)),
+#echo -e \", branch: \\c\" >> ../$(@) && \
+#git name-rev --name-only HEAD >> ../$(@) && \
+def mstf_library(name, hdrs=[], srcs=[], copts=[]):
+    native.genrule(
+        name = "auto_gen_h",
+        outs = ["auto_gen.h"],
+        cmd = "\
+            cd CyberRT_tutorials/ && \
+            echo -e \"#define REPO_INFO \\c\" > ../$(@) && \
+            echo -e \"\\\"commit: \\c\" >> ../$(@) && \
+            git log -1 --pretty=format:%h >> ../$(@) && \
+            echo -e \", author: \\c\" >> ../$(@) && \
+            git log -1 --pretty=format:%an >> ../$(@) && \
+            echo -e \", date: \\c\" >> ../$(@) && \
+            git log -1 --pretty=format:%cD >> ../$(@) && \
+            echo -e \"\\\"\" >> ../$(@) \
+            "
+    )
+    native.cc_library(
+        name = name,
+        hdrs = hdrs + ["auto_gen.h"],
+        srcs = srcs,
+        copts = copts,
+        linkopts = [],
+        visibility = ["//visibility:public"],
+        include_prefix = "",
     )
 
 print("bzl file for showing bazel")

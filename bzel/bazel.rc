@@ -87,55 +87,39 @@ build:optimize --copt=-march=native
 build:optimize --host_copt=-march=native
 
 # +------------------------------------------------------------+
-# | Platform Configurations                                    |
+# | Host Platform Configurations                               |
 # +------------------------------------------------------------+
 # HOST, hardware: x64, os: Linux, toolchain: gcc
-#build:host_platforms --host_platform=@bazel_tools//platforms:host_platform
-#build:platforms --platform=@bazel_tools//platforms:target_platform
-# Spectial platform setting for boost coroutie
-#build --host_platform=@bazel_tools//platforms:linux
-#build --host_platform=@bazel_tools//platforms:x86_64
-#build --platforms=@bazel_tools//platforms:linux
-#build --platforms=@bazel_tools//platforms:aarch64
-#build --platforms=@behaviour_tree//behaviour_tree:linux_aarch_64
+#build --host_platform=@platforms//os:linux
+#build --host_platform=@platforms//cpu:x86_64
+build --host_platform=@@local_config_platform//:host
+build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
 # +------------------------------------------------------------+
 # | ToolChains Configurations                                  |
 # +------------------------------------------------------------+
 # TARGET, hardware: aarch_64, os: Linux
-#build --config=cross_aarch_64
 #build --incompatible_enable_cc_toolchain_resolution
 
-# aarch 6.4.1 compiler
-build:cross_arm64_64 --cpu=aarch64 --define buildtool=gcc_aarch64_641
-build:cross_arm64_64 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_641
-build:cross_arm64_64 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 9.3 compiler
-build:cross_arm64_93 --cpu=aarch64  --define buildtool=gcc_aarch64_93
-build:cross_arm64_93 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_93
-build:cross_arm64_93 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 9.4 compiler
-build:cross_arm64_94 --cpu=aarch64 --platforms=@local_config_platform//:host build --host_platform=@local_config_platform//:host
-#--host_platform=//CyberRT_tutorials/bzl_test:pl_android_arm
-build:cross_arm64_94 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_94
-build:cross_arm64_94 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 10.3 compiler
-build:cross_arm64_103 --cpu=aarch64 --define buildtool=gcc_aarch64_103
-build:cross_arm64_103 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_103
-build:cross_arm64_103 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# aarch 11.3 compiler
-build:cross_arm64_113 --cpu=aarch64 --define buildtool=gcc_aarch64_113
-build:cross_arm64_113 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_113
-build:cross_arm64_113 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 # arm32
-build:cross_arm32 --cpu=arm --define buildtool=gcc_arm
-build:cross_arm32 --crosstool_top=//external/toolchain:mastiff_cross_gcc_suite_arm
-build:cross_arm32 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:gcc_cross_arm32 --cpu=arm
+build:gcc_cross_arm32 --define buildtool=gcc_arm
+build:gcc_cross_arm32 --crosstool_top=//external/toolchain:mstf_cc_arm_gcc64_suite
+
+# aarch 6.4.1 compiler
+build:gcc64_cross_aarch64 --cpu=aarch64
+build:gcc64_cross_aarch64 --define buildtool=gcc_aarch64_641
+build:gcc64_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc64_suite
+
+# aarch 9.4 compiler
+build:gcc94_cross_aarch64 --cpu=aarch64
+build:gcc94_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc94_suite
+
 # x86
-build:plat_x86 --cpu=x86_64 --define buildtool=gcc_x64
+build:plat_x86 --cpu=x86_64
+build:plat_x86 --define buildtool=gcc_x64
+build:plat_x86 --platforms=@local_config_platform//:host
 build:plat_x86 --crosstool_top=//external/toolchain:mastiff_gcc_suite_local
-build:plat_x86 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-# build:plat_x86 --linkopt=-shared
 
 # default x64
 build:plat_default --verbose_failures

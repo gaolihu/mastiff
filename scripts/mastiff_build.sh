@@ -244,7 +244,7 @@ function main() {
 
     log "\n       Which platform to compile for?"
     echo -e $STYLE_LRED
-    echo -e "[options]:\n\t(arm) arm32\n\t(a*) gcc6.4.1\n\t(x*) x86_64\n\t(3*) gcc9.3\n\t(4*) gcc9.4\n\t(0*) gcc10.3\n\t(1*) gcc11.3"
+    echo -e "[options]:\n\t(arm) arm32\n\t(a*) gcc6.4.1\n\t(x*) x86_64\n\t(4*) gcc9.4"
 
     echo -e "$STYLE_BLUE$STYLE_BOLD"
 
@@ -253,28 +253,16 @@ function main() {
         echo -e "$STYLE_NORMAL"
         case $plat in
             arm ) info "cross compile for arm32";
-                PLAT="--config cross_arm32";
+                PLAT="--config gcc_cross_arm32";
                 copy_arm
-                break;;
-            [93]* ) info "cross compile for aarch64 9.3 compiler";
-                PLAT="--config cross_arm64_93";
-                copy_aarch
-                break;;
-            [4]* ) info "cross compile for aarch64 9.4 compiler";
-                PLAT="--config cross_arm64_94";
-                copy_aarch
-                break;;
-            [0]* ) info "cross compile for aarch64 10.3 compiler";
-                PLAT="--config cross_arm64_103";
-                copy_aarch
-                break;;
-            [1]* ) info "cross compile for aarch64 11.3 compiler";
-                PLAT="--config cross_arm64_113";
-                copy_aarch
                 break;;
             [aA]* ) info "cross compile for aarch64";
                 copy_aarch
-                PLAT="--config cross_arm64_64";
+                PLAT="--config gcc64_cross_aarch64";
+                break;;
+            [4]* ) info "cross compile for aarch64 9.4 compiler";
+                PLAT="--config gcc94_cross_aarch64";
+                copy_aarch
                 break;;
             [xX]* ) info "Use default platform: x86_64\n";
                 PLAT="--config plat_x86";

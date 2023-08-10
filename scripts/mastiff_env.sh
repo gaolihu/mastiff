@@ -37,26 +37,17 @@ PLAT_ARM32=arm
 
 # Install cross compile toolchains locally
 ARM_AARCH_6_4_TOOL_PATH=$BUILD_PATH/tool_chains
-AARCH_9_3_TOOL_PATH=$BUILD_PATH/tool_chains
 AARCH_9_4_TOOL_PATH=$BUILD_PATH/tool_chains
-AARCH_10_3_TOOL_PATH=$BUILD_PATH/tool_chains
-AARCH_11_3_TOOL_PATH=$BUILD_PATH/tool_chains
 
 # Cross compile toolchains name
 ARM_TOOL_CHAIN="arm-linux-gnueabihf-"
 AARCH64_TOOL_CHAIN="aarch64-linux-gnu-"
-AARCH93_TOOL_CHAIN="aarch64-linux-"
 AARCH94_TOOL_CHAIN="aarch64-linux-"
-AARCH103_TOOL_CHAIN="aarch64-rockchip1031-linux-gnu-"
-AARCH113_TOOL_CHAIN="aarch64-buildroot-linux-gnu-"
 X86_TOOL_CHAIN=""
 
 ARM_TOOL_CHAIN_DIR=""
 AARCH_TOOL_CHAIN_DIR=""
-AARCH93_TOOL_CHAIN_DIR=""
 AARCH94_TOOL_CHAIN_DIR=""
-AARCH103_TOOL_CHAIN_DIR=""
-AARCH113_TOOL_CHAIN_DIR=""
 X86_TOOL_CHAIN_DIR=""
 
 # Third party libraries dependences
@@ -157,20 +148,6 @@ function install_toolchain() {
     fi
     ARM_AARCH_6_4_TOOL_PATH=$ARM_AARCH_6_4_TOOL_PATH/gcc-6.4.1-x86_64-arm-aarch64-linux-gnu/
 
-    if [ ! -e $AARCH_9_3_TOOL_PATH/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz ]; then
-        wget -nv $REMOTE_HTTP_SERVER/tool_chains/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz -P $AARCH_9_3_TOOL_PATH
-        if [ $? -ne 0 ]; then
-            error "can not get gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz"
-            return -1
-        fi
-        cd $AARCH_9_3_TOOL_PATH
-        tar xzf gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz
-        [[ $? -eq 0 ]] && \
-            good "install cross toolchains gcc 9.3 OK!" || \
-            error "install cross toolchains gcc 9.3 NG!"
-    fi
-    AARCH_9_3_TOOL_PATH=$AARCH_9_3_TOOL_PATH/gcc-buildroot-9.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/
-
     if [ ! -e $AARCH_9_4_TOOL_PATH/gcc-buildroot-9.4.0-2021.01-x86_64_aarch64-rockchip-linux-gnu.tgz ]; then
         wget -nv $REMOTE_HTTP_SERVER/tool_chains/gcc-buildroot-9.4.0-2021.01-x86_64_aarch64-rockchip-linux-gnu.tgz -P $AARCH_9_4_TOOL_PATH
         if [ $? -ne 0 ]; then
@@ -185,70 +162,27 @@ function install_toolchain() {
     fi
     AARCH_9_4_TOOL_PATH=$AARCH_9_4_TOOL_PATH/gcc-buildroot-9.4.0-2021.01-x86_64_aarch64-rockchip-linux-gnu/
 
-    if [ ! -e $AARCH_10_3_TOOL_PATH/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tgz ]; then
-        wget -nv $REMOTE_HTTP_SERVER/tool_chains/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tgz -P $AARCH_10_3_TOOL_PATH
-        if [ $? -ne 0 ]; then
-            error "can not get gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tgz"
-            return -1
-        fi
-        cd $AARCH_10_3_TOOL_PATH
-        tar xzf gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tgz
-        [[ $? -eq 0 ]] && \
-            good "install cross toolchains gcc 10.3 OK!" || \
-            error "install cross toolchains gcc 10.3 NG!"
-    fi
-    AARCH_10_3_TOOL_PATH=$AARCH_10_3_TOOL_PATH/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/
-
-    if [ ! -e $AARCH_11_3_TOOL_PATH/gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz ]; then
-        wget -nv $REMOTE_HTTP_SERVER/tool_chains/gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz -P $AARCH_11_3_TOOL_PATH
-        if [ $? -ne 0 ]; then
-            error "can not get gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz"
-            return -1
-        fi
-        cd $AARCH_11_3_TOOL_PATH
-        tar xzf gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu.tgz
-        [[ $? -eq 0 ]] && \
-            good "install cross toolchains gcc 11.3 OK!" || \
-            error "install cross toolchains gcc 11.3 NG!"
-    fi
-    AARCH_11_3_TOOL_PATH=$AARCH_11_3_TOOL_PATH/gcc-buildroot-11.3.0-2020.03-x86_64_aarch64-rockchip-linux-gnu/
-
-    arm64_tool="$ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM32/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/${ARM_TOOL_CHAIN}gcc"
+    arm_tool="$ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM32/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/${ARM_TOOL_CHAIN}gcc"
     aarch64_tool="$ARM_AARCH_6_4_TOOL_PATH/$PLAT_ARM64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/${AARCH64_TOOL_CHAIN}gcc"
-    aarch93_tool="$AARCH_9_3_TOOL_PATH/bin/${AARCH93_TOOL_CHAIN}gcc"
     aarch94_tool="$AARCH_9_4_TOOL_PATH/bin/${AARCH94_TOOL_CHAIN}gcc"
-    aarch103_tool="$AARCH_10_3_TOOL_PATH/bin/${AARCH103_TOOL_CHAIN}gcc"
-    aarch113_tool="$AARCH_11_3_TOOL_PATH/bin/${AARCH113_TOOL_CHAIN}gcc"
     x86_tool=`which ${X86_TOOL_CHAIN}gcc`
 
-    ARM_TOOL_CHAIN_DIR=`dirname $arm64_tool`
+    ARM_TOOL_CHAIN_DIR=`dirname $arm_tool`
     AARCH_TOOL_CHAIN_DIR=`dirname $aarch64_tool`
-    AARCH93_TOOL_CHAIN_DIR=`dirname $aarch93_tool`
     AARCH94_TOOL_CHAIN_DIR=`dirname $aarch94_tool`
-    AARCH103_TOOL_CHAIN_DIR=`dirname $aarch103_tool`
-    AARCH113_TOOL_CHAIN_DIR=`dirname $aarch113_tool`
     X86_TOOL_CHAIN_DIR=`dirname $x86_tool`
 
-    #info "arm64_tool: $arm64_tool"
+    #info "arm_tool: $arm_tool"
     #info "aarch64_tool: $aarch64_tool"
-    #info "aarch93_tool: $aarch93_tool"
     #info "aarch94_tool: $aarch94_tool"
-    #info "aarch103_tool: $aarch103_tool"
-    #info "aarch113_tool: $aarch113_tool"
 
     #info "ARM_TOOL_CHAIN_DIR: $ARM_TOOL_CHAIN_DIR"
     #info "AARCH_TOOL_CHAIN_DIR: $AARCH_TOOL_CHAIN_DIR"
-    #info "AARCH93_TOOL_CHAIN_DIR: $AARCH93_TOOL_CHAIN_DIR"
     #info "AARCH94_TOOL_CHAIN_DIR: $AARCH94_TOOL_CHAIN_DIR"
-    #info "AARCH103_TOOL_CHAIN_DIR: $AARCH103_TOOL_CHAIN_DIR"
-    #info "AARCH113_TOOL_CHAIN_DIR: $AARCH113_TOOL_CHAIN_DIR"
 
     export ARM_TOOL_CHAIN_DIR
     export AARCH_TOOL_CHAIN_DIR
-    export AARCH93_TOOL_CHAIN_DIR
     export AARCH94_TOOL_CHAIN_DIR
-    export AARCH103_TOOL_CHAIN_DIR
-    export AARCH113_TOOL_CHAIN_DIR
 
     cd $TOPDIR/$EXTERNAL_DIR/toolchain/
 
@@ -257,17 +191,8 @@ function install_toolchain() {
     sed -i "s#@PATH_TO_GCC_ARM@#$ARM_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
     sed -i "s#@GCC_ARCH_ARM@#$ARM_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
-    sed -i "s#@PATH_TO_GCC_AARCH93@#$AARCH93_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH93@#$AARCH93_TOOL_CHAIN#g" mastiff_build_conf.bzl
-
     sed -i "s#@PATH_TO_GCC_AARCH94@#$AARCH94_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
     sed -i "s#@GCC_ARCH_AARCH94@#$AARCH94_TOOL_CHAIN#g" mastiff_build_conf.bzl
-
-    sed -i "s#@PATH_TO_GCC_AARCH103@#$AARCH103_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH103@#$AARCH103_TOOL_CHAIN#g" mastiff_build_conf.bzl
-
-    sed -i "s#@PATH_TO_GCC_AARCH113@#$AARCH113_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
-    sed -i "s#@GCC_ARCH_AARCH113@#$AARCH113_TOOL_CHAIN#g" mastiff_build_conf.bzl
 
     sed -i "s#@PATH_TO_GCC_AARCH@#$AARCH_TOOL_CHAIN_DIR#g" mastiff_build_conf.bzl
     sed -i "s#@GCC_ARCH_AARCH@#$AARCH64_TOOL_CHAIN#g" mastiff_build_conf.bzl

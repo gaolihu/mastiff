@@ -14,7 +14,8 @@ load(":bzl_skills.bzl",
      "write_file_by_string",
      "gen_cc_by_template",
      "gen_file_by_macro",
-     "git_version")
+     "git_version_m",
+     "mstf_library")
 
 package(default_testonly = True)
 
@@ -79,35 +80,47 @@ genrule(
 )
 
 ##BZL.RUN:gen_file_by_genrule_show
+# TODO, sh_binary
 sh_binary(
     name = "gen_file_by_genrule_show",
     srcs = [
         "test_sh/echo.sh",
     ],
+    data = [
+        ":gen_file_by_genrule.txt"
+    ],
 )
 ###### ====================== 4, generate file by genrule in BUILD ====================== ######
 
 ###### ====================== 5, write file by bzl macro ====================== ######
-##BZL.BUILD:gen_file_by_cmd_in_build
-# cat bazel-bin/CyberRT_tutorials/bazel_skills/_version
-# TODO, cd directory error, FIXME 
+##BZL.BUILD:get_repo_info
+# cat bazel-bin/CyberRT_tutorials/bazel_skills/git_version.txt
 genrule(
-    name = "gen_file_by_cmd_in_build",
-    outs = ["_version"],
+    name = "get_repo_info",
+    outs = ["git_version.txt"],
     local = 1,
-    #cmd = "cd CyberRT_tutorials && pwd > $(OUTS)",
     cmd = "\
-            cd . && \
-            ls >> $(OUTS) \
-            ",
+        cd CyberRT_tutorials/ && \
+        echo -e \"commit: \\c\" > ../$(@) && \
+        git log -1 --pretty=format:%h >> ../$(@) && \
+        echo -e \", author: \\c\" >> ../$(@) && \
+        git log -1 --pretty=format:%an >> ../$(@) && \
+        echo -e \", date: \\c\" >> ../$(@) && \
+        git log -1 --pretty=format:%cD >> ../$(@) && \
+        echo -e \", branch: \\c\" >> ../$(@) && \
+        git symbolic-ref --short -q HEAD >> ../$(@) && \
+        cd - && \
+        cat $(@)",
 )
 ###### ====================== 5, write file by bzl macro ====================== ######
 
 ###### ====================== 6, get git version by bzl macro ====================== ######
-# bazel build //CyberRT_tutorials/bazel_skills:get_git_version_by_micro
-git_version(
-    name = "get_git_version_by_micro",
-    outs = ["_iversion"],
+##BZL.BUILD:get_repo_info_m
+# cat bazel-bin/CyberRT_tutorials/bazel_skills/git_info_m.txt
+git_version_m(
+    name = "get_repo_info_m",
+    out = ["git_info_m.txt"],
+    version = "xx",
 )
 ###### ====================== 6, get git version by bzl macro ====================== ######
 
@@ -131,16 +144,22 @@ config_setting(
 )
 ##BZL.RUN:hello_by_template_bin
 ##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c opt}
-##BZL.RUN:hello_by_template_bin##BZL.OPTS:{-c dbg}
 ##BZL.RUN:hello_by_template_bin##BZL.OPTS:{--define foo=bar -c dbg}
 cc_binary(
     name = "hello_by_template_bin",
+    deps = [
+        "hello_by_mstf",
+    ],
+)
+mstf_library(
+    name = "hello_by_mstf",
     srcs = select({
         "gen_hello_world" : [":gen_hello_world_by_template_cc"], #gen_hello_world_by_template_cc.cc
         "gen_hello_monkey" : [":gen_hello_monkey_by_template_cc"], #gen_hello_monkey_by_template_cc.cc
         "//conditions:default": [":gen_hello_god_by_template_cc"], #gen_hello_god_by_template_cc.cc
     }),
 )
+
 ##BZL.RUN:my_rocks
 ##BZL.RUN:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:basalt_platform
 ##BZL.RUN:my_rocks --platforms=//CyberRT_tutorials/bazel_skills:marble_platform
@@ -153,6 +172,19 @@ sh_binary(
     }),
 )
 
+# constraint_setting acts as an enum type, and constraint_value as an enum value.
+constraint_setting(name = "color")
+constraint_value(name = "black", constraint_setting = "color")
+constraint_value(name = "white", constraint_setting = "color")
+
+constraint_setting(name = "texture")
+constraint_value(name = "smooth", constraint_setting = "texture")
+constraint_value(name = "coarse", constraint_setting = "texture")
+
+constraint_setting(name = "type")
+constraint_value(name = "igneous", constraint_setting = "type")
+constraint_value(name = "metamorphic", constraint_setting = "type")
+
 config_setting(
     name = "basalt",
     constraint_values = [
@@ -160,7 +192,6 @@ config_setting(
         ":igneous",
     ],
 )
-
 config_setting(
     name = "marble",
     constraint_values = [
@@ -169,21 +200,11 @@ config_setting(
     ],
 )
 
-# constraint_setting acts as an enum type, and constraint_value as an enum value.
-constraint_setting(name = "color")
-constraint_value(name = "black", constraint_setting = "color")
-constraint_value(name = "white", constraint_setting = "color")
-constraint_setting(name = "texture")
-constraint_value(name = "smooth", constraint_setting = "texture")
-constraint_value(name = "coarse", constraint_setting = "texture")
-constraint_setting(name = "type")
-constraint_value(name = "igneous", constraint_setting = "type")
-constraint_value(name = "metamorphic", constraint_setting = "type")
-
 platform(
     name = "basalt_platform",
     constraint_values = [
         ":black",
+        ":coarse",
         ":igneous",
     ],
 )
@@ -205,281 +226,12 @@ sh_binary(
     srcs = select({
         ":igneous": ["test_sh/igneous.sh"],
         ":metamorphic": ["test_sh/metamorphic.sh"],
+        "//conditions:default": ["test_sh/igneous.sh"],
     }),
 )
 ###### ====================== 7, platform constraint ====================== ######
 
-###### ====================== 8, Configurable attributes ====================== ######
-##BZL.RUN:sh_arm_lib
-sh_binary(
-    name = "sh_arm_lib",
-    srcs = [
-        "test_sh/arm_lib.sh",
-    ],
-)
-##BZL.RUN:sh_x86_dev_lib
-sh_binary(
-    name = "sh_x86_dev_lib",
-    srcs = [
-        "test_sh/x86_dev_lib.sh",
-    ],
-)
-##BZL.RUN:sh_generic_lib
-sh_binary(
-    name = "sh_generic_lib",
-    srcs = [
-        "test_sh/generic_lib.sh",
-    ],
-)
-
-##BZL.RUN:arm_lib
-cc_library(
-    name = "arm_lib",
-    srcs = [
-        "gen_hello_world_by_template_cc",
-    ],
-)
-##BZL.RUN:x86_dev_lib
-cc_library(
-    name = "x86_dev_lib",
-    srcs = [
-        "gen_hello_monkey_by_template",
-    ],
-)
-##BZL.RUN:generic_lib
-cc_library(
-    name = "generic_lib",
-    srcs = [
-        "gen_hello_god_by_template",
-    ],
-)
-
-constraint_setting(name = "exec_arch")
-constraint_value(name = "aarm", constraint_setting = "exec_arch")
-constraint_value(name = "xx64", constraint_setting = "exec_arch")
-constraint_value(name = "cs_aarm", constraint_setting = "exec_arch")
-constraint_value(name = "cs_xx64", constraint_setting = "exec_arch")
-constraint_setting(name = "host_os")
-constraint_value(name = "linux", constraint_setting = "host_os")
-constraint_value(name = "ios", constraint_setting = "host_os")
-
-# defines matching
-config_setting(
-    name = "arm_build",
-    values = {
-        "define": "exec_arch=aarm",
-    },
-)
-config_setting(
-    name = "x86_debug_build",
-    values = {
-        "define": "exec_arch=xx64",
-    },
-)
-
-# constraints
-config_setting(
-    name = "arm_build_cs",
-    constraint_values = [
-        ":cs_aarm",
-        ":linux",
-    ],
-)
-
-config_setting(
-    name = "x86_debug_build_cs",
-    constraint_values = [
-        ":cs_xx64",
-        ":ios",
-    ],
-)
-
-platform(
-    name = "arm_build_cs_plat",
-    constraint_values = [
-        ":cs_aarm",
-        ":linux",
-    ],
-)
-
-platform(
-    name = "x86_debug_build_cs_plat",
-    constraint_values = [
-        ":cs_xx64",
-        ":ios",
-    ],
-)
-
-##BZL.RUN:mybinary
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --define exec_arch=aarm
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --define exec_arch=xx64
-
-# ??? TODO
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --platforms=//CyberRT_tutorials/bazel_skills:arm_build_cs_plat
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --platforms=//CyberRT_tutorials/bazel_skills:x86_debug_build_cs_plat
-
-# ??? TODO
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --crosstool_top=@bazel_tools//tools/cpp:toolchain --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --platforms=//CyberRT_tutorials/bazel_skills:arm_build_cs_plat
-# bazel run //CyberRT_tutorials/bazel_skills:mybinary --crosstool_top=@bazel_tools//tools/cpp:toolchain --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --platforms=//CyberRT_tutorials/bazel_skills:x86_debug_build_cs_plat
-
-cc_binary(
-    name = "mybinary",
-    deps = select({
-        ":arm_build": [":arm_lib"],
-        ":x86_debug_build": [":x86_dev_lib"],
-        ":arm_build_cs": [":arm_lib"],
-        ":x86_debug_build_cs": [":x86_dev_lib"],
-        "//conditions:default": [":generic_lib"],
-    }),
-)
-###### ====================== 8, Configurable attributes ====================== ######
-
-###### ====================== 9, Platforms configuration ====================== ######
-config_setting(
-    name = "linux_arm",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:arm",
-    ],
-)
-
-config_setting(
-    name = "linux_ppc",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:ppc",
-    ],
-)
-
-config_setting(
-    name = "linux_aarch64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
-config_setting(
-    name = "linux_x86_64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-config_setting(
-    name = "osx_arm64",
-    constraint_values = [
-        "@platforms//os:osx",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
-config_setting(
-    name = "osx_x86_64",
-    constraint_values = [
-        "@platforms//os:osx",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-config_setting(
-    name = "windows_x86_64",
-    constraint_values = [
-        "@platforms//os:windows",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-config_setting(
-    name = "android_arm",
-    constraint_values = [
-        "@platforms//os:android",
-        "@platforms//cpu:arm",
-    ],
-)
-
-config_setting(
-    name = "android_aarch64",
-    constraint_values = [
-        "@platforms//os:android",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
-platform(
-    name = "pl_linux_arm",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:arm",
-    ],
-)
-
-platform(
-    name = "pl_linux_ppc",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:ppc",
-    ],
-)
-
-platform(
-    name = "pl_linux_aarch64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
-platform(
-    name = "pl_linux_x86_64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-platform(
-    name = "pl_osx_arm64",
-    constraint_values = [
-        "@platforms//os:osx",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
-platform(
-    name = "pl_osx_x86_64",
-    constraint_values = [
-        "@platforms//os:osx",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-platform(
-    name = "pl_windows_x86_64",
-    constraint_values = [
-        "@platforms//os:windows",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-platform(
-    name = "pl_android_arm",
-    constraint_values = [
-        "@platforms//os:android",
-        "@platforms//cpu:arm",
-    ],
-)
-
-platform(
-    name = "pl_android_aarch64",
-    constraint_values = [
-        "@platforms//os:android",
-        "@platforms//cpu:aarch64",
-    ],
-)
-
+###### ====================== 8, Platforms configuration ====================== ######
 # bazel build //CyberRT_tutorials/bazel_skills:gen_linux_arm_hello_world_by_template
 gen_cc_by_template(
     name = "gen_linux_arm_hello_world_by_template",
@@ -595,7 +347,7 @@ cc_binary(
         "//conditions:default": [":gen_xx_xxx_hello_world_by_template"],
     }),
 )
-###### ====================== 9, Platforms configuration ====================== ######
+###### ====================== 8, Platforms configuration ====================== ######
 
 ###### ====================== 8, combining select()s ====================== ######
 # bazel run //CyberRT_tutorials/bazel_skills:my_target
@@ -639,4 +391,4 @@ sh_binary(
     no_match_error = "Please build with an opt or debug param",
     ),
 )
-###### ====================== 8, combining select()s ====================== ######
+###### ====================== 9, combining select()s ====================== ######
