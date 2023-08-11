@@ -2,18 +2,18 @@ workspace(name = "mastiff")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load("//external/py:python_configure.bzl", "python_configure")
+load("//3rd_party/py:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python")
 
-load("//external/slam:repositories.bzl", "cartographer_repositories")
+load("//3rd_party/slam:repositories.bzl", "cartographer_repositories")
 cartographer_repositories()
 
 # nginx build
-load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
+load("//3rd_party/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
 nginx_repo()
 
 # valgrind build
-load("//external/valgrind:bazel/valgrind.bzl", "valgrind_build")
+load("//3rd_party/valgrind:bazel/valgrind.bzl", "valgrind_build")
 valgrind_build()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
@@ -33,12 +33,12 @@ http_archive(
 )
 
 http_archive(
-    name = "com_github_google_glog",
+    name = "com_google_glog",
     sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
     strip_prefix = "glog-0.4.0",
     urls = [
-        "@REMOTE_HTTP_SERVER@/com_github_google_glog/v0.4.0.tar.gz",
-        "file://@com_github_google_glog@",
+        "@REMOTE_HTTP_SERVER@/com_google_glog/v0.4.0.tar.gz",
+        "file://@com_google_glog@",
     ],
 )
 
@@ -130,7 +130,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/opencv/opencv-3.4.10-x86_64.tar.gz",
     ],
-    build_file = "@//external/opencv:opencv.BUILD",
+    build_file = "@//3rd_party/opencv:opencv.BUILD",
 )
 
 http_archive(
@@ -140,7 +140,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/opencv/opencv-3.4.10-aarch64.tar.gz",
     ],
-    build_file = "@//external/opencv:opencv.BUILD",
+    build_file = "@//3rd_party/opencv:opencv.BUILD",
 )
 
 http_archive(
@@ -150,7 +150,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/silverstar_ai_lib/AI-aarch64.tar.gz",
     ],
-    build_file = "@//external/ss_ai:ss_ai.BUILD",
+    build_file = "@//3rd_party/ss_ai:ss_ai.BUILD",
 )
 
 http_archive(
@@ -160,7 +160,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/silverstar_ai_lib/AI-aarch64.tar.gz",
     ],
-    build_file = "@//external/ss_ai:ss_ai.BUILD",
+    build_file = "@//3rd_party/ss_ai:ss_ai.BUILD",
 )
 
 http_archive(
@@ -170,7 +170,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/websocket/websocket_cpp.tgz",
     ],
-    build_file = "@//external/websocket:websock.BUILD",
+    build_file = "@//3rd_party/websocket:websock.BUILD",
 )
 
 http_archive(
@@ -216,13 +216,13 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/alsa/alsa_lib.tar.gz",
     ],
-    build_file = "@//external/alsa_lib:alsa.BUILD",
+    build_file = "@//3rd_party/alsa_lib:alsa.BUILD",
 )
 
 #new_local_repository(
     #name = "behaviour_tree",
     #path = "/home/lihu/tool/BehaviorTree.CPP",
-    #build_file = "@//external/behaviour_tree:bt.BUILD",
+    #build_file = "@//3rd_party/behaviour_tree:bt.BUILD",
 #)
 
 http_archive(
@@ -232,7 +232,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/BehaviorTree.CPP/BehaviorTree.CPP.tgz",
     ],
-    build_file = "@//external/behaviour_tree:bt.BUILD",
+    build_file = "@//3rd_party/behaviour_tree:bt.BUILD",
 )
 
 http_archive(
@@ -242,7 +242,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/tinyxml2/tinyxml2.tgz",
     ],
-    build_file = "@//external/tinyxml2:txml2.BUILD",
+    build_file = "@//3rd_party/tinyxml2:txml2.BUILD",
 )
 
 http_archive(
@@ -252,7 +252,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/lexy/lexy.tgz",
     ],
-    build_file = "@//external/lexy:lxy.BUILD",
+    build_file = "@//3rd_party/lexy:lxy.BUILD",
 )
 
 http_archive(
@@ -262,7 +262,7 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/minitrace/minitrace.tgz",
     ],
-    build_file = "@//external/minitrace:mt.BUILD",
+    build_file = "@//3rd_party/minitrace:mt.BUILD",
 )
 
 http_archive(
@@ -272,11 +272,11 @@ http_archive(
     urls = [
         "@REMOTE_HTTP_SERVER@/amalgamation/sqlite-autoconf-3410200.tar.gz",
     ],
-    build_file = "@//external/amalgamation:sq3.BUILD",
+    build_file = "@//3rd_party/amalgamation:sq3.BUILD",
 )
 
 #local way
-load("//external/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
+load("//3rd_party/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
 #generate ros_ws/... workspace as native
 import_ros_workspace(
     name = "ros_ws",
@@ -288,7 +288,7 @@ ros_repositories()
 
 http_archive(
     name = "genmsg_repo",
-    build_file = "@//external/ros_ws/bazel:genmsg.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:genmsg.BUILD",
     #sha256 = "d7627a2df169e4e8208347d9215e47c723a015b67ef3ed8cda8b61b6cfbf94d2",
     sha256 = "c63395eb43b6bc35b4687504afb473cd02f120339bc58d2d4d8bddd32938b444",
     strip_prefix = "genmsg-0.5.8",
@@ -298,7 +298,7 @@ http_archive(
 
 http_archive(
     name = "genpy_repo",
-    build_file = "@//external/ros_ws/bazel:genpy.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:genpy.BUILD",
     sha256 = "35e5cd2032f52a1f77190df5c31c02134dc460bfeda3f28b5a860a95309342b9",
     strip_prefix = "genpy-0.6.5",
     urls = ["@REMOTE_HTTP_SERVER@/genpy_repo/0.6.5.tar.gz"],
@@ -306,13 +306,13 @@ http_archive(
 
 http_archive(
     name = "gencpp_repo",
-    build_file = "@//external/ros_ws/bazel:gencpp.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:gencpp.BUILD",
     sha256 = "1340928931d873e2d43801b663a4a8d87402b88173adb01e21e58037d490fda5",
     strip_prefix = "gencpp-0.5.5",
     urls = ["@REMOTE_HTTP_SERVER@/gencpp_repo/0.5.5.tar.gz"],
 )
 
-load("//external/nlohmann_json:workspace.bzl", nlohmann_json = "repo")
+load("//3rd_party/nlohmann_json:workspace.bzl", nlohmann_json = "repo")
 nlohmann_json()
 
 ###########################################################################################

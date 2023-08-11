@@ -100,29 +100,30 @@ build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 # +------------------------------------------------------------+
 # TARGET, hardware: aarch_64, os: Linux
 #build --incompatible_enable_cc_toolchain_resolution
+build --toolchain_resolution_debug='@bazel_tools//tools/cpp:toolchain_type'
 
 # arm32
 build:gcc_cross_arm32 --cpu=arm
 build:gcc_cross_arm32 --define buildtool=gcc_arm
-build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_arm
-build:gcc_cross_arm32 --crosstool_top=//external/toolchain:mstf_cc_arm_gcc64_suite
+build:gcc_cross_arm32 --platforms=//CyberRT_tutorials/bazel_skills:mstf_arm
+build:gcc_cross_arm32 --crosstool_top=//3rd_party/toolchain:mstf_cc_arm_gcc64_suite
 
 # aarch 6.4.1 compiler
 build:gcc64_cross_aarch64 --cpu=aarch64
 build:gcc64_cross_aarch64 --define buildtool=gcc_aarch64_641
-build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
-build:gcc64_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc64_suite
+build:gcc64_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
+build:gcc64_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_gcc64_suite
 
 # aarch 9.4 compiler
 build:gcc94_cross_aarch64 --cpu=aarch64
 build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
-build:gcc94_cross_aarch64 --crosstool_top=//external/toolchain:mstf_cc_aarch64_gcc94_suite
+build:gcc94_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_gcc94_suite
 
 # x86
 build:plat_x86 --cpu=x86_64
 build:plat_x86 --define buildtool=gcc_x64
 build:plat_x86 --platforms=@local_config_platform//:host
-build:plat_x86 --crosstool_top=//external/toolchain:mastiff_gcc_suite_local
+build:plat_x86 --crosstool_top=//3rd_party/toolchain:mastiff_gcc_suite_local
 
 # default x64
 build:plat_default --verbose_failures

@@ -25,12 +25,12 @@ function clean_bazel() {
     rm -fr $TOPDIR/WORKSPACE
     rm -fr out/
 
-    rm -fr $TOPDIR/external/ros_ws/workspace.bzl
-    rm -fr $TOPDIR/external/slam/repositories.bzl
-    rm -fr $TOPDIR/external/nlohmann_json/workspace.bzl
-    rm -fr $TOPDIR/external/valgrind/bazel/valgrind.bzl
-    rm -fr $TOPDIR/external/toolchain/mastiff_build_conf.bzl
-    rm -fr $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
+    rm -fr $TOPDIR/3rd_party/ros_ws/workspace.bzl
+    rm -fr $TOPDIR/3rd_party/slam/repositories.bzl
+    rm -fr $TOPDIR/3rd_party/nlohmann_json/workspace.bzl
+    rm -fr $TOPDIR/3rd_party/valgrind/bazel/valgrind.bzl
+    rm -fr $TOPDIR/3rd_party/toolchain/mastiff_build_conf.bzl
+    rm -fr $TOPDIR/3rd_party/fringe_nginx/bazel/fringe_nginx.bzl
 }
 
 function clean_bazdir() {

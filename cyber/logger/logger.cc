@@ -43,7 +43,7 @@ Logger::~Logger() {
 }
 
 void Logger::Write(bool force_flush, time_t timestamp, const char* message,
-                   int message_len) {
+                   size_t message_len) {
   std::string log_message = std::string(message, message_len);
   std::string module_name;
   // set the same bracket as the bracket in log.h
@@ -66,7 +66,8 @@ void Logger::Write(bool force_flush, time_t timestamp, const char* message,
   }
   if (fileobject) {
     fileobject->Write(force_flush, timestamp, log_message.c_str(),
-                      static_cast<int>(log_message.size()));
+                      //static_cast<int>(log_message.size()));
+                      log_message.size());
   }
 }
 

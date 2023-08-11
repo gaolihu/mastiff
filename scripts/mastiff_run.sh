@@ -4,8 +4,8 @@ TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 source ${TOPDIR}/scripts/mastiff.bashrc
 
-RTPS_LIB=$TOPDIR/.cache_build/external/fastrtps/x86_64/fast-rtps-1.5.0-1/lib
-UUID_LIB=$TOPDIR/.cache_build/external/uuid/libuuid-1.0.3/x86_64//lib/
+RTPS_LIB=$TOPDIR/.cache_build/3rd_party/fastrtps/x86_64/fast-rtps-1.5.0-1/lib
+UUID_LIB=$TOPDIR/.cache_build/3rd_party/uuid/libuuid-1.0.3/x86_64//lib/
 CBR_LIB=$TOPDIR/bazel-bin/cyber/proto/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$UUID_LIB:$RTPS_LIB:$CBR_LIB
 

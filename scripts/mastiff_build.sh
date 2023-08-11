@@ -35,6 +35,7 @@ function parse_sub_build() {
 
         sub_build_packages_array[$m]="$base_pkg:${sub_build_array[$m]}"
         sub_build_packages_array[$m]="bazel~build~${sub_build_packages_array[m]}"
+        #info "${sub_build_packages_array[$m]}"
     done
 
     #if [ $m -eq 0 ]; then
@@ -59,6 +60,7 @@ function parse_sub_run() {
 
         sub_run_packages_array[n]="$base_pkg:${sub_run_pkg_array[$n]}"
         sub_run_packages_array[n]="bazel~run~${sub_run_packages_array[n]}"
+        #info "${sub_run_packages_array[$n]}"
     done
 
     #if [ $n -eq 0 ]; then
@@ -86,6 +88,8 @@ function choose_pkg() {
         sub_del_all=$(grep -e "##BZL.DEL:all" ${SUB_PKG_PATH_ARRAY[$i]})
         sub_del_this=$(grep -e "##BZL.DEL:this" ${SUB_PKG_PATH_ARRAY[$i]})
 
+        #warning "base: ${BUILD_PKG_ARRAY[$i]}"
+
         if [[ $sub_del_all ]]; then
             #delet all of the modules
             info "ignore all modules in: ${SUB_PKG_PATH_ARRAY[$i]}"
@@ -93,7 +97,7 @@ function choose_pkg() {
             #partial delete
             if [[ $sub_del_this ]]; then
                 #delete default module
-                info "delete default module in: ${SUB_PKG_PATH_ARRAY[$i]}"
+                info "delete dft module in: ${SUB_PKG_PATH_ARRAY[$i]}"
             else
                 #enable default module
                 ranked_cmd_and_package[$j]="bazel~~build~$base_pkg"
@@ -107,12 +111,12 @@ function choose_pkg() {
             o=$(expr $m + $n)
             r=$(expr $j - $o)
 
-            #good "${SUB_PKG_PATH_ARRAY[$i]}, from: $r, build: $m, run: $n, loop: $t, all: $o, ALL: $j"
+            #good "${SUB_PKG_PATH_ARRAY[$i]}, from: $r, build: $m, run: $n, all: $o, ALL: $j"
 
             ty=0 #build queue idx
             tx=0 #run queue idx
 
-            for ((; r < o; r++))
+            for ((; r < j; r++))
             do
                 if [ ! ${sub_run_pkg_seq_array[$tx]} ]; then
                     ranked_cmd_and_package[r]=${sub_build_packages_array[ty]}
@@ -290,7 +294,7 @@ function main() {
         sed  "/tools/d" |
         sed  "/docker/d" |
         sed  "/cartographer_ros_msgs/d" |
-        sed  "/external/d" |
+        sed  "/3rd_party/d" |
         grep "$1" | sort)
     )
     BUILD_PKG_ARRAY=(
@@ -306,7 +310,7 @@ function main() {
         sed  "/tools/d" |
         sed  "/docker/d" |
         sed  "/cartographer_ros_msgs/d" |
-        sed  "/external/d" |
+        sed  "/3rd_party/d" |
         sed "s#\.#/#g" |\
         sed "s|/BUILD$||g" |\
         grep "$1" | sort)

@@ -2,16 +2,16 @@ workspace(name = "mastiff")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load("//external/py:python_configure.bzl", "python_configure")
+load("//3rd_party/py:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python")
 
-load("//external/slam:repositories.bzl", "cartographer_repositories")
+load("//3rd_party/slam:repositories.bzl", "cartographer_repositories")
 cartographer_repositories()
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
 
-load("@com_github_jupp0r_prometheus_cpp//:repositories.bzl", "prometheus_cpp_repositories")
+load("@com_github_jupp0r_prometheus_cpp//bazel:repositories.bzl", "prometheus_cpp_repositories")
 prometheus_cpp_repositories()
 
 http_archive(
@@ -29,12 +29,11 @@ http_archive(
 )
 
 http_archive(
-    name = "com_github_google_glog",
-    sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
-    strip_prefix = "glog-0.4.0",
+    name = "com_google_glog",
+    #commit: 3a0d4d22c5ae0b9a2216988411cfa6bf860cc372, 2023/6/5
+    strip_prefix = "glog-3a0d4d22c5ae0b9a2216988411cfa6bf860cc372",
     urls = [
-        "https://apollo-system.cdn.bcebos.com/archive/6.0/v0.4.0.tar.gz",
-        #"https://github.com/google/glog/archive/v0.4.0.tar.gz",
+        "https://github.com/google/glog/archive/3a0d4d22c5ae0b9a2216988411cfa6bf860cc372.zip",
     ],
 )
 
@@ -112,7 +111,7 @@ versions.check(minimum_bazel_version = "3.7.0")
 
 #http_archive(
 #    name = "zlib",
-#    build_file = "@com_google_protobuf//:external/zlib.BUILD",
+#    build_file = "@com_google_protobuf//:3rd_party/zlib.BUILD",
 #    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
 #    strip_prefix = "zlib-1.2.11",
 #    urls = [
@@ -136,7 +135,7 @@ http_archive(
     strip_prefix = "opencv-3.4.10-x86_64",
     urls = [
     ],
-    build_file = "@//external/opencv:opencv.BUILD",
+    build_file = "@//3rd_party/opencv:opencv.BUILD",
 )
 
 http_archive(
@@ -145,11 +144,11 @@ http_archive(
     strip_prefix = "opencv-3.4.10-aarch64",
     urls = [
     ],
-    build_file = "@//external/opencv:opencv.BUILD",
+    build_file = "@//3rd_party/opencv:opencv.BUILD",
 )
 
 #local way
-load("//external/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
+load("//3rd_party/ros_ws/bazel:repository_rules.bzl", "import_ros_workspace")
 import_ros_workspace(
     name = "ros_ws",
     path = "@ROS_WORKSPACE@",
@@ -159,7 +158,7 @@ ros_repositories()
 
 http_archive(
     name = "genmsg_repo",
-    build_file = "@//external/ros_ws/bazel:genmsg.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:genmsg.BUILD",
     sha256 = "d7627a2df169e4e8208347d9215e47c723a015b67ef3ed8cda8b61b6cfbf94d2",
     strip_prefix = "genmsg-0.5.8",
     urls = ["https://github.com/ros/genmsg/archive/0.5.8.tar.gz"],
@@ -167,7 +166,7 @@ http_archive(
 
 http_archive(
     name = "genpy_repo",
-    build_file = "@//external/ros_ws/bazel:genpy.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:genpy.BUILD",
     sha256 = "35e5cd2032f52a1f77190df5c31c02134dc460bfeda3f28b5a860a95309342b9",
     strip_prefix = "genpy-0.6.5",
     urls = ["https://github.com/ros/genpy/archive/0.6.5.tar.gz"],
@@ -175,7 +174,7 @@ http_archive(
 
 http_archive(
     name = "gencpp_repo",
-    build_file = "@//external/ros_ws/bazel:gencpp.BUILD",
+    build_file = "@//3rd_party/ros_ws/bazel:gencpp.BUILD",
     sha256 = "1340928931d873e2d43801b663a4a8d87402b88173adb01e21e58037d490fda5",
     strip_prefix = "gencpp-0.5.5",
     urls = ["https://github.com/ros/gencpp/archive/0.5.5.tar.gz"],
@@ -185,7 +184,7 @@ http_archive(
     name = "com_github_nlohmann_json",
     sha256 = "7d0edf65f2ac7390af5e5a0b323b31202a6c11d744a74b588dc30f5a8c9865ba",
     strip_prefix = "json-3.8.0",
-    build_file = ("//external/nlohmann_json:json.BUILD"),
+    build_file = ("//3rd_party/nlohmann_json:json.BUILD"),
     urls = [
         "https://apollo-system.cdn.bcebos.com/archive/6.0/v3.8.0.tar.gz",
         "https://github.com/nlohmann/json/archive/v3.8.0.tar.gz",
@@ -199,7 +198,7 @@ http_archive(
     urls = [
         "https://github.com/BehaviorTree/BehaviorTree.CPP/archive/00c798977d3a22cdf27e3da8a7329c95c88aeddc.zip",
     ],
-    build_file = "@//external/behaviour_tree:bt.BUILD",
+    build_file = "@//3rd_party/behaviour_tree:bt.BUILD",
 )
 
 http_archive(
@@ -209,7 +208,7 @@ http_archive(
     urls = [
         "https://github.com/leethomason/tinyxml2/archive/e05956094c27117f989d22f25b75633123d72a83.zip",
     ],
-    build_file = "@//external/tinyxml2:txml2.BUILD",
+    build_file = "@//3rd_party/tinyxml2:txml2.BUILD",
 )
 
 http_archive(
@@ -219,7 +218,7 @@ http_archive(
     urls = [
         "https://github.com/foonathan/lexy/archive/d324122c5a9311cf9fae660d126249adff66d96f.zip",
     ],
-    build_file = "@//external/lexy:lxy.BUILD",
+    build_file = "@//3rd_party/lexy:lxy.BUILD",
 )
 
 http_archive(
@@ -229,7 +228,7 @@ http_archive(
     urls = [
         "https://github.com/hrydgard/minitrace/archive/a45ca4f58c8af2fc4d4d6042e68aa68bfea422c9.zip",
     ],
-    build_file = "@//external/minitrace:mt.BUILD",
+    build_file = "@//3rd_party/minitrace:mt.BUILD",
 )
 
 http_archive(
@@ -239,7 +238,7 @@ http_archive(
     urls = [
         "https://github.com/edubart/minicoro/archive/8673ca62ed938c0b436bc2a548f172865f65bf1d.zip",
     ],
-    build_file = "@//external/minicoro:mc.BUILD",
+    build_file = "@//3rd_party/minicoro:mc.BUILD",
 )
 
 http_archive(
@@ -249,15 +248,15 @@ http_archive(
     urls = [
         "https://github.com/zemasoft/wildcards/archive/5662507f01f5d0a4ec22f45749214276ed366d1b.zip",
     ],
-    build_file = "@//external/wildcards:wc.BUILD",
+    build_file = "@//3rd_party/wildcards:wc.BUILD",
 )
 
 # nginx build
-load("//external/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
+load("//3rd_party/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
 nginx_repo()
 
 # valgrind build
-load("//external/valgrind:bazel/valgrind.bzl", "valgrind_build")
+load("//3rd_party/valgrind:bazel/valgrind.bzl", "valgrind_build")
 valgrind_build()
 
 ###########################################################################################

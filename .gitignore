@@ -45,12 +45,12 @@ out/
 *log.INFO*
 WORKSPACE
 
-external/ros_ws/workspace.bzl
-external/slam/repositories.bzl
-external/nlohmann_json/workspace.bzl
-external/valgrind/bazel/valgrind.bzl
-external/toolchain/mastiff_build_conf.bzl
-external/fringe_nginx/bazel/fringe_nginx.bzl
+3rd_party/ros_ws/workspace.bzl
+3rd_party/slam/repositories.bzl
+3rd_party/nlohmann_json/workspace.bzl
+3rd_party/valgrind/bazel/valgrind.bzl
+3rd_party/toolchain/mastiff_build_conf.bzl
+3rd_party/fringe_nginx/bazel/fringe_nginx.bzl
 
 .vscode/
 

@@ -148,7 +148,7 @@ cc_binary(
         "//cyber/transport",
         "//cyber/transport/rtps:participant",
         "//cyber/transport/rtps:sub_listener",
-        "@com_github_google_glog//:glog",
+        "@com_google_glog//:glog",
         "@com_google_protobuf//:protobuf",
         "@fastrtps",
     ],
@@ -162,7 +162,7 @@ cc_library(
     linkopts = ["-lrt"],
     visibility = ["//visibility:public"],
     deps = [
-        "@com_github_google_glog//:glog",
+        "@com_google_glog//:glog",
         "@com_google_protobuf//:protobuf",
         "@fastrtps",
         "@com_github_gflags_gflags//:gflags",

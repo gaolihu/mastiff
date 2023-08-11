@@ -44,7 +44,7 @@ cc_library(
     hdrs = ["log.h"],
     deps = [
         "//cyber:binary",
-        "@com_github_google_glog//:glog",
+        "@com_google_glog//:glog",
     ],
 )
 

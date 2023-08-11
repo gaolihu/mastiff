@@ -51,7 +51,7 @@ AARCH94_TOOL_CHAIN_DIR=""
 X86_TOOL_CHAIN_DIR=""
 
 # Third party libraries dependences
-EXTERNAL_DIR=external
+EXTERNAL_DIR=3rd_party
 EXTERNAL_BUILD_PATH=$BUILD_PATH/$EXTERNAL_DIR
 if [ ! -d $EXTERNAL_BUILD_PATH ]; then
     mkdir -p $EXTERNAL_BUILD_PATH
@@ -514,7 +514,7 @@ function config_bazel_ws() {
         ln -sf bzel/WORKSPACE WORKSPACE
 
         sed -i "s#@urls_com_google_protobuf@#$EXTERNAL_BUILD_PATH/urls_com_google_protobuf/v3.14.0.tar.gz#g" bzel/WORKSPACE
-        sed -i "s#@com_github_google_glog@#$EXTERNAL_BUILD_PATH/com_github_google_glog/v0.4.0.tar.gz#g" bzel/WORKSPACE
+        sed -i "s#@com_google_glog@#$EXTERNAL_BUILD_PATH/com_google_glog/v0.4.0.tar.gz#g" bzel/WORKSPACE
         sed -i "s#@com_google_googletest@#$EXTERNAL_BUILD_PATH/com_google_googletest/release-1.7.0.zip#g" bzel/WORKSPACE
         sed -i "s#@rules_python@#$EXTERNAL_BUILD_PATH/rules_python/rules_python-0.1.0.tar.gz#g" bzel/WORKSPACE
         sed -i "s#@com_github_grpc_grpc@#$EXTERNAL_BUILD_PATH/com_github_grpc_grpc/v1.30.0.tar.gz#g" bzel/WORKSPACE
@@ -532,42 +532,42 @@ function config_bazel_ws() {
         info "$MASTIFF_BUILD_CONF not exist!!"
     fi
 
-    #if [ ! -f $TOPDIR/external/slam/repositories.bzl ]; then
+    #if [ ! -f $TOPDIR/$EXTERNAL_DIR/slam/repositories.bzl ]; then
     if [ 1 ]; then
         SOURCE=$(echo "$MASTIFF_BUILD_CONF" | awk '{print substr($0, 16, 12)}')
 
         if [[ "$SOURCE" = "module.mstf" ]]; then
             #warning "generate mastiff slam repos"
-            cp $TOPDIR/external/slam/repositories_mstf.bzl.tpl $TOPDIR/external/slam/repositories.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/slam/repositories_mstf.bzl.tpl $TOPDIR/$EXTERNAL_DIR/slam/repositories.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/slam/repositories.bzl
 
             #warning "generate mastiff nginx repos"
-            cp $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl
 
             #warning "generate mastiff nlohmann json repos"
-            cp $TOPDIR/external/nlohmann_json/workspace.bzl.tpl $TOPDIR/external/nlohmann_json/workspace.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/nlohmann_json/workspace.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl.tpl $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl
 
             #warning "generate mastiff valgrind repos"
-            cp $TOPDIR/external/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/external/valgrind/bazel/valgrind.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/valgrind/bazel/valgrind.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl
         elif [[ "$SOURCE" = "module.ext" ]]; then
-            #warning "generate external slam repos"
-            cp $TOPDIR/external/slam/repositories_ext.bzl.tpl $TOPDIR/external/slam/repositories.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/slam/repositories.bzl
+            #warning "generate $EXTERNAL_DIR slam repos"
+            cp $TOPDIR/$EXTERNAL_DIR/slam/repositories_ext.bzl.tpl $TOPDIR/$EXTERNAL_DIR/slam/repositories.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/slam/repositories.bzl
 
             #warning "generate mastiff nginx repos"
-            cp $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/fringe_nginx/bazel/fringe_nginx.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl.tpl $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/fringe_nginx/bazel/fringe_nginx.bzl
 
             #warning "generate mastiff nlohmann json repos"
-            cp $TOPDIR/external/nlohmann_json/workspace.bzl.tpl $TOPDIR/external/nlohmann_json/workspace.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/nlohmann_json/workspace.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl.tpl $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/nlohmann_json/workspace.bzl
 
             #warning "generate mastiff valgrind repos"
-            cp $TOPDIR/external/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/external/valgrind/bazel/valgrind.bzl
-            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/external/valgrind/bazel/valgrind.bzl
+            cp $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl.tpl $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl
+            sed -i "s#@REMOTE_HTTP_SERVER@#$REMOTE_HTTP_SERVER#g" $TOPDIR/$EXTERNAL_DIR/valgrind/bazel/valgrind.bzl
         fi
         good "generate thirdparty source repos OK!"
     else
