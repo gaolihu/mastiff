@@ -20,24 +20,48 @@ package(default_visibility = ["//visibility:public"])
 # //3rd_party/toolchain:toolchain_type.
 toolchain_type(name = "mstf_toolchain_type")
 
-# 1, Toolchain that targets os Linux cpu x64, executes on os Linux cpu x64
+#mstf x86
+platform(
+    name = "mstf_x64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+#mstf aarch64
+platform(
+    name = "mstf_aarch64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+#mstf arm
+platform(
+    name = "mstf_arm",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm",
+    ],
+)
+
+# 1, Toolchain that targets os:Linux cpu:x64, executes on os:Linux cpu:x64
 # //3rd_party/toolchain:target_linux_x64_exe_linux_cpu_x64_toolchain_cc
 toolchain(
     name = "target_linux_x64_exe_linux_cpu_x64_toolchain_cc",
     exec_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
-        ":mstf_lang_cc",
+        "@bazel_tools//tools/cpp:gcc",
     ],
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
-        ":mstf_lang_cc",
+        "@bazel_tools//tools/cpp:gcc",
     ],
     toolchain = ":linux_x64_linux_x64_mstf_toolchain",
     toolchain_type = ":mstf_toolchain_type",
 )
-
 mstf_toolchain(
     name = "linux_x64_linux_x64_mstf_toolchain",
     executing_on_cpu = "x86_64",
@@ -56,7 +80,6 @@ toolchain(
     toolchain = ":host_host_mstf_toolchain",
     toolchain_type = ":mstf_toolchain_type",
 )
-
 mstf_toolchain(
     name = "host_host_mstf_toolchain",
     executing_on_cpu = "host",
@@ -65,71 +88,33 @@ mstf_toolchain(
     targetting_os = "host",
 )
 
-# 3, Toolchain that targets os Linux cpu x64, executes on os Linux cpu aarch64
-# //3rd_party/toolchain:target_linux_x64_exe_linux_cpu_aarch64_toolchain_cc
+# 3, Toolchain that targets os:Linux cpu:aarch64, executes on os:Linux cpu:x64
+# //3rd_party/toolchain:target_linux_aarch64_exe_linux_cpu_x64_toolchain_cc
 toolchain(
-    name = "target_linux_x64_exe_linux_cpu_aarch64_toolchain_cc",
+    name = "target_linux_aarch64_exe_linux_cpu_x64_toolchain_cc",
     exec_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:aarch_64",
-        ":mstf_lang_cc",
+        "@platforms//cpu:x86_64",
+        "@bazel_tools//tools/cpp:gcc",
     ],
     target_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-        ":mstf_lang_cc",
+        "@platforms//cpu:aarch64",
     ],
-    toolchain = ":linux_x64_linux_arm64_mstf_toolchain",
+    toolchain = ":aarch64_gcc94_toolchain",
     toolchain_type = ":mstf_toolchain_type",
 )
 
-mstf_toolchain(
-    name = "linux_x64_linux_arm64_mstf_toolchain",
-    executing_on_cpu = "aarch64",
-    executing_on_os = "linux",
-    targetting_cpu = "x86_64",
-    targetting_os = "linux",
-)
-
-# 4, Toolchain that targets Windows cpu x64, and executes on Linux cpu x64
-# //3rd_party/toolchain:target_windows_x64_exe_linux_x64_toolchain_cc
+# 4, Toolchain that targets os:Linux cpu:aarch64, executes on host
+# //3rd_party/toolchain:target_linux_aarch64_exe_host_toolchain_cc
 toolchain(
-    name = "target_windows_x64_exe_linux_x64_toolchain_cc",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//os:x86_64",
-    ],
-    target_compatible_with = [
-        "@platforms//os:windows",
-        "@platforms//os:x86_64",
-    ],
-    toolchain = ":windows_x64_linux_x64mstf_toolchain",
-    toolchain_type = ":mstf_toolchain_type",
-)
-
-mstf_toolchain(
-    name = "windows_x64_linux_x64mstf_toolchain",
-    executing_on_cpu = "x86_64",
-    executing_on_os = "linux",
-    targetting_cpu = "x86_64",
-    targetting_os = "windows",
-)
-
-# 5, Toolchain that targets os Linux cpu x64, executes on os Linux cpu x64
-# //3rd_party/toolchain:target_linux_x64_exe_linux_cpu_x64_toolchain_c
-toolchain(
-    name = "target_linux_x64_exe_linux_cpu_x64_toolchain_c",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-        ":mstf_lang_c",
-    ],
+    name = "target_linux_aarch64_exe_host_toolchain_cc",
+    exec_compatible_with = HOST_CONSTRAINTS,
     target_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-        ":mstf_lang_c",
+        "@platforms//cpu:aarch64",
     ],
-    toolchain = ":linux_x64_linux_x64_mstf_toolchain",
+    toolchain = ":aarch64_gcc94_toolchain",
     toolchain_type = ":mstf_toolchain_type",
 )
 
@@ -221,6 +206,8 @@ cc_toolchain_suite(
     name = "mstf_cc_aarch64_gcc94_suite",
     toolchains = {
         "aarch64": ":aarch64_gcc94_toolchain",
+        "local|compiler": ":aarch64_gcc94_toolchain",
+        "k8": ":mastiff_x86_64_toolchain",
     },
 )
 cc_mastiff_toolchain_config_aarch64_94(name = "mastiff_aarch64_94_toolchain_config")
@@ -243,6 +230,7 @@ cc_toolchain(
 cc_toolchain_suite(
     name = "mastiff_gcc_suite_local",
     toolchains = {
+        "k8": ":mastiff_x86_64_toolchain",
         "x86_64": ":mastiff_x86_64_toolchain",
     },
 )

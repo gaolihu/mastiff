@@ -29,6 +29,16 @@ http_archive(
 )
 
 http_archive(
+    name = "upb",
+    sha256 = "caa94e74747aa583f78ae56aedb059b500f9a3f3b9b24ddaf08b3457474986a6",
+    #commit: 5aca728f72766c013b4e451775b89b16ffd7bdc5, 2023/8/8
+    strip_prefix = "upb-5aca728f72766c013b4e451775b89b16ffd7bdc5",
+    urls = [
+        "https://github.com/protocolbuffers/upb/archive/5aca728f72766c013b4e451775b89b16ffd7bdc5.zip",
+    ],
+)
+
+http_archive(
     name = "com_google_glog",
     #commit: 3a0d4d22c5ae0b9a2216988411cfa6bf860cc372, 2023/6/5
     strip_prefix = "glog-3a0d4d22c5ae0b9a2216988411cfa6bf860cc372",
@@ -37,23 +47,23 @@ http_archive(
     ],
 )
 
-http_archive(
-    name = "com_google_googletest",
-    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
-    strip_prefix = "googletest-release-1.10.0",
-    urls = [
-        "https://apollo-system.cdn.bcebos.com/archive/6.0/release-1.10.0.tar.gz",
-        #"https://github.com/google/googletest/archive/release-1.10.0.tar.gz",
-    ],
-)
+#http_archive(
+#    name = "com_google_googletest",
+#    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
+#    strip_prefix = "googletest-release-1.10.0",
+#    urls = [
+#        "https://apollo-system.cdn.bcebos.com/archive/6.0/release-1.10.0.tar.gz",
+#        #"https://github.com/google/googletest/archive/release-1.10.0.tar.gz",
+#    ],
+#)
 
-http_archive(
-    name = "remote_coverage_tools",
-    sha256 = "cd14f1cb4559e4723e63b7e7b06d09fcc3bd7ba58d03f354cdff1439bd936a7d",
-    urls = [
+#http_archive(
+#    name = "remote_coverage_tools",
+#    sha256 = "cd14f1cb4559e4723e63b7e7b06d09fcc3bd7ba58d03f354cdff1439bd936a7d",
+#    urls = [
         #"@REMOTE_HTTP_SERVER@//remote_coverage_tools/coverage_output_generator-v2.5.zip",
-    ],
-)
+#    ],
+#)
 
 #http_archive(
 #    name = "rules_java",
@@ -267,3 +277,5 @@ load("//@THIRDPARTY_PATH@/uuid:workspace.bzl", uuid = "repo")
 uuid()
 #load("//@THIRDPARTY_PATH@/ncurses5:workspace.bzl", ncurses5 = "repo")
 #ncurses5()
+
+register_toolchains("//3rd_party/toolchain:all")

@@ -59,17 +59,29 @@ build:opt -c opt
 
 build --per_file_copt=external/upb/.*@-Wno-sign-compare
 build --per_file_copt=external/upb/.*@-Wno-error=stringop-truncation
-#build --per_file_copt=external/upb/.*@-Werror=stringop-truncation
+build --per_file_copt=external/upb/.*@-Wno-error=array-bounds
 #
 # +------------------------------------------------------------+
 # | C/C++ Options                                              |
 # +------------------------------------------------------------+
 #build --copt="-Werror=sign-compare"
+build --copt="-Werror"
 build --copt="-Werror=return-type"
-build --copt="-Werror=unused-variable"
-build --copt="-Werror=unused-but-set-variable"
 build --copt="-Werror=switch"
+build --copt="-Wno-comment"
+build --copt="-Wno-error=array-bounds"
+build --copt="-Wno-error=maybe-uninitialized"
+build --copt="-Wno-error=unused-but-set-variable"
+
+build --cxxopt="-Werror"
 build --cxxopt="-Werror=reorder"
+build --cxxopt="-Wno-error=array-bounds"
+build --cxxopt="-Wno-error=sign-compare"
+build --cxxopt="-Wno-error=unused-function"
+build --cxxopt="-Wno-error=class-memaccess"
+build --cxxopt="-Wno-error=maybe-uninitialized"
+build --cxxopt="-Wno-error=unused-variable"
+build --cxxopt="-Wno-comment"
 
 #build --cxxopt="-fPIC"
 #build --copt="-fPIC"
@@ -90,33 +102,34 @@ build:optimize --host_copt=-march=native
 # | Host Platform Configurations                               |
 # +------------------------------------------------------------+
 # HOST, hardware: x64, os: Linux, toolchain: gcc
-#build --host_platform=@platforms//os:linux
-#build --host_platform=@platforms//cpu:x86_64
 build --host_platform=@local_config_platform//:host
-build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+#build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
 # +------------------------------------------------------------+
 # | ToolChains Configurations                                  |
 # +------------------------------------------------------------+
 # TARGET, hardware: aarch_64, os: Linux
 #build --incompatible_enable_cc_toolchain_resolution
-build --toolchain_resolution_debug='@bazel_tools//tools/cpp:toolchain_type'
+#build --toolchain_resolution_debug='//3rd_party/toolchain:mstf_toolchain_type'
+build --toolchain_resolution_debug=''
+
+build --verbose_failures
 
 # arm32
 build:gcc_cross_arm32 --cpu=arm
 build:gcc_cross_arm32 --define buildtool=gcc_arm
-build:gcc_cross_arm32 --platforms=//CyberRT_tutorials/bazel_skills:mstf_arm
+build:gcc_cross_arm32 --platforms=//3rd_party/toolchain:mstf_arm
 build:gcc_cross_arm32 --crosstool_top=//3rd_party/toolchain:mstf_cc_arm_gcc64_suite
 
 # aarch 6.4.1 compiler
 build:gcc64_cross_aarch64 --cpu=aarch64
 build:gcc64_cross_aarch64 --define buildtool=gcc_aarch64_641
-build:gcc64_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
+build:gcc64_cross_aarch64 --platforms=//3rd_party/toolchain:mstf_aarch64
 build:gcc64_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_gcc64_suite
 
 # aarch 9.4 compiler
 build:gcc94_cross_aarch64 --cpu=aarch64
-build:gcc94_cross_aarch64 --platforms=//CyberRT_tutorials/bazel_skills:mstf_aarch64
+build:gcc94_cross_aarch64 --platforms=//3rd_party/toolchain:mstf_aarch64
 build:gcc94_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_gcc94_suite
 
 # x86
@@ -124,9 +137,6 @@ build:plat_x86 --cpu=x86_64
 build:plat_x86 --define buildtool=gcc_x64
 build:plat_x86 --platforms=@local_config_platform//:host
 build:plat_x86 --crosstool_top=//3rd_party/toolchain:mastiff_gcc_suite_local
-
-# default x64
-build:plat_default --verbose_failures
 
 # Build with profiling
 build:prof --linkopt=-lprofiler
