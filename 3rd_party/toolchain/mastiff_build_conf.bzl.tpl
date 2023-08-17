@@ -351,7 +351,7 @@ def _impl_arm(ctx):
                     _LTO_BACKEND_ACTION_NAME,
                     _CLIF_MATCH_ACTION_NAME,
                 ],
-                flag_groups = [flag_group(flags = ["-std=c++0x"])],
+                flag_groups = [flag_group(flags = ["-std=c++1z"])],
             ),
         ],
     )
@@ -730,7 +730,7 @@ def _impl_aarch(ctx):
                     _LTO_BACKEND_ACTION_NAME,
                     _CLIF_MATCH_ACTION_NAME,
                 ],
-                flag_groups = [flag_group(flags = ["-std=c++0x"])],
+                flag_groups = [flag_group(flags = ["-std=c++1z"])],
             ),
         ],
     )
@@ -1109,7 +1109,7 @@ def _impl_aarch94(ctx):
                     _LTO_BACKEND_ACTION_NAME,
                     _CLIF_MATCH_ACTION_NAME,
                 ],
-                flag_groups = [flag_group(flags = ["-std=c++0x"])],
+                flag_groups = [flag_group(flags = ["-std=c++1z"])],
             ),
         ],
     )
@@ -1489,7 +1489,7 @@ def _impl_x86(ctx):
                     _LTO_BACKEND_ACTION_NAME,
                     _CLIF_MATCH_ACTION_NAME,
                 ],
-                flag_groups = [flag_group(flags = ["-std=c++0x"])],
+                flag_groups = [flag_group(flags = ["-std=c++1z"])],
             ),
         ],
     )

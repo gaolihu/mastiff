@@ -25,7 +25,7 @@ build --color=yes
 build --announce_rc
 build --show_timestamps
 build --show_progress
-#build --show_loading_progress
+build --show_loading_progress
 #build --subcommands
 #build --subcommands=pretty_print
 
@@ -72,6 +72,7 @@ build --copt="-Wno-comment"
 build --copt="-Wno-error=array-bounds"
 build --copt="-Wno-error=maybe-uninitialized"
 build --copt="-Wno-error=unused-but-set-variable"
+build --copt="-Wno-error=stringop-truncation"
 
 build --cxxopt="-Werror"
 build --cxxopt="-Werror=reorder"
@@ -81,6 +82,10 @@ build --cxxopt="-Wno-error=unused-function"
 build --cxxopt="-Wno-error=class-memaccess"
 build --cxxopt="-Wno-error=maybe-uninitialized"
 build --cxxopt="-Wno-error=unused-variable"
+build --cxxopt="-Wno-error=stringop-truncation"
+build --cxxopt="-Wno-error=attributes"
+build --cxxopt="-Wno-error=format-security"
+build --cxxopt="-Wno-error=deprecated-declarations"
 build --cxxopt="-Wno-comment"
 
 #build --cxxopt="-fPIC"
@@ -102,18 +107,18 @@ build:optimize --host_copt=-march=native
 # | Host Platform Configurations                               |
 # +------------------------------------------------------------+
 # HOST, hardware: x64, os: Linux, toolchain: gcc
-build --host_platform=@local_config_platform//:host
+#build --host_platform=//3rd_party/toolchain:mstf_x64
 #build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
 # +------------------------------------------------------------+
 # | ToolChains Configurations                                  |
 # +------------------------------------------------------------+
 # TARGET, hardware: aarch_64, os: Linux
-#build --incompatible_enable_cc_toolchain_resolution
 #build --toolchain_resolution_debug='//3rd_party/toolchain:mstf_toolchain_type'
-build --toolchain_resolution_debug=''
+#build --toolchain_resolution_debug=''
 
 build --verbose_failures
+build --verbose_explanations
 
 # arm32
 build:gcc_cross_arm32 --cpu=arm
@@ -129,14 +134,17 @@ build:gcc64_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_
 
 # aarch 9.4 compiler
 build:gcc94_cross_aarch64 --cpu=aarch64
-build:gcc94_cross_aarch64 --platforms=//3rd_party/toolchain:mstf_aarch64
+#build:gcc94_cross_aarch64 --platforms=//3rd_party/toolchain:mstf_aarch64
+#build:gcc94_cross_aarch64 --incompatible_enable_cc_toolchain_resolution
 build:gcc94_cross_aarch64 --crosstool_top=//3rd_party/toolchain:mstf_cc_aarch64_gcc94_suite
+build:gcc94_cross_aarch64 --extra_toolchains=//3rd_party/toolchain:target_linux_aarch64_exe_host_toolchain_cc
 
 # x86
-build:plat_x86 --cpu=x86_64
+#build:plat_x86 --cpu=x86_64
 build:plat_x86 --define buildtool=gcc_x64
-build:plat_x86 --platforms=@local_config_platform//:host
-build:plat_x86 --crosstool_top=//3rd_party/toolchain:mastiff_gcc_suite_local
+#build:plat_x86 --platforms=@local_config_platform//:host
+#build:plat_x86 --platforms=//3rd_party/toolchain:mstf_x64
+#build:plat_x86 --crosstool_top=//3rd_party/toolchain:mastiff_gcc_suite_local
 
 # Build with profiling
 build:prof --linkopt=-lprofiler

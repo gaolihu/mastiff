@@ -48,6 +48,15 @@ proto_library(
     ],
 )
 
+genrule(
+    name = "fgrpc",
+    outs = ["empty.cc",],
+    cmd = "echo -e \"int xx() {return 0;}\" > $(@) && sed -i \'104s#^#\\/\\/#' external/com_github_googlecartographer_async_grpc/async_grpc/completion_queue_pool.cc"
+    # temp way to avoid compile error in async_grpc:
+    # stl_uninitialized.h:127:72: error: static assertion failed: result type must be constructible from value type of input range static_assert(is_constructible<_ValueType2, decltype(*__first)>::value,
+    # TODO, Glh, 2023/8/17
+)
+
 cc_library(
     name = "cartographer_grpc",
     srcs = glob(
@@ -58,7 +67,7 @@ cc_library(
             "**/*_main.cc",
             "**/*_test.cc",
         ],
-    ),
+    ) + ["empty.cc"],
     hdrs = glob([
         "**/*.h",
     ]),
@@ -67,6 +76,7 @@ cc_library(
     includes = ["."],
     deps = [
         ":cc_protos",
+        ":fgrpc",
         "//srcs/slam/cartographer_230401/cartographer",
         "@com_github_googlecartographer_async_grpc//async_grpc",
         "@com_github_grpc_grpc//:grpc++",

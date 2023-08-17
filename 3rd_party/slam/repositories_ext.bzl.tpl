@@ -19,11 +19,14 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 def cartographer_repositories():
     _maybe(
         http_archive,
+        sha256 = "3ef7f5082a035c747f5f0a49d810c722fdff1116b6d853285750ddebd167cc79",
+#        sha256 = "824fcbc4fc435b4b0d24a64d7abd94e0c84119666c9509cb0eb4c3ef60f0c162",
         # f364c077cf94e479359f09cd88dec70d1420474b, 2023/8/11
         name = "com_github_nelhage_rules_boost",
         strip_prefix = "rules_boost-f364c077cf94e479359f09cd88dec70d1420474b",
         urls = [
             "https://github.com/nelhage/rules_boost/archive/f364c077cf94e479359f09cd88dec70d1420474b.zip",
+#            "http://10.10.3.27/third_party/com_github_nelhage_rules_boost/rules_boost-f364c077cf94e479359f09cd88dec70d1420474b.tgz",
         ],
     )
 
@@ -259,20 +262,23 @@ def cartographer_repositories():
 
     _maybe(
         http_archive,
+#        sha256 = "9f0a50b1b69688e6ad7f4aef903ae6c3da226faa9875ddfccabfb655b681c20c",
         name = "com_github_googlecartographer_async_grpc",
-        strip_prefix = "async_grpc-1ef0e59db98dc761f58a13bcb848197b9147a78f",
-        # 1ef0e59db98dc761f58a13bcb848197b9147a78f, 2018/12/21
+        strip_prefix = "async_grpc-af6e44dd1c18c51bc8608fe937d0b2d376b589d6",
+        # af6e44dd1c18c51bc8608fe937d0b2d376b589d6, 2019/2/3
         urls = [
-            "https://github.com/cartographer-project/async_grpc/archive/1ef0e59db98dc761f58a13bcb848197b9147a78f.zip",
+	    "https://github.com/cartographer-project/async_grpc/archive/af6e44dd1c18c51bc8608fe937d0b2d376b589d6.zip",
         ],
     )
 
     _maybe(
         http_archive,
         name = "com_google_absl",
-        sha256 = "25249fb35c6a84f6e0d252aa3502a589cd8ea82abf1152580054d066ffa3d168",
-        strip_prefix = "abseil-cpp-d2de53124ec55390ce1ec66fd1fbf28b5a7ec4ec",
-        urls = ["https://github.com/abseil/abseil-cpp/archive/d2de53124ec55390ce1ec66fd1fbf28b5a7ec4ec.zip"],
+        sha256 = "f9021e90a0b7fdec755d33d245b07cab31fef4bad47eeefb937e168a0a6cb579",
+        strip_prefix = "abseil-cpp-334aca32051ef6ede2711487acf45d959e9bdffc",
+        urls = [
+	    "https://github.com/abseil/abseil-cpp/archive/334aca32051ef6ede2711487acf45d959e9bdffc.zip",
+	],
     )
 
     _maybe(

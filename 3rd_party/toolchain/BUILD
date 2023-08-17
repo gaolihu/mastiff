@@ -95,7 +95,6 @@ toolchain(
     exec_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
-        "@bazel_tools//tools/cpp:gcc",
     ],
     target_compatible_with = [
         "@platforms//os:linux",
@@ -206,8 +205,10 @@ cc_toolchain_suite(
     name = "mstf_cc_aarch64_gcc94_suite",
     toolchains = {
         "aarch64": ":aarch64_gcc94_toolchain",
-        "local|compiler": ":aarch64_gcc94_toolchain",
+        #"aarch64|compiler": ":aarch64_gcc94_toolchain",
+
         "k8": ":mastiff_x86_64_toolchain",
+        "#k8|gcc": ":mastiff_x86_64_toolchain",
     },
 )
 cc_mastiff_toolchain_config_aarch64_94(name = "mastiff_aarch64_94_toolchain_config")

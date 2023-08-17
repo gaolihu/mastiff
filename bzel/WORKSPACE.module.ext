@@ -40,6 +40,7 @@ http_archive(
 
 http_archive(
     name = "com_google_glog",
+    sha256 = "170d08f80210b82d95563f4723a15095eff1aad1863000e8eeb569c96a98fefb",
     #commit: 3a0d4d22c5ae0b9a2216988411cfa6bf860cc372, 2023/6/5
     strip_prefix = "glog-3a0d4d22c5ae0b9a2216988411cfa6bf860cc372",
     urls = [
@@ -279,3 +280,4 @@ uuid()
 #ncurses5()
 
 register_toolchains("//3rd_party/toolchain:all")
+register_execution_platforms("//3rd_party/toolchain:mstf_x64")
