@@ -267,7 +267,7 @@ def cartographer_repositories():
         strip_prefix = "async_grpc-af6e44dd1c18c51bc8608fe937d0b2d376b589d6",
         # af6e44dd1c18c51bc8608fe937d0b2d376b589d6, 2019/2/3
         urls = [
-	    "https://github.com/cartographer-project/async_grpc/archive/af6e44dd1c18c51bc8608fe937d0b2d376b589d6.zip",
+            "https://github.com/cartographer-project/async_grpc/archive/af6e44dd1c18c51bc8608fe937d0b2d376b589d6.zip",
         ],
     )
 
@@ -277,8 +277,8 @@ def cartographer_repositories():
         sha256 = "f9021e90a0b7fdec755d33d245b07cab31fef4bad47eeefb937e168a0a6cb579",
         strip_prefix = "abseil-cpp-334aca32051ef6ede2711487acf45d959e9bdffc",
         urls = [
-	    "https://github.com/abseil/abseil-cpp/archive/334aca32051ef6ede2711487acf45d959e9bdffc.zip",
-	],
+            "https://github.com/abseil/abseil-cpp/archive/334aca32051ef6ede2711487acf45d959e9bdffc.zip",
+        ],
     )
 
     _maybe(

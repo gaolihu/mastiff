@@ -73,6 +73,7 @@ build --copt="-Wno-error=array-bounds"
 build --copt="-Wno-error=maybe-uninitialized"
 build --copt="-Wno-error=unused-but-set-variable"
 build --copt="-Wno-error=stringop-truncation"
+build --copt="-Wno-error=attributes"
 
 build --cxxopt="-Werror"
 build --cxxopt="-Werror=reorder"
@@ -86,6 +87,7 @@ build --cxxopt="-Wno-error=stringop-truncation"
 build --cxxopt="-Wno-error=attributes"
 build --cxxopt="-Wno-error=format-security"
 build --cxxopt="-Wno-error=deprecated-declarations"
+build --cxxopt="-Wno-error=implicit-function-declaration"
 build --cxxopt="-Wno-comment"
 
 #build --cxxopt="-fPIC"
@@ -107,8 +109,8 @@ build:optimize --host_copt=-march=native
 # | Host Platform Configurations                               |
 # +------------------------------------------------------------+
 # HOST, hardware: x64, os: Linux, toolchain: gcc
-#build --host_platform=//3rd_party/toolchain:mstf_x64
-#build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build --host_platform=//3rd_party/toolchain:mstf_x64
+build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
 # +------------------------------------------------------------+
 # | ToolChains Configurations                                  |
