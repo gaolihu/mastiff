@@ -24,6 +24,13 @@ namespace apollo {
 namespace cyber {
 namespace common {
 
+#define SET_BIT_VAL(data, bit, val) \
+    ((data) |= ((val) << (bit)))
+#define STT_BIT_VAL(data, bit, v) \
+    ((data) = (((data) & ~(1 << (bit))) | ((v) << (bit))))
+#define TST_BIT_VAL(data, bit) \
+    (((data) & (1 << (bit))) >> (bit))
+
 inline std::size_t Hash(const std::string& key) {
   return std::hash<std::string>{}(key);
 }

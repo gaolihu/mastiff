@@ -1,0 +1,405 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+enum EE_SENSOR_PARAM_BIT_MASK {
+    E_PARAM_TOF_SIGNAL = 0;
+    E_PARAM_WHL_CURRENT = 1;
+    E_PARAM_DOCK_SIGNAL = 2;
+    E_PARAM_IMU_DATA = 3;
+    E_PARAM_EULER = 4;
+    E_PARAM_WHL_PULSE = 5;
+    E_PARAM_POSE = 6;
+    E_PARAM_BIT_MASK1 = 7;
+    E_PARAM_SYS_TIME = 8;
+    E_PARAM_IFR_WALL = 9;
+    E_PARAM_WHL_SPEED = 10;
+}
+
+enum EE_MCU_FRAME_INFO {
+    E_MCU_FRAME_SENTINEL = 0;
+    E_MCU_FRAME_HEAD_1 = 0x01A5;
+    E_MCU_FRAME_HEAD_2 = 0x02A5;
+    E_MCU_FRAME_TAIL_1 = 0x035A;
+    E_MCU_FRAME_TAIL_2 = 0x045A;
+    E_MCU_FRAME_HT_LEN = 0x0502;
+    E_MCU_FRAME_LEN_SIZE = 0x0602;
+    E_MCU_FRAME_CRC_SIZE = 0x0702;
+    E_MCU_FRAME_SEQ_SIZE = 0x0802;
+    E_MCU_FRAME_CMD_SIZE = 0x0902;
+    E_MCU_FRAME_LEAST_LEN = 0x090c;
+
+    E_MCU_FRAME_LENGTH_HEAD_OFF_1 = 0x0a02;
+    E_MCU_FRAME_LENGTH_HEAD_OFF_2 = 0x0b03;
+    E_MCU_FRAME_SEQ_HEAD_OFF_1 = 0x0c04;
+    E_MCU_FRAME_SEQ_HEAD_OFF_2 = 0x0d05;
+    E_MCU_FRAME_TAIL_HEAD_OFF_1 = 0x0e02;
+    E_MCU_FRAME_TAIL_HEAD_OFF_2 = 0x0f03;
+    E_MCU_FRAME_CRC_HEAD_OFF_1 = 0x1000;
+    E_MCU_FRAME_CRC_HEAD_OFF_2 = 0x1101;
+}
+
+        
+enum EE_MCU_COMM_PORT_TYPE {
+    E_MCU_COMM_PORT_SENTINEL            = 0; //sentinel
+    E_MCU_COMM_PORT_SERIAL              = 1; //serial
+    E_MCU_COMM_PORT_485                 = 2; //serial
+    E_MCU_COMM_PORT_232                 = 3; //serial
+    E_MCU_COMM_PORT_CAN                 = 4; //can
+    E_MCU_COMM_PORT_I2C                 = 5; //i2c
+    E_MCU_COMM_PORT_SPI                 = 6; //spi
+    E_MCU_COMM_PORT_USB                 = 7; //usb
+}
+
+enum EE_SEND_MCU_COMMAND_TYPE {
+    E_SERIAL_CMD_SENTINEL               = 0x0000; //sentinel
+    E_SERIAL_GETONLINEINFO              = 0x0001;/* 发送联机信号 */
+    E_SERIAL_GETHEARTBEATINFO           = 0x0002;/* 发送心跳命令 */
+    E_SERIAL_GETSLAVEDEVICEINFO         = 0x0101;/* 发送获取底盘信息 */
+    E_SERIAL_GETSENSORENABLEINFO        = 0x0102;/* 发送获取传感器的开关状态 */
+    E_SERIAL_GETSENSORVALINFO           = 0x0103;/* 发送获取传感器的值 */
+
+    E_SERIAL_SETSENSORENABLE            = 0x0201;/* 设置传感器开关状态 */
+    E_SERIAL_SETROBOTVELOCITY           = 0x0202;/* 设置机器人速度 */
+
+    E_SERIAL_SETWIFILEDDISPLAY          = 0x0203;/* 设置wifi灯显 */
+    E_SERIAL_SETFANMOTORVELOCITY        = 0x0204;/* 设置风机吸力 */
+    E_SERIAL_SETSENSORCALIBRATE         = 0x0205;/* 设置传感器标定 */
+    E_SERIAL_SETTIMERREPORTPARAM        = 0x0206;/* 设置定时传输的参数（上传时间、是否上传） */
+    E_SERIAL_SETROBOTPWROFF             = 0x0207;/* 关机命令 */
+    E_SERIAL_SETUILEDDISPLAY            = 0x0208;/* 设置UI灯显 */
+    E_SERIAL_SETMAINMOTORVELOCITY       = 0x0209;/* 设置中扫速度 */
+    E_SERIAL_SETSIDEMOTORVELOCITY       = 0x020A;/* 设置变扫速度 */
+    E_SERIAL_SETRESETSENSER             = 0x020B;/* 复位传感器 */
+    E_SERIAL_PUMPMOTORVELOCITY          = 0x020C;/* 水泵传感器 */
+    E_SERIAL_SETDISHCLOTHMOTORVELOCITY  = 0x020D;/* 设置抹布转盘速度 */
+    E_SERIAL_FLIP_CAMERA                = 0x020E;
+
+    E_SERIAL_MCUUPGRADESTART            = 0x0500;/* MCU升级开始 */
+    E_SERIAL_MCUUPGRADESTATUS           = 0x0502;/* MCU升级状态 */
+    E_SERIAL_MCUUPGRADEDATA             = 0x0503;/* 升级数据 */
+
+    E_SERIAL_SENDACKTOMCU               = 0x8400;/* 接收确认报文 */
+
+    /*----------------------------厂测命令------------------------------*/
+    E_SERIAL_FACTORY_ENABLEFACTORY      = 0x0600;/* 切换工厂测试模式 */
+    E_SERIAL_FACTORY_MCUDEVICEINFO      = 0x0601;/* 获取系统信息 */
+    E_SERIAL_FACTORY_HEARTBEAT          = 0x0602;/* 心跳报文 */
+    E_SERIAL_FACTORY_FUNCTIONCONTROL    = 0x0603;/* 数显开关报文 */
+    E_SERIAL_FACTORY_MOTORS             = 0x0604;/* 电机开关报文 */
+    E_SERIAL_FACTORY_SETCLIFFDATA       = 0x0605;/* 地检标定报文 */
+    E_SERIAL_FACTORY_SETWALLSENSORDATA  = 0x0606;/* 墙检标定报文 */
+    E_SERIAL_FACTORY_SETIMUDATA         = 0x0607;/* imu标定报文 */
+    E_SERIAL_FACTORY_SETTOFDATA         = 0x0608;/* tof标定报文 */
+    E_SERIAL_FACTORY_WIFI               = 0x0609;/* wifi测试 */
+    E_SERIAL_FACTORY_LIDARINFO          = 0x060A;/* 雷达测试 */
+    E_SERIAL_FACTORY_ALGODEVICEINFO     = 0x060B;/* 获取算法板信息 */
+    E_SERIAL_FACTORY_DELETELOCALCONFIG  = 0x060C;/* 删除本地配置文件 */
+    E_SERIAL_FACTORY_WRITESN            = 0x060D;/* 写入SN,MAC,KEY,UUID等 */
+}
+
+message EmptyData {
+
+}
+
+enum EE_ONLINEDEVICETYPE {
+    E_LS_SENTINEL   = 0x00;
+    E_LS_MD         = 0x01;
+    E_LS_BASE       = 0x02;
+    E_LS_UNI        = 0x03;
+}
+
+message OnlineMsg {
+    EE_ONLINEDEVICETYPE    dev_type = 1;                  // 设备类型
+    uint32                 proto_version = 2;             // 协议版本
+}
+
+message SetSensorEnable {
+    uint32 sensor_status = 1;
+}
+
+message SetWheelsSpeed {
+    float linear = 1;              // 线速度
+    float angular = 2;             // 角速度
+
+    uint32 lw_speed = 3;              // 左轮速度
+    uint32 rw_speed = 4;              // 右轮速度
+}
+
+enum EE_LEDDISPLAYTYPE {
+    E_WHITE_SENTINEL              = 0x00;
+    E_WHITE_LIGHT_ON              = 0x01;         // 白长亮
+    E_WHITE_LIGHT_OFF             = 0x02;         // 长灭
+    E_WHITE_BREATHE               = 0x03;         // 呼吸
+    E_WHITE_FLASH                 = 0x04;         // 闪烁
+}
+
+enum EE_FALSHEDLEDDISPLAYTYPE {
+    E_WHITE_ALWAYS_SENTINEL     = 0x00;
+    E_WHITE_ALWAYS_ON           = 0x01;         // 白长亮
+    E_WHITE_ALWAYS_OFF          = 0x03;         // 长灭
+}
+
+message SetWifiLEDDisplay {
+    EE_LEDDISPLAYTYPE          display_type = 1;          // 灯显类型
+    uint32                     flash_times = 2;           // 闪次数
+    uint32                     flash_rate = 3;            // 闪频率Hz
+    EE_FALSHEDLEDDISPLAYTYPE   flashed_state = 4;          // 闪后状态
+}
+
+message SetCleanLEDDisplay {
+    EE_LEDDISPLAYTYPE          clean_display_type = 1;
+    uint32                     clean_breathe_interval = 2;
+    uint32                     clean_flash_rate = 3;
+    EE_FALSHEDLEDDISPLAYTYPE   clean_flashed_state = 4;
+    EE_LEDDISPLAYTYPE          charge_display_type = 5;
+    uint32                     charge_breathe_interval = 6;
+    uint32                     charge_flash_rate = 7;
+    EE_FALSHEDLEDDISPLAYTYPE   charge_flashed_state = 8;
+    EE_LEDDISPLAYTYPE          error_display_type = 9;
+    uint32                     error_breathe_interval = 10;
+    uint32                     error_flash_rate = 11;
+    EE_FALSHEDLEDDISPLAYTYPE   error_flashed_state = 12;
+}
+
+message SetFanSuction {
+    uint32 fan_motor_level = 1; // 风机档位等级，0～10
+}
+
+enum EE_CALIBRATIONENABLE {
+    E_CALIBRATION_ON        = 0x00;         // 需要标定
+    E_CALIBRATION_OFF       = 0x01;         // 不需要标定
+}
+
+message SetSensorCalibration {
+    uint32     wall_sensor_state = 1;         // 墙检标定
+    uint32     wall_sensor_param = 2;         // 墙检参数:0~200mm、标定值为0的距离
+    uint32     floor_sensor_state = 3;        // 地检标定
+    uint32     floor_sensor_param = 4;        // 地检参数:0~200mm，标定值为0的距离
+    uint32     IMU_state = 5;                 // IMU标定
+    EmptyData  IMU_param = 6;                 // IMU参数:无
+    uint32     TOF_state = 7;                 // TOF标定
+    uint32     TOF_param = 8;                 // TOF参数:标定参数为测试距离
+}
+
+enum EE_BITMASK0_ENABLE {
+    E_BITMASK0_ENABLE_SENTINEL          = 0x00;             // TOF数据有效
+    E_BITMASK0_ENABLE_TOFDATA           = 0x01;             // TOF数据有效
+    E_BITMASK0_ENABLE_WHEELSCURRENT     = 0x02;             // 轮子电流数据有效
+    E_BITMASK0_ENABLE_RECHARGESIG       = 0x04;             // 回充座信号数据有效
+    E_BITMASK0_ENABLE_IMUDATA           = 0x08;             // IMU数据有效
+    E_BITMASK0_ENABLE_IMUEULAR          = 0x10;             // IMU_Eular欧拉角数据有效
+    E_BITMASK0_ENABLE_YARDSTICK         = 0x20;             // 码盘数据有效
+    E_BITMASK0_ENABLE_FUSIONPOSTURE     = 0x40;             // 融合后的位姿数据有效
+    E_BITMASK0_ENABLE_BITMASK1          = 0x80;             // 位掩码1有效
+}
+
+enum EE_BITMASK1_ENABLE {
+    E_BITMASK1_ENABLE_SENTINEL          = 0x00;             // 系统时间
+    E_BITMASK1_ENABLE_SYSTIME           = 0x01;             // 系统时间
+    E_BITMASK1_ENABLE_INFRAREDWALL      = 0x02;             // 红外沿墙数据
+    E_BITMASK1_ENABLE_WHEELSVELOCITY    = 0x04;             // 左右轮速度数据
+}
+
+message McuSensorConfig {
+    uint32 bit_mask_0 = 1;
+    uint32 bit_mask_1 = 2;
+    uint32 tof_data_freq = 3;
+    uint32 whl_current_freq = 4;
+    uint32 dock_sig_freq = 5;
+    uint32 imu_data_freq = 6;
+    uint32 euler_freq = 7;
+    uint32 whl_pulse_freq = 8;
+    uint32 pose_data_freq = 9;
+    uint32 slave_time_freq = 10;
+    uint32 ifr_wall_freq = 11;
+    uint32 whl_speed_freq = 12;
+}
+
+enum EE_POWEROFF {
+    E_POWER_SHUTDOWN        = 0x00;     // 关机
+    E_POWER_RESTART         = 0x01;     // 重启
+}
+
+message SetPowerOff {
+    EE_POWEROFF option = 1;
+}
+
+message SetMainBrushSpeed {
+    uint32 main_motor_level = 1;        // 中扫速度，0～10
+}
+
+message SetSideBrushSpeed {
+    uint32 side_motor_level = 1;        // 边扫速度，0～10
+}
+
+enum EE_PUMPSPEEDOPTION {
+    E_PUMP_NONE            = 0x00;         // 无水
+    E_PUMP_TRACE           = 0x01;         // 微量
+    E_PUMP_MEDIUM          = 0x02;         // 中量
+    E_PUMP_SUBSTANTIAL     = 0x03;         // 大量
+}
+
+message SetPumpSpeed {
+    EE_PUMPSPEEDOPTION pump_motor_level = 1; // 水泵速度，0无水.1微量.2中量.3大量
+}
+
+message SetMopSpeed {
+    int32 mop_motor_level = 1; //-10—10、抹布速度等级与电机有关，此处数据只表示等级。正代表正转，负代表反转.
+}
+
+enum EE_RESETMASK {
+    E_RESET_SNETINEL    = 0x00;         // TOF传感器
+    E_RESET_TOF         = 0x01;         // TOF传感器
+    E_RESET_IMU         = 0x02;         // IMU
+}
+
+message SetResetSensor {
+    EE_RESETMASK reset = 1;
+}
+
+enum EE_UPDATARESULT {
+    E_UPDATE_SUCCESS         = 0x00;
+    E_UPDATE_FAILED          = 0x01;
+}
+
+message UpdateStatus {
+    EE_UPDATARESULT result = 1;
+}
+
+message UpdateDataFrame {
+    uint32 data_seq = 1;          // 升级数据包序号
+    uint32 data_len = 2;          // 升级数据的长度
+    bytes updata_data = 3;        // 升级数据的内容
+}
+
+enum EE_RECIEVEMCURESULT {
+    E_RECIEVE_SUCCESS       = 0x00;         // 接收成功
+    E_RECIEVE_FAILEDCRC     = 0x01;         // 接收失败，CRC校验错
+    E_RECIEVE_FAILEDLEN     = 0x02;         // 接收失败，长度出错
+}
+
+message SendAckToMcu {
+    EE_RECIEVEMCURESULT recv_result = 1; // 接收结果
+    //TODO
+    //EE_RECV_MCU_DATA_TYPE upstream_cmd = 2; // 主动上报的命令字
+    int32 upstream_cmd = 2; // 主动上报的命令字
+}
+
+
+message FlipCamera {
+    int32 flip = 1;
+}
+
+enum EE_FACTORYENABLE {
+    E_FACTORY_ON        = 0x00;
+    E_FACTORY_OFF       = 0x01;
+}
+
+message FactoryEnable {
+    EE_FACTORYENABLE factory_status = 1;
+}
+
+message FactoryGetMCUDeviceInfo {
+    uint32 get_mcu_device_info = 1; // [default = 0x00];
+}
+
+message FactoryHeartbeat {
+    uint32 get_heartbeat = 1; // [default = 0x00];
+}
+
+enum EE_FACTORYSETDIGITALDISPLAY {
+    E_FACTORY_DISABLE       = 0x00;
+    E_FACTORY_ENABLE        = 0x01;
+}
+
+message FactorySetDigitalDisplay {
+    uint32 enable_digital_display = 1;
+}
+
+enum EE_FACTORYENABLEMOTORS {
+    E_FACTORY_DISABLEMOTORS         = 0x00;
+    E_FACTORY_LEFTWHEELMOTOR        = 0x01;         // 左轮电机
+    E_FACTORY_RIGHTWHEELMOTOR       = 0x02;         // 右轮电机
+    E_FACTORY_FANMOTOR              = 0x04;         // 风机
+    E_FACTORY_MAINBRUSHMOTOR        = 0x08;         // 中扫电机
+    E_FACTORY_SIDEBRUSHMOTOR        = 0x10;         // 边扫电机
+    E_FACTORY_PUMPMOTOR             = 0x20;         // 水泵电机
+}
+
+message FactorySetMotors {
+    uint32 enable_motors = 1;
+}
+
+message FactoryCalibration {
+    uint32 cliff_calibration_value = 1; // [default = 0];
+    uint32 wall_calibration_value = 2; // [default = 0];
+    uint32 imu_calibration_value = 3; // [default = 0];
+    uint32 tof_calibration_value = 4; // [default = 0];
+}
+
+enum EE_FACTORYWIFISET {
+    E_FACTORY_SENTINEL          = 0x00;
+    E_FACTORY_WIFION            = 0x01;
+    E_FACTORY_WIFIOFF           = 0x02;
+    E_FACTORY_SENDWIFIINFO      = 0x03;
+}
+
+message FactoryWifi {
+    EE_FACTORYWIFISET  wifi_set = 1;
+    string             wifi_name = 2;
+    string             wifi_pwd = 3;
+}
+
+enum EE_FACTORYLIDARSET {
+    E_FACTORY_SNETINEL      = 0x00;
+    E_FACTORY_LIDARON       = 0x01;
+    E_FACTORY_LIDAROFF      = 0x02;
+}
+
+message FactoryLidar {
+    EE_FACTORYLIDARSET     lidar_status = 1;
+    uint32                 lidar_start_angle = 2;
+    uint32                 lidar_end_angle = 3;
+}
+
+message FactoryAlgoDevice {
+    uint32 get_algo_device_info = 1; // [default = 0x00];
+}
+
+message FactoryDeleteConfig {
+    uint32 delete_config_file = 1; // [default = 0x01];
+}
+
+enum EE_FACTORYBASEINFOCMD {
+    E_FACTORY_WRITEBASEINFO             = 0x00;         // 写入
+    E_FACTORY_DELETEBASEINFO            = 0x01;         // 删除
+    E_FACTORY_REWRITEBASEINFO           = 0x03;         // 删除并重新写入
+}
+
+message FactoryBaseInfo {
+    EE_FACTORYBASEINFOCMD  baseinfo_cmd = 1;
+    string                 baseinfo_sn = 2;
+    string                 baseinfo_mac = 3;
+    string                 baseinfo_key = 4;
+    string                 baseinfo_uuid = 5;
+}
+
+enum EE_SERIAL_EAI_LIDAR_CTL_CMD {
+    E_SERIAL_LIDAR_SENTINEL             = 0x00;
+    E_SERIAL_LIDAR_START_SCAN           = 0x60;     // 开始扫描，输出点云数据
+    E_SERIAL_LIDAR_STOP_SCAN            = 0x65;     // 停机，停止扫描
+    E_SERIAL_LIDAR_GET_INFO             = 0x90;     // 获取设备信息（型号、固件、硬件版本）
+    E_SERIAL_LIDAR_GET_HEALTH_STATUS    = 0x92;     // 获取设备健康状态
+    E_SERIAL_LIDAR_INCREASE_TENTH_FREQ  = 0x09;     // 增加 0.1Hz 当前设置的扫描频率
+    E_SERIAL_LIDAR_DECREASE_TENTH_FREQ  = 0x0A;     // 减小 0.1Hz 当前设置的扫描频率
+    E_SERIAL_LIDAR_INCREASE_ONE_FREQ    = 0x0B;     // 增加 1Hz 当前设置的扫描频率
+    E_SERIAL_LIDAR_DECREASE_ONE_FREQ    = 0x0C;     // 减小 1Hz 当前设置的扫描频率
+    E_SERIAL_LIDAR_GET_FREQ             = 0x0D;     // 获取当前设置的扫描频率
+    E_SERIAL_LIDAR_SOFT_REBOOT          = 0x40;     // 设备软重启
+}
+
+message EaiLidarCtl {
+    EE_SERIAL_EAI_LIDAR_CTL_CMD ctl_cmd = 1;
+}
+

@@ -21,7 +21,8 @@ function clean_bazel() {
     rm -fr $TOPDIR/bazel-*
     rm -fr $TOPDIR/mstf_build.sh
     rm -fr $TOPDIR/mstf_clean.sh
-    rm -fr $TOPDIR/mstf_x86_run.sh
+    rm -fr $TOPDIR/mastiff_run_x86.sh
+    rm -fr $TOPDIR/mstf_pack.sh
     rm -fr $TOPDIR/WORKSPACE
     rm -fr out/
 

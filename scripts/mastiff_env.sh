@@ -66,7 +66,11 @@ if [ ! -L $TOPDIR/mstf_clean.sh ]; then
 fi
 
 if [ ! -L $TOPDIR/mstf_x86_run.sh ]; then
-    ln -fs $TOPDIR/scripts/mastiff_run.sh mstf_x86_run.sh
+    ln -fs $TOPDIR/scripts/mastiff_run_x86.sh mstf_x86_run.sh
+fi
+
+if [ ! -L $TOPDIR/mstf_pack.sh ]; then
+    ln -fs $TOPDIR/scripts/mastiff_pack.sh mstf_pack.sh
 fi
 
 PKG_R_PATH=$BUILD_DIR/$EXTERNAL_DIR

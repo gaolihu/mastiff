@@ -1,0 +1,260 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "google/protobuf/wrappers.proto";
+import "modules/chassis/proto/frame_down_stream.proto";
+import "modules/chassis/proto/frame_up_stream.proto";
+
+/////////////////////////Message Input////////////////////////
+message ChassisCtrl {
+    // ---- 1, Motor control ----- //
+    //wheels move, mostly used
+    SpeedCtrl speed_ctrl = 1;
+
+    // ---- 2, MCU peripheral ----- //
+    McuPeripheralCtrl mcu_ctrl = 2;
+
+    // ---- 3, SOC peripheral ----- //
+    DownToSocData soc_ctrl = 3;
+}
+/////////////////////////Message Input////////////////////////
+
+/////////////////////////Message Output////////////////////////
+message IMUdata {
+    //Header header = 1;
+    //Quaternion orientation = 2;
+    //Vector3 linear_acceleration = 3;
+    //Vector3 angular_velocity = 4;
+    repeated float orientation_convariance = 5;
+    repeated float linear_acceleration_convariance = 6;
+    repeated float angular_velocity_convariance = 7;
+}
+
+message SingleLaserPoint {
+    float theta = 1; //unit 0.1
+    int32 distance = 2; //unit mm
+    // int32 intensity = 3;
+    // int32 quality = 9;
+}
+
+/////what cartographer need2//////
+message LaserPointArray {
+    uint64 stamp = 2;
+    //bool speed_stable = 3;
+    //repeated SingleLaserPoint point = 4;
+    float freq = 5;   //Hz
+}
+
+message LaserData {
+    //Header header = 1;
+    float angle_min = 2;
+    float angle_max = 3;
+    float angle_increment = 4;
+    float time_increment = 5;
+    float scan_time = 6;
+    float range_min = 7;
+    float range_max = 8;
+    repeated float ranges = 9;
+    repeated float intensities = 10;
+}
+
+message OdomData {
+    //Header header = 1;
+    string child_frame_id = 2;
+    //PoseMsg pose = 3;
+    //TwistMsg twist = 4;
+}
+
+/////what director need//////
+message PeriphInformation {
+    message PeriphGpio {
+        google.protobuf.BoolValue toggle_button = 1;
+        google.protobuf.BoolValue key_power = 2;
+        google.protobuf.BoolValue key_home = 3;
+        google.protobuf.BoolValue key_power_l = 4;
+        google.protobuf.BoolValue key_home_l = 5;
+        google.protobuf.BoolValue no_water = 6;
+        google.protobuf.BoolValue water_full = 7;
+        google.protobuf.BoolValue dust_box = 8;
+        google.protobuf.BoolValue water_tank = 9;
+        google.protobuf.BoolValue left_pallet = 10;
+        google.protobuf.BoolValue right_pallet = 11;
+        google.protobuf.BoolValue bump_left = 12;
+        google.protobuf.BoolValue bump_right = 13;
+        google.protobuf.BoolValue lbump_left = 14;
+        google.protobuf.BoolValue lbump_right = 15;
+        google.protobuf.BoolValue lbump_front = 16;
+        google.protobuf.BoolValue lbump_top = 17;
+        google.protobuf.BoolValue wheel_lift_left = 18;
+        google.protobuf.BoolValue wheel_lift_right = 19;
+        google.protobuf.BoolValue ground_lvl2 = 20;
+        google.protobuf.BoolValue along_wall_trg = 21;
+
+        google.protobuf.Int32Value lwhl_pulse = 22;
+        google.protobuf.Int32Value rwhl_pulse = 23;
+
+        google.protobuf.FloatValue lwhl_speed = 24;
+        google.protobuf.FloatValue rwhl_speed = 25;
+    }
+    PeriphGpio pp_gpio = 1;
+
+    message PeriphPwm {
+        google.protobuf.Int32Value led_1 = 1;
+        google.protobuf.Int32Value led_2 = 2;
+        google.protobuf.Int32Value wheel_left_f = 3;
+        google.protobuf.Int32Value wheel_left_r = 4;
+        google.protobuf.Int32Value wheel_right_f = 5;
+        google.protobuf.Int32Value wheel_right_r = 6;
+        google.protobuf.Int32Value air_pump = 7;     //for water flow control
+        google.protobuf.Int32Value main_brush = 8;
+        google.protobuf.Int32Value side_brush = 9;
+        google.protobuf.Int32Value fan_pump = 10;
+    }
+    PeriphPwm pp_pwm = 2;
+
+    message PeriphAdc {
+        google.protobuf.BoolValue ground_signal_left = 1;
+        google.protobuf.BoolValue ground_signal_mleft = 2;
+        google.protobuf.BoolValue ground_signal_mright = 3;
+        google.protobuf.BoolValue ground_signal_right = 4;
+        google.protobuf.BoolValue ground_signal_left_rear = 5;
+        google.protobuf.BoolValue ground_signal_right_rear = 6;
+
+        google.protobuf.BoolValue charge_touch_dock = 7;
+        google.protobuf.BoolValue charge_status_charging = 8;
+        google.protobuf.BoolValue charge_status_finish = 9;
+
+        google.protobuf.BoolValue middle_scan_current = 10;
+
+        google.protobuf.BoolValue super_sonic = 11;
+
+        google.protobuf.BoolValue low_power_charge = 12;
+        google.protobuf.BoolValue low_power_off = 13;
+
+        google.protobuf.FloatValue fan_current = 14;
+        google.protobuf.FloatValue side_current = 15;
+        google.protobuf.FloatValue main_current = 16;
+        google.protobuf.FloatValue airp_current = 17;
+        google.protobuf.FloatValue leftw_current_ma = 18;
+        google.protobuf.FloatValue rightw_current_ma = 19;
+        google.protobuf.FloatValue vib_current = 20;
+        google.protobuf.FloatValue hwid_detect = 21;
+        google.protobuf.FloatValue battery_volt = 22;
+        google.protobuf.FloatValue lidar_bump = 23;
+        google.protobuf.FloatValue charge_current = 24;
+    }
+    PeriphAdc pp_adc = 3;
+
+    message PeriphInfra {
+        google.protobuf.Int32Value tof_distance = 1;
+
+        google.protobuf.Int32Value ifr_wall = 2;
+
+        google.protobuf.Int32Value dock_l = 3;
+        google.protobuf.Int32Value dock_ml = 4;
+        google.protobuf.Int32Value dock_mr = 5;
+        google.protobuf.Int32Value dock_front_r = 6;
+        google.protobuf.Int32Value dock_r = 7;
+        google.protobuf.Int32Value dock_front_l = 8;
+        google.protobuf.Int32Value dock_rear_ml = 9;
+        google.protobuf.Int32Value dock_rear_mr = 10;
+
+        google.protobuf.Int32Value ground_l = 11;
+        google.protobuf.Int32Value ground_l_front = 12;
+        google.protobuf.Int32Value ground_r_front = 13;
+        google.protobuf.Int32Value ground_r = 14;
+        google.protobuf.Int32Value ground_l_rear = 15;
+        google.protobuf.Int32Value ground_r_rear = 16;
+    }
+    PeriphInfra pp_infra = 4;
+
+    message PeriphExtra {
+        google.protobuf.Int32Value battery = 1;
+        google.protobuf.Int32Value bat_temp = 2;
+        google.protobuf.Int32Value online_result = 3;
+        google.protobuf.Int32Value proto_ver = 4;
+        google.protobuf.Int32Value heart_beat_result = 5;
+        google.protobuf.StringValue mcu_sn = 6;
+        google.protobuf.StringValue mcu_ver = 7;
+        google.protobuf.StringValue mcu_comp_time = 8;
+        //google.protobuf.UInt32Value mcu_poweron_ms = 9;
+
+        McuAckSensorEnStat sensor_en_stat = 10;
+        CtrlChassResult ctrl_chass_result = 11;
+
+        google.protobuf.Int32Value camera_flip = 19;
+        google.protobuf.Int32Value error_code = 20;
+
+        google.protobuf.Int32Value slave_10th1_ms = 21;
+    }
+    PeriphExtra pp_extra = 5;
+}
+
+message ChassisMixData {
+    //Header header = 1;
+    bool status = 2;
+
+    PeriphInformation pp_info = 3;
+}
+
+//////what factory program need//////
+message ChassisFacotryData {
+    //Header header = 1;
+
+    McuReportFactoryData fac_data = 3;
+}
+
+message HfChassisRaw {
+    //Header header = 1;
+    //1, tof
+    google.protobuf.Int32Value tof_distance = 2;
+
+    //2, wheel current
+    google.protobuf.FloatValue leftw_current_ma = 3;
+    google.protobuf.FloatValue rightw_current_ma = 4;
+
+    //3, dock signal
+    google.protobuf.Int32Value dock_l = 5;
+    google.protobuf.Int32Value dock_ml = 6;
+    google.protobuf.Int32Value dock_mr = 7;
+    google.protobuf.Int32Value dock_front_r = 8;
+    google.protobuf.Int32Value dock_r = 9;
+    google.protobuf.Int32Value dock_front_l = 10;
+    google.protobuf.Int32Value dock_rear_ml = 11;
+    google.protobuf.Int32Value dock_rear_mr = 12;
+
+    //4, imu
+    //5, euler
+
+    //6, wheel pulse
+    google.protobuf.Int32Value lwhl_pulse = 13;
+    google.protobuf.Int32Value rwhl_pulse = 14;
+
+    //7, odom
+
+    //8, slave sys time
+    google.protobuf.Int32Value slave_10th1_ms = 20;
+
+    //9, drop adc
+    google.protobuf.Int32Value ground_l = 21;
+    google.protobuf.Int32Value ground_l_front = 22;
+    google.protobuf.Int32Value ground_r_front = 23;
+    google.protobuf.Int32Value ground_r = 24;
+    google.protobuf.Int32Value ground_l_rear = 25;
+    google.protobuf.Int32Value ground_r_rear = 26;
+
+    //10, wheel speed
+    google.protobuf.FloatValue lwhl_speed = 27;
+    google.protobuf.FloatValue rwhl_speed = 28;
+}
+
+message CameraCaptureFrame {
+    //Header header = 1;
+    uint32 height = 2;
+    uint32 width = 3;
+    string format = 4;
+    uint32 size = 5;
+    bytes data = 6;
+}
+/////////////////////////Message Output////////////////////////

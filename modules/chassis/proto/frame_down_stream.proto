@@ -1,0 +1,345 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "google/protobuf/wrappers.proto";
+import "modules/chassis/proto/protocol_libs/ys_pack_mcu_protocol.proto";
+
+/*============================ Control ==============================*/
+enum EE_CTRL_LED_DISPLAY_SCENE {
+    E_CTRL_LED_SCENE_SENTINEL = 0;
+    E_CTRL_LED_SCENE_NORMAL = 1;
+    E_CTRL_LED_SCENE_WIFI = 2;
+    E_CTRL_LED_SCENE_CHARGE = 3;
+    E_CTRL_LED_SCENE_ERROR = 4;
+}
+
+enum EE_CTRL_LED_DISPLAY_TYPE {
+    E_CTRL_LED_DISPLAY_SENTINEL = 0;
+    E_CTRL_LED_DISPLAY_ON = 1;          // always on
+    E_CTRL_LED_DISPLAY_OFF = 2;         // always off
+    E_CTRL_LED_DISPLAY_BREATHE = 3;     // breath
+    E_CTRL_LED_DISPLAY_BLINK = 4;       // blink
+}
+
+//default speed control
+message SpeedCtrl {
+    float linear = 1;
+    float angular = 2;
+}
+
+message DiffSpeed {
+    float linear = 1;       // m/s
+    float palstance = 2;    // rad/s
+}
+
+message WheelSpeed {
+    float left_whl = 1;     // m/s
+    float right_whl = 2;    // m/s
+}
+
+message WheelRpm {
+    int32 left_rpm = 1;     // Revolutions Per Minute
+    int32 right_rpm = 2;    // Revolutions Per Minute
+}
+
+message LedCtrl {
+    EE_CTRL_LED_DISPLAY_SCENE          scene = 1;
+    EE_CTRL_LED_DISPLAY_TYPE           type = 2;    // 灯显类型
+    uint32                             times = 3;   // 闪次数
+    uint32                             rate = 4;    // 闪频率Hz
+}
+
+message PumpCtrl {
+    uint32 pump_val = 1;
+    uint32 pump = 2;
+    uint32 valve = 3;
+}
+
+message BrushCtrl {
+    google.protobuf.UInt32Value brush_main = 2;
+    google.protobuf.UInt32Value brush_side = 3;
+}
+
+message FanCtrl {
+    uint32 fan_val = 1;
+}
+
+message WetSuckCtrl {
+    uint32 wet_suck_val = 1;
+}
+
+//      
+message MopCtrl {
+    int32 mop_val = 1;
+}
+
+message McuPeripheralCtrl {
+    //mcu config setting
+    McuConfigSetting mcu_config = 1;
+
+    //led effect
+    LedCtrl led_ctrl = 2;
+
+    //clean water spray
+    PumpCtrl spray_ctrl = 3;
+
+    //dirty water pump
+    PumpCtrl dirty_ctrl = 4;
+
+    //detergent pump
+    PumpCtrl detergent_ctrl = 5;
+
+    //rolling brush
+    BrushCtrl rolling_ctrl = 6;
+
+    //disc brush
+    BrushCtrl disc_ctrl = 7;
+
+    //side brush
+    BrushCtrl side_ctrl = 8;
+
+    //vacuum cleanning dust
+    FanCtrl fan_ctrl = 9;
+
+    //water absorber
+    WetSuckCtrl wet_ctrl = 10;
+}
+
+/*============================ Control ==============================*/
+
+/*============================ Config ==============================*/
+enum EE_CTRL_ONLINE_DEVICE_TYPE {
+    E_CTRL_NULL = 0;
+    E_CTRL_LS_MD = 0x01;
+    E_CTRL_LS_BASE = 0x02;
+    E_CTRL_LS_UNI = 0x03;
+}
+message OnlineMsgCtrl {
+    EE_CTRL_ONLINE_DEVICE_TYPE     dev_type = 1;        // 设备类型
+    uint32                         proto_version = 2;   // 协议版本
+}
+
+enum EE_CTRL_QUERY_TYPE {
+    E_CTRL_QUERY_NULL = 0;
+    E_CTRL_QUERY_DEVICE_INFO = 0x0101;
+    E_CTRL_QUERY_SENSORS_EN_INFO = 0x0102;
+    E_CTRL_QUERY_CHASSIS_SENSORS_STATUS = 0x0103;
+}
+
+message QueryMsgCtrl {
+    EE_CTRL_QUERY_TYPE query_type = 1;
+}
+
+message SensorParam {
+    google.protobuf.BoolValue en = 1;
+    google.protobuf.UInt32Value freq = 2;
+}
+
+message McuSensorParamCtrl {
+    SensorParam tof_param = 1;
+    SensorParam whl_current = 2;
+    SensorParam dock_signal = 3;
+    SensorParam imu_param = 4;
+    SensorParam euler_param = 5;
+    SensorParam whl_pulse = 6;
+    SensorParam pose_param = 7;
+    SensorParam slave_sys = 8;
+    SensorParam wdrop_adc = 9;
+    SensorParam speed_param = 10;
+}
+
+message SensorEnableCtrl {
+    google.protobuf.BoolValue wall_sw = 1;
+    google.protobuf.BoolValue drop_sw = 2;
+    google.protobuf.BoolValue tof_sw = 3;
+    google.protobuf.BoolValue wheel_sw = 4;
+    google.protobuf.BoolValue fan_sw = 5;
+    google.protobuf.BoolValue main_brush_sw = 6;
+    google.protobuf.BoolValue side_brush_sw = 7;
+    google.protobuf.BoolValue pump_sw = 8;
+    google.protobuf.BoolValue charge_sw = 9;
+    google.protobuf.BoolValue power_sw = 10;
+    google.protobuf.BoolValue bump_sw = 11;
+    google.protobuf.BoolValue mop_sw = 12;
+}
+
+message McuConfigSetting {
+    OnlineMsgCtrl online_ctrl = 1;
+
+    //query mcu message
+    QueryMsgCtrl query_msg = 2;
+
+    McuSensorParamCtrl mcu_param = 3;
+
+    //switchs
+    SensorEnableCtrl enable_ctrl = 4;
+}
+
+/*============================ Config ==============================*/
+
+/*============================ SOC Packer ==============================*/
+message CameraCtrl {                
+    google.protobuf.BoolValue sw = 1;
+    google.protobuf.Int32Value flip = 2;
+}
+
+message WirelessCtrl {
+    google.protobuf.BoolValue wifi_sw = 1;
+    google.protobuf.BoolValue four_g_sw = 2;
+
+    string wifi_ssid = 3;
+    string wifi_pswd = 4;
+}
+
+//audio
+message AudioPlay {
+    int32 audio_id = 1;
+    google.protobuf.StringValue pack = 2;
+    google.protobuf.Int32Value play_cnt = 3;
+    google.protobuf.BoolValue interrupt = 4;
+}
+
+message SetAduioVolume {
+    int32 volmue = 1;
+    google.protobuf.BoolValue mute_sw = 2;
+}
+
+message SetAudioPack {
+    string dft_pack = 1;
+}
+
+message AudioCtrl {
+    AudioPlay play = 1;
+    SetAduioVolume vol = 2;
+    SetAudioPack pack = 3;
+}
+
+message GpioSetting {
+    string gpio_pin = 1;
+    bool sw = 2;
+}
+
+message PwmSetting {
+    int32 pwm_id = 1;
+    int32 cycle_ns = 2;
+    int32 positive_ns = 3;
+}
+
+enum EE_DEVICES_MANAGE {
+    E_DEVICES_MANAGE_SENTINEL = 0;
+    E_DEVICES_MANAGE_START = 1;
+    E_DEVICES_MANAGE_STOP = 2;
+    E_DEVICES_MANAGE_RESUME = 3;
+    E_DEVICES_MANAGE_CLOSE = 4;
+}
+
+message DevManage {
+    EE_DEVICES_MANAGE val = 1;
+}
+
+message ChannelSwitch {
+    google.protobuf.BoolValue imu_sw = 1;
+    google.protobuf.BoolValue odom_sw = 2;
+    google.protobuf.BoolValue lpa_sw = 3;
+    google.protobuf.BoolValue cmd_sw = 4;
+    google.protobuf.BoolValue cfd_sw = 5;
+    google.protobuf.BoolValue img_sw = 6;
+    google.protobuf.BoolValue hcr_sw = 7;
+}
+
+message DevicesManager {
+    DevManage gpio_m = 1;
+    DevManage mcu0_m = 2;       //default mcu
+    DevManage mcu1_m = 3;
+    DevManage servo_m = 4;
+    DevManage lidar_m = 5;
+
+    DevManage camera0_m = 6;    //default camera
+    DevManage camera1_m = 7;
+    DevManage camera2_m = 8;
+    DevManage camera3_m = 9;
+    DevManage camera4_m = 10;
+
+    DevManage audio_m = 11;
+    DevManage lcd_m = 12;
+    DevManage wifi_m = 13;
+    DevManage four_g_m = 14; //4G
+
+    //for data channel flow control
+    ChannelSwitch cs = 15;
+}
+
+message DownToSocData {
+    GpioSetting gpio = 1;
+    PwmSetting pwm = 2;
+    AudioCtrl audio = 3;
+    CameraCtrl camera = 4;
+    WirelessCtrl wireless = 5;
+    DevicesManager dev_maganger = 6;
+}
+/*============================ SOC Packer ==============================*/
+
+/*============================ MCU PAcker ==============================*/
+message DownToMcuData {
+    EE_SEND_MCU_COMMAND_TYPE e_command = 2;
+    oneof SpecificData {
+        OnlineMsg                   online_msg = 5;
+        SetSensorEnable             set_sensor_enable = 6;
+        SetWheelsSpeed              set_wheels_speed = 7;
+        SetWifiLEDDisplay           set_wifi_led_display = 8;
+        SetFanSuction               set_fan_suction = 9;
+        SetSensorCalibration        set_sensor_calibration = 10;
+        McuSensorConfig             mcu_sensor_conf = 11;
+        SetPowerOff                 set_power = 12;
+        SetCleanLEDDisplay          set_clean_display = 13;
+        SetMainBrushSpeed           set_main_brush_speed = 14;
+        SetSideBrushSpeed           set_side_brush_speed = 15;
+        SetPumpSpeed                set_pump_speed = 16;
+        SetMopSpeed                 set_turnable_speed = 17;
+        SetResetSensor              set_reset_sensor = 18;
+        UpdateStatus                update_status = 19;
+        UpdateDataFrame             update_data_frame = 20;
+        SendAckToMcu                ack_mcu = 21;
+        FlipCamera                  flip_camera = 22;
+
+        EmptyData                   empty_data = 23;
+
+        FactoryEnable               factory_enable_factory = 25;
+        FactoryGetMCUDeviceInfo     factory_get_mcu_device_info = 26;
+        FactoryHeartbeat            factory_heartbeat = 27;
+        FactorySetDigitalDisplay    factory_digital_display = 28;
+        FactorySetMotors            factory_motors = 29;
+        FactoryCalibration          factory_sensor_calibration = 30;
+        FactoryWifi                 factory_wifiset = 31;
+        FactoryLidar                factory_lidartest = 32;
+        FactoryAlgoDevice           factory_algodevice_info = 33;
+        FactoryDeleteConfig         factory_delete_configfile = 34;
+        FactoryBaseInfo             factory_write_baseinfo = 35;
+
+        EaiLidarCtl                 eai_lidar_ctl = 36;
+    }
+    reserved 3 to 4;
+}
+/*============================ MCU PAcker ==============================*/
+
+/*============================ Motor PAcker ==============================*/
+enum EE_SERVO_OPTS {
+    E_SERVO_OPTS_SENTINEL = 0;
+    E_SERVO_OPTS_INIT = 1;
+    E_SERVO_OPTS_START = 2;
+    E_SERVO_OPTS_STORE = 3;
+}
+
+message ServoConfig {
+    EE_SERVO_OPTS opt = 1;
+}
+
+message DownToServoData {
+    oneof SpecificData {
+        DiffSpeed                   diff_speed = 1;
+        WheelSpeed                  whl_speed = 2;
+        ServoConfig                 config = 3;
+    }
+}
+/*============================ Motor PAcker ==============================*/

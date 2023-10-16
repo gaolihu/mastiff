@@ -1,0 +1,573 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "google/protobuf/wrappers.proto";
+
+//mcu -> host
+enum EE_RECV_MCU_DATA_TYPE {
+    E_RECV_MCU_DATA_SENTINEL        = 0x0000; //sentinel
+
+    //query & ack
+    E_RECV_MCU_ACK_ONLINE           = 0x8001; //MCU ack(0x001): on line
+    E_RECV_MCU_ACK_HEART_BEAT       = 0x8002; //MCU ack(0x002): heart beat
+    E_RECV_MCU_ACK_SLAVE_INFO       = 0x8101; //MCU ack(0x101): device(MCU chassis) info
+    E_RECV_MCU_ACK_SENSOR_EN_STAT   = 0x8102; //MCU ack(0x102): sensor enable stat
+    E_RECV_MCU_ACK_CHECK_SENSOR     = 0x8103; //MCU ack(0x103): general chassis sensor info
+
+    //ctrl & ack
+    //MCU ack(0x201): ctrl sensor enable result
+    //MCU ack(0x202): ctrl robot speed result
+    //MCU ack(0x203): ctrl wifi led display result
+    //MCU ack(0x204): ctrl fan motor suction result
+    //MCU ack(0x205): ctrl sensor calibration result
+    //MCU ack(0x206): ctrl periodical parametor transfer result
+    //MCU ack(0x207): ctrl soft poweroff result
+    //MCU ack(0x208): ctrl clean job led display result
+    //MCU ack(0x209): ctrl middle brush speed result
+    //MCU ack(0x20a): ctrl side brush speed result
+    //MCU ack(0x20c): ctrl pump motor speed result
+    //MCU ack(0x20d): ctrl pallet speed result
+    //MCU ack(0x20b): ctrl sensor reset result
+    //MCU ack(0x20e): ctrl flip motor result
+    //MCU ack(0x20f): ctrl charge current result
+    E_RECV_MCU_CTRL_CHS_RESULT      = 0x8200;
+    //
+
+    //base station TODO 1
+    E_RECV_MCU_CTRL_BASE_COLLECT    = 0x8210; //MCU ack(0x210): ctrl base station colletc dust result
+    E_RECV_MCU_CTRL_BASE_WASHING    = 0x8211; //MCU ack(0x211): ctrl base station washing result
+    E_RECV_MCU_CTRL_BSSE_CHARGING   = 0x8212; //MCU ack(0x212): ctrl base station charging result
+    E_RECV_MCU_CTRL_BSSE_LOCK       = 0x8213; //MCU ack(0x213): ctrl base station charging result
+
+    E_RECV_MCU_ACK_BSSE_VERSION     = 0x8214; //MCU ack(0x214): query base station version
+    E_RECV_MCU_ACK_ROBOT_STATUS     = 0x8215; //MCU ack(0x215): query base station version
+
+    E_RECV_MCU_CTRL_BASE_LED_RESULT = 0x8216; //MCU ack(0x216): ctrl base station led display result
+    E_RECV_MCU_CTRL_433_PARING      = 0x8217; //MCU ack(0x217): ctrl 433 paring result
+    E_RECV_MCU_CTRL_HOST_DORMANCY   = 0x8218; //MCU ack(0x218): ctrl dormancy result
+    E_RECV_MCU_CTRL_HOST_CHARGING   = 0x8219; //MCU ack(0x219): ctrl charging result
+
+    //periodically info
+    E_RECV_MCU_PERIOD_SENSOR_INFO   = 0x0301; //MCU periodically sending: sensor info
+
+    //change then send
+    E_RECV_MCU_REPORT_BATTERY       = 0x0401; //MCU change send: battery
+    E_RECV_MCU_REPORT_DROP_SENSOR   = 0x0402; //MCU change send: drop status
+    E_RECV_MCU_REPORT_BUMP_SENSOR   = 0x0403; //MCU change send: bump status
+    E_RECV_MCU_REPORT_LIFT_SENSOR   = 0x0404; //MCU change send: lift status
+    E_RECV_MCU_REPORT_DUST_BOX      = 0x0405; //MCU change send: dust box status
+    E_RECV_MCU_REPORT_WATER_TANK    = 0x0406; //MCU change send: water tank status
+    E_RECV_MCU_REPORT_KEY_SIGNAL    = 0x0407; //MCU change send: key status
+    E_RECV_MCU_REPORT_WALL_SENSOR   = 0x0408; //MCU change send: lift status
+    E_RECV_MCU_REPORT_ERROR_CODE    = 0x0409; //MCU change send: error code
+    E_RECV_MCU_REPORT_DOCK_TOUCH    = 0x040a; //MCU change send: dock touch signal
+    E_RECV_MCU_REPORT_LOW_POWER     = 0x040b; //MCU change send: low power signal
+    E_RECV_MCU_REPORT_MBRUSH_CURRENT= 0x040c; //MCU change send: middle brush current
+    E_RECV_MCU_REPORT_TG_NW_WF_PC   = 0x040d; //MCU change send: toggle key, no water, water full
+    E_RECV_MCU_REPORT_SUPER_SONIC   = 0x040e; //MCU change send: super sonic
+    E_RECV_MCU_REPORT_LR_PALLET     = 0x040f; //MCU change send: left/right pallet status
+    E_RECV_MCU_REPORT_FLIP_MOTOR    = 0x0410; //MCU change send: flip motor signal
+    E_RECV_MCU_REPORT_BATTERY_TEMP  = 0x0411; //MCU change send: battery temperature
+
+    //base enent TODO
+    E_RECV_MCU_REPORT_BASE_KEY_EVENT= 0x0701; //MCU change send: base key event
+    E_RECV_MCU_REPORT_BASE_KEY_ACK  = 0x8701; //MCU change send: base key event ack
+    E_RECV_MCU_REPORT_BASE_POWERON  = 0x0702; //MCU change send: base power on
+    E_RECV_MCU_REPORT_BASE_ON_ACK   = 0x8702; //MCU change send: base power on ack
+    E_RECV_MCU_REPORT_BASE_C_STAT   = 0x0703; //MCU change send: base collect dust status
+    E_RECV_MCU_REPORT_BASE_CS_ACK   = 0x8703; //MCU change send: base collect dust status ack
+    E_RECV_MCU_REPORT_BASE_WASH     = 0x0704; //MCU change send: base washing status
+    E_RECV_MCU_REPORT_BASE_WASH_ACK = 0x8704; //MCU change send: base washing status ack
+    E_RECV_MCU_REPORT_BASE_FAULT    = 0x0705; //MCU change send: base fault
+    E_RECV_MCU_REPORT_BASE_FAULT_ACK= 0x8705; //MCU change send: base fault ack
+    E_RECV_MCU_REPORT_BASE_BEAT     = 0x0706; //MCU change send: base heart beat
+    E_RECV_MCU_REPORT_BASE_BEAT_ACK = 0x8706; //MCU change send: base heart beat ack
+    E_RECV_MCU_REPORT_BASE_STAT     = 0x0707; //MCU change send: base status
+    E_RECV_MCU_REPORT_BASE_STAT_ACK = 0x8707; //MCU change send: base status ack
+    //base enent TODO
+
+    //OTA
+    E_RECV_MCU_OTA_ACK              = 0x8500; //MCU OTA send: ack
+
+    //factory
+    E_RECV_MCU_FAC_IN_OR_OUT        = 0x8600; //MCU factory send: enter/exit factory mode
+    E_RECV_MCU_FAC_SYS_INFO         = 0x8601; //MCU factory send: system info
+    E_RECV_MCU_FAC_HEART_BEAT_ACK   = 0x8602; //MCU factory send: heart beat ack
+    E_RECV_MCU_FAC_DIGITAL_DISPLAY  = 0x8603; //MCU factory send: digital display ack
+    E_RECV_MCU_FAC_MOTOR_SW_ACK     = 0x8604; //MCU factory send: motor switch ack
+    E_RECV_MCU_FAC_DROP_CALIBRATE   = 0x8605; //MCU factory send: drop sensor calibration
+    E_RECV_MCU_FAC_WALL_CALIBRATE   = 0x8606; //MCU factory send: wall sensor calibration
+    E_RECV_MCU_FAC_IMU_CALIBRATE    = 0x8607; //MCU factory send: imu calibration
+    E_RECV_MCU_FAC_TOF_CALIBRATE    = 0x8608; //MCU factory send: tof calibration
+    E_RECV_MCU_FAC_WIFI_TEST_ACK    = 0x8609; //MCU factory send: wifi test ack
+    E_RECV_MCU_FAC_LIDAR_TEST_ACK   = 0x860a; //MCU factory send: lidar test ack
+    E_RECV_MCU_FAC_HOST_VESION      = 0x860b; //MCU factory send: host vesion
+    E_RECV_MCU_FAC_PERIOD_SENSOR    = 0x0615; //MCU factory send: host vesion
+};
+
+//for E_RECV_MCU_ACK_ONLINE: 0x8001
+message McuAckOnLineInfo {
+    //0: ok
+    //1: fail, do not recognize
+    //2: fail, protocol vesion not support
+    //3: fail, device  type not support
+    google.protobuf.UInt32Value online_result = 1;
+
+    google.protobuf.UInt32Value slave_support_vesion = 2; //slave support vesion
+};
+
+//for E_RECV_MCU_ACK_HEART_BEAT: 0x8002
+message McuAckHeartBeat {
+    google.protobuf.BoolValue heart_beat_result = 1;
+};
+
+//for E_RECV_MCU_ACK_SLAVE_INFO: 0x8101
+message McuAckSlaveDeviceInfo {
+    google.protobuf.StringValue serial_number = 2;
+    google.protobuf.UInt32Value slave_chip_id = 3;
+    google.protobuf.StringValue mcu_version = 4;
+    google.protobuf.StringValue compile_time = 5;
+    google.protobuf.UInt32Value slave_poweron_ms = 8;
+};
+
+//for E_RECV_MCU_ACK_SENSOR_EN_STAT: 0x8102
+message McuAckSensorEnStat {
+    google.protobuf.BoolValue wall_en = 1;
+    google.protobuf.BoolValue drop_en = 2;
+    google.protobuf.BoolValue tof_en = 3;
+    google.protobuf.BoolValue wheels_power = 4;
+    google.protobuf.BoolValue fan_power = 5;
+    google.protobuf.BoolValue main_brush_power = 6;
+    google.protobuf.BoolValue side_brush_power = 7;
+    google.protobuf.BoolValue pump_motor_power = 8;
+    google.protobuf.BoolValue charge_en = 9;
+    google.protobuf.BoolValue robot_power = 10;
+    google.protobuf.BoolValue pump_en = 11;
+    google.protobuf.BoolValue pallet_en = 12;
+};
+
+enum EE_ERROR_CODE_TYPE {
+    E_ERR_LEFT_WHEEL_OPEN = 0;
+    E_ERR_LEFT_WHEEL_SHORTC = 1;
+    E_ERR_RIGHT_WHEEL_OPEN = 2;
+    E_ERR_RIGHT_WHEEL_SHORTC = 3;
+    E_ERR_RIGHT_PALLET_OPEN = 4;
+    E_ERR_RIGHT_PALLET_SHORTC = 5;
+    E_ERR_MAIN_BRUSH_OPEN = 6;
+    E_ERR_MAIN_BURSH_SHORTC = 7;
+    E_ERR_SIDE_BRUSH_OPEN = 8;
+    E_ERR_SIDE_BURSH_SHORTC = 9;
+    E_ERR_COLLECT_DUST_MOTOR = 10;
+    E_ERR_WRIGGLE_PUMP_OPEN = 11;
+    E_ERR_WRIGGLE_PUMP_SHORTC = 12;
+    E_ERR_DROP = 13;
+    E_ERR_BUMP = 14;
+    E_ERR_LIDAR_BUMP = 15;
+    E_ERR_SUPER_SONIC = 16;
+};
+
+//for E_RECV_MCU_ACK_CHECK_SENSOR: 0x8103
+message McuAckCheckSensorInfo {
+    //for E_RECV_MCU_REPORT_BATTERY: 0x0401;
+    google.protobuf.UInt32Value battery = 1;
+
+    //for E_RECV_MCU_REPORT_DROP_SENSOR: 0x0402;
+    google.protobuf.UInt32Value drop_stat = 2;
+    //1: trigger, 0: OK
+    //b0: left, b1: m-left, b2: m-right, b3: right
+
+    //for E_RECV_MCU_REPORT_BUMP_SENSOR: 0x0403;
+    google.protobuf.UInt32Value	bump_stat = 3;
+    //1: trigger, 0: OK
+    //b0: front left, b1: front right
+    //b2: lidar left, b3: lidar right, b4: lidar front, b5: lidar top
+
+    //for E_RECV_MCU_REPORT_LIFT_SENSOR: 0x0404;
+    google.protobuf.UInt32Value liftoff_stat = 4;
+    //1: lift off, 0: OK
+    //b0: left lift, b1: right lift
+
+    //for E_RECV_MCU_REPORT_DUST_BOX: 0x0405;
+    google.protobuf.BoolValue dust_box = 5; //0: OK, 1: miss
+
+    //for E_RECV_MCU_REPORT_SUPER_SONIC: 0x040e;
+    google.protobuf.UInt32Value sonic_sig = 6; //0: floor board, 1: carpet
+
+    //for E_RECV_MCU_REPORT_DOCK_TOUCH: 0x040a;
+    google.protobuf.UInt32Value touch_dock_sig = 7; //charge signal
+    //b0 ~ 1: touch(charging), 0: not touch
+    //b1 ~ 1: charging, 0: not charging
+    //b2 ~ 1: finish charge, 0: not finish
+
+    //for E_RECV_MCU_REPORT_LR_PALLET: 0x040f;
+    google.protobuf.UInt32Value pallet_stat = 9; //pallet stat
+    //1: miss, 0: OK
+    //b0: left, b1: right
+
+    //for E_RECV_MCU_REPORT_BATTERY_TEMP: 0x0411;
+    google.protobuf.Int32Value batter_temp = 10; //-30~70°
+
+    //for E_RECV_MCU_REPORT_TG_NW_WF_PC: 0x040d;
+    google.protobuf.BoolValue toggle_key = 11; //0: shut down, 1: open up
+    google.protobuf.BoolValue no_water = 12; //0: no water, 1: have water
+    google.protobuf.BoolValue water_full = 13; //0: not full, 1: full
+
+    //for E_RECV_MCU_REPORT_ERROR_CODE: 0x0409;
+    message McuReportErrorCode {
+        bool left_wheel_open = 1;
+        bool left_wheel_short_cc = 2;
+        bool right_wheel_open = 3;
+        bool right_wheel_short_cc = 4;
+        bool left_pallet_open = 5;
+        bool left_pallet_short_cc = 6;
+        bool right_pallet_open = 7;
+        bool right_pallet_short_cc = 8;
+        bool main_brush_open = 9;
+        bool main_brush_short_cc = 10;
+        bool side_brush_open = 11;
+        bool side_brush_short_cc = 12;
+        bool collect_dust_motor = 13;
+        bool wriggle_pump_open = 14;
+        bool wriggle_pump_short_cc = 15;
+        bool drop = 16;
+        bool bump = 17;
+        bool lidar_bump = 18;
+        bool super_sonic = 19;
+    };
+    McuReportErrorCode error_code = 14;
+
+    //for E_RECV_MCU_REPORT_FLIP_MOTOR: 0x0410;
+    google.protobuf.UInt32Value flip_cam_sig = 15; //flip camera motor
+    //0: NG, 1: zero place, 2: right place
+
+    //base station TODO
+};
+
+//for E_RECV_MCU_CTRL_CHS_RESULT: 0x8200
+message CtrlChassResult {
+    google.protobuf.UInt32Value ctrl_result = 1;
+    //0: success, 1: busy, 2: unnormal, 3: cmd error
+
+    google.protobuf.UInt32Value ctrl_ack_type = 2;
+    //for 0x201 ~ 0x20f
+};
+
+//base station TODO 1
+//0x8210 ~ 0x8219
+
+enum EE_BIT_STANDFOR_TYPE {
+    E_BIT_FOR_TOF = 0;
+    E_BIT_FOR_MOTOR = 1;
+    E_BIT_FOR_DOCKER = 2;
+    E_BIT_FOR_IMU = 3;
+    E_BIT_FOR_EULER = 4;
+    E_BIT_FOR_WPULSE = 5;
+    E_BIT_FOR_POSE = 6;
+    E_BIT_FOR_MASK1 = 7; //for next bit valid
+    E_BIT_FOR_SYSTIME = 8;
+    E_BIT_FOR_IRADC = 9;
+    E_BIT_FOR_WHL_SPEED = 10;
+
+    //for factory expand
+    E_BIT_FOR_BATTERY = 11;
+    E_BIT_FOR_ALONG_WALL = 12;
+    E_BIT_FOR_CAMERA = 13;
+    E_BIT_FOR_MAGNET = 14;
+    E_BIT_FOR_WALL_DETECT = 15;
+    E_BIT_FOR_DROP = 16;
+    E_BIT_FOR_IO = 17;
+
+    E_BIT_FOR_NULL = 18;
+};
+
+message WheelCurrent {
+    uint32 left_wc_ma = 1;
+    uint32 right_wc_ma = 2;
+};
+
+message DockerIrSignal {
+    uint32 left = 1;
+    uint32 mleft = 2;
+    uint32 mright = 3;
+    uint32 right_front = 4;
+    uint32 right = 5;
+    uint32 left_front = 6;
+    uint32 left_rear = 7;
+    uint32 right_rear = 8;
+};
+
+message WheelPulse {
+    int32 left_pulse = 1;
+    int32 right_pulse = 2;
+};
+
+message ChassisTime {
+    uint64 seconds = 1;
+    uint64 nseconds = 2;
+};
+
+message AdcValue {
+    //infra-red wall sensor signal
+    uint32 ir_wall_right = 1;
+
+    //infra-red ground sensor signal
+    uint32 ir_ground_left = 2;
+    uint32 ir_ground_left_front = 3;
+    uint32 ir_ground_right_front = 4;
+    uint32 ir_ground_right = 5;
+    uint32 ir_ground_left_rear = 6;
+    uint32 ir_ground_right_rear = 7;
+
+    //calibration
+    uint32 calib_left = 8;
+    uint32 calib_mid_left = 9;
+    uint32 calib_mid_right = 10;
+    uint32 calib_right = 11;
+    uint32 calib_left_rear = 12;
+    uint32 calib_right_rear = 13;
+
+    //lidar collision
+    uint32 lidar_collision = 14;
+};
+
+//velocity, m/s
+message WheelVelocity {
+    float left = 1;
+    float right = 2;
+};
+
+//for E_RECV_MCU_PERIOD_SENSOR_INFO: 0x0301
+message McuReportComplicateData {
+    google.protobuf.UInt32Value distance_to_wall = 1; //tof(mm)
+
+    //wheel current
+    WheelCurrent wheel_current = 2;
+
+    //docker infra-red signal
+    DockerIrSignal docker_ir = 3;
+
+    //1, imu
+    message ImuAcc {
+        float accel_x = 1;
+        float accel_y = 2;
+        float accel_z = 3;
+        float gyro_x = 4;
+        float gyro_y = 5;
+        float gyro_z = 6;
+        float imu_temp = 7;
+
+    };
+    ImuAcc imu_acc = 4;
+
+    message ImuEuler {
+        float pitch = 1;
+        float roll = 2;
+        float yaw = 3;
+    };
+    ImuEuler euler_data = 5;
+
+    WheelPulse pulse_of_wheel = 6;
+
+    //2, odom
+    message Pose {
+        float x = 1;
+        float y = 2;
+        float theta = 3;
+    };
+    Pose pose_data = 7;
+
+    ChassisTime slave_poweron_time = 8;
+
+    AdcValue adc_val = 9;
+
+    WheelVelocity wheel_velocity = 10;
+};
+
+message McuReportSimpleData {
+    //for 0x0401~0x0405 &
+    //0x040e, 0x040a, 0x040f, 0x0411, 0x040d, 0x0409, 0x0410
+    McuAckCheckSensorInfo sdata = 1;
+
+    //for E_RECV_MCU_REPORT_WATER_TANK: 0x0406;
+    google.protobuf.BoolValue water_tank = 2; //1: miss, 0: OK
+
+    //for E_RECV_MCU_REPORT_KEY_SIGNAL: 0x0407;
+    google.protobuf.UInt32Value key_type = 3; //1, short click, 0: long press
+
+    //for E_RECV_MCU_REPORT_WALL_SENSOR: 0x0408;
+    google.protobuf.BoolValue wall_trig = 4; //1: triger, 0: no signal
+
+    //for E_RECV_MCU_REPORT_LOW_POWER: 0x040b;
+    google.protobuf.UInt32Value low_power = 5;
+    //b1: low power & docking, 0: low power & shutdown
+
+    //for E_RECV_MCU_REPORT_MBRUSH_CURRENT: 0x040c;
+    google.protobuf.BoolValue middle_brush_current = 6; //1: OK, 0: carpet
+}
+
+//for E_RECV_MCU_OTA_ACK: 0x8500;
+message McuReportOtaResult {
+    uint32 ota_type = 1;
+    uint32 ota_result = 2;
+    //0x00: OK  0x01: crc fail, 0x02: seq number error, 0x03, length error
+
+    uint32 ota_ctrl = 3;
+};
+
+message McuReportFactoryData {
+    //for E_RECV_MCU_FAC_IN_OR_OUT: 0x8600;
+    google.protobuf.UInt32Value in_out_result = 1; //0: close, 1: open
+
+    //for E_RECV_MCU_FAC_SYS_INFO: 0x8601;
+    message FacReportSysInfo {
+        uint32 valid = 1;
+        uint32 sn = 2;
+        uint32 id = 3;
+        string sys_ver = 4;
+        string compile_time = 5;
+    };
+    FacReportSysInfo sys_info = 2;
+
+    //for E_RECV_MCU_FAC_HEART_BEAT_ACK: 0x8602;
+    google.protobuf.UInt32Value hand_shaking = 3; //0: shaking
+
+    //for E_RECV_MCU_FAC_DIGITAL_DISPLAY: 0x8603;
+    google.protobuf.UInt32Value digital_display = 4; //0: close, 1: open
+
+    //for E_RECV_MCU_FAC_MOTOR_SW_ACK: 0x8604;
+    google.protobuf.UInt32Value motor_power_ack = 5; //0: close, 1: open
+
+    //E_RECV_MCU_FAC_DROP_CALIBRATE: 0x8605;
+    google.protobuf.UInt32Value drop_calib = 6; //0: fail, 1: success
+
+    //E_RECV_MCU_FAC_WALL_CALIBRATE: 0x8606;
+    google.protobuf.UInt32Value wall_calib = 7; //0: fail, 1: success
+
+    //E_RECV_MCU_FAC_IMU_CALIBRATE: 0x8607;
+    google.protobuf.UInt32Value imu_calib = 8; //0: fail, 1: success
+
+    //E_RECV_MCU_FAC_TOF_CALIBRATE: 0x8608;
+    google.protobuf.UInt32Value tof_calib = 9; //0: fail, 1: success
+
+    //E_RECV_MCU_FAC_WIFI_TEST_ACK: 0x8609;
+    google.protobuf.UInt32Value wifi_test = 10;
+    //0: start fail, 1: start success, 2, close fail, 3, close success
+
+    //E_RECV_MCU_FAC_LIDAR_TEST_ACK: 0x860a;
+    message FacAckLidarTest {
+        uint32 freq = 1;
+        uint32 start_angle = 2;
+        uint32 end_angle = 3;
+        uint32 start_distance = 4;
+        uint32 delta_dist = 5;
+        uint32 end_distance = 6;
+    };
+    FacAckLidarTest lidar_test = 11;
+
+    //E_RECV_MCU_FAC_HOST_VESION: 0x860b;
+    /*
+    message FacAckHostVersion {
+        //TODO
+    };
+    */
+
+    //E_RECV_MCU_FAC_PERIOD_SENSOR: 0x0615;
+    message FacReportComplicateData {
+        google.protobuf.UInt32Value battery_volt = 1; //volt
+        google.protobuf.UInt32Value battery_percent = 2; //percent
+        google.protobuf.UInt32Value charging_current = 3; //mA
+        google.protobuf.UInt32Value charging_signal = 4; //0: no signal, 1: OK
+
+        //docker infra-red signal
+        message FacDockerIrSignal {
+            uint32 left = 1;
+            uint32 mleft = 2;
+            uint32 mright = 3;
+            uint32 right_front = 4;
+            uint32 right = 5;
+            uint32 left_front = 6;
+            //not support now
+            uint32 left_rear = 7;
+            uint32 right_rear = 8;
+        };
+        FacDockerIrSignal docker_ir = 5;
+
+        google.protobuf.UInt32Value tof_distance = 6; //mm
+
+        google.protobuf.UInt32Value camera = 7;
+
+        message FacMotorCurrentSpeed {
+            uint32 left_wheel_current = 1;
+            uint32 left_wheel_speed = 2;
+            uint32 right_wheel_current = 3;
+            uint32 right_wheel_speed = 4;
+            uint32 left_brush_current = 5;
+            uint32 left_brush_speed = 6;
+            uint32 right_brush_current = 7;
+            uint32 right_brush_speed = 8;
+            uint32 mid_brush_current = 9;
+            uint32 mid_brush_speed = 10;
+            uint32 fan_brush_current = 11;
+            uint32 fan_brush_speed = 12;
+            uint32 pump_brush_current = 13;
+            uint32 pump_brush_speed = 14;
+        };
+        FacMotorCurrentSpeed current_speed = 8;
+
+        google.protobuf.UInt32Value pump_brush_speed = 9; //b0, left magnetic strip, b1: right
+
+        message FacWallSensor {
+            uint32 left = 1;
+            uint32 mid_left = 2;
+            uint32 mid_right = 3;
+            uint32 right = 4;
+        };
+        FacWallSensor wall_sensor = 10;
+
+        message FacDropSensor {
+            uint32 left = 1;
+            uint32 mid_left = 2;
+            uint32 mid_right = 3;
+            uint32 right = 4;
+            uint32 reserve1 = 5;
+            uint32 reserve2 = 6;
+        };
+        FacDropSensor drop_sensor = 11;
+
+        message FacPeriphDev {
+            uint32 dust_box = 1;
+            uint32 water_tank = 2;
+            uint32 stuck_prevent = 3;
+            uint32 pump = 4;
+            uint32 lidar_pump = 5;
+            uint32 key = 6;
+            uint32 lift_off = 7;
+        };
+        FacPeriphDev perith_dev = 12;
+
+        message FacImuAccEuler {
+            uint32 accel_x = 1;
+            uint32 accel_y = 2;
+            uint32 accel_z = 3;
+            uint32 gyro_x = 4;
+            uint32 gyro_y = 5;
+            uint32 gyro_z = 6;
+            float pitch = 7;
+            float roll = 8;
+            float yaw = 9;
+        };
+        FacImuAccEuler imu_data = 13;
+    };
+    FacReportComplicateData fac_comp_data = 12;
+
+    McuReportOtaResult ota_data = 13;
+}
+
+enum E_FRAME_OFFSET {
+    E_START_OFFSET 	= 0;
+    E_LEN_OFFSET	= 2;
+    E_NUM_OFFSET	= 4;
+    E_CMD_OFFSET	= 6;
+    E_BODY_OFFSET	= 8;
+}

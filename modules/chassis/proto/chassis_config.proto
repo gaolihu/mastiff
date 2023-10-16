@@ -1,0 +1,530 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "google/protobuf/wrappers.proto";
+
+//common device indicators
+enum EE_DEV_MAIN {
+    EE_DEV_MAIN_SENTINEL = 0;
+    EE_DEV_MAIN_MOTOR = 1;
+    EE_DEV_MAIN_MCU = 2;
+    EE_DEV_MAIN_SOC = 3;
+}
+
+enum EE_DEVICE_TYPE {
+    E_DEVICE_SENTINEL = 0;
+    E_DEVICE_GPIO = 1;
+    E_DEVICE_PWM = 2;
+    E_DEVICE_IMU = 3;
+    E_DEVICE_LIDAR = 4;
+    E_DEVICE_CAMERA = 5;
+    E_DEVICE_MCU = 6;
+    E_DEVICE_DTOF = 7;
+    E_DEVICE_TTY = 8;
+    E_DEVICE_AUDIO = 9;
+    E_DEVICE_MOTOR = 10;
+    E_DEVICE_ADC = 11;
+    E_DEVICE_WIRELESS = 12;
+    E_DEVICE_LINELASER = 13;
+}
+
+enum EE_COMM_PORT_TYPE {
+    E_COMM_PORT_SENTINEL            = 0; //sentinel
+    E_COMM_PORT_SERIAL              = 1; //serial
+    E_COMM_PORT_485                 = 2; //serial
+    E_COMM_PORT_232                 = 3; //serial
+    E_COMM_PORT_CAN                 = 4; //can
+    E_COMM_PORT_I2C                 = 5; //i2c
+    E_COMM_PORT_SPI                 = 6; //spi
+    E_COMM_PORT_USB                 = 7; //usb
+    E_COMM_PORT_MIPI                = 8; //mipi
+    E_COMM_PORT_GPIO                = 9; //gpio
+    E_COMM_PORT_I2S                 = 10; //i2s
+    E_COMM_PORT_SDIO                 = 11; //sdio
+}
+
+enum EE_SUBTYPE_GPIO {
+    E_SUBTYPE_GPIO_SENTINEL = 0;
+    E_KEY_1 = 1;
+    E_NO_WATER = 2;
+    E_DUST_BOX = 3;
+    E_WATER_TANK = 4;
+    E_MOP = 5;
+    E_BUMP = 6;
+    E_CLIFF_EN = 7;
+    E_CLIFF_BOOST = 8;
+    E_WALL = 9;
+}
+
+//programable
+enum EE_SUBTYPE_PWM {
+    E_SUBTYPE_PWM_SENTINEL = 0;
+    E_LED_1 = 1;
+    E_WHEELS_RP = 2;
+    E_WHEELS_RN = 3;
+    E_WHEELS_LP = 4;
+    E_WHEELS_LN = 5;
+    E_PUMP = 6;
+    E_MBRUSH = 7;
+    E_SBRUSH = 8;
+    E_FAN = 9;
+}
+
+enum EE_SUBTYPE_ADC {
+    E_E_SUBTYPE_ADC_SENTINEL = 0;
+    E_CLIFF_2 = 1;
+    E_CLIFF_3 = 2;
+    E_CLIFF_4 = 3;
+    E_WALL_ADC = 4;
+    E_FAN_ADC = 5;
+    E_SBRUSH_ADC = 6;
+    E_MBRUSH_ADC = 7;
+    E_PUMP_ADC = 8;
+    E_LWHEEL_ADC = 9;
+    E_RWHEEL_ADC = 10;
+    E_HWID_ADC = 11;
+    E_BATTERY_ADC = 12;
+    E_LIDAR_BUMP_ADC = 13;
+    E_CURRENT_ADC = 14;
+}
+
+enum EE_SUBTYPE_IMU {
+    E_IMU = 0;
+}
+
+enum EE_SUBTYPE_LIDAR {
+    E_LIDAR = 0;
+}
+
+enum EE_SUBTYPE_CAMERA {
+    E_CAMERA = 0;
+}
+
+enum EE_SUBTYPE_MCU {
+    E_MCU = 0;
+}
+
+enum EE_SUBTYPE_DTOF {
+    E_DOF = 0;
+}
+
+enum EE_SUBTYPE_NULL {
+    E_SUB_TYPE_NULL = 0;
+}
+
+enum EE_DEVICE_STATUS {
+    E_STATUS_SENTINEL = 0;
+    E_STATUS_UNINITIALIZED = 1;
+    E_STATUS_INITIALIZED = 2;
+    E_STATUS_WORKING = 3;
+    E_STATUS_IDLE = 4;
+    E_STATUS_FAULT = 5;
+    E_STATUS_SHUTDOWN = 6;
+    E_STATUS_NOTEXIST = 7;
+}
+
+//sub devices, can mount on MCU
+message SubDevices {
+    repeated EE_SUBTYPE_GPIO sdev_gpio = 1;
+    repeated EE_SUBTYPE_PWM sdev_pwm = 2;
+    repeated EE_SUBTYPE_ADC sdev_adc = 3;
+    repeated EE_SUBTYPE_IMU sdev_imu = 4;
+    repeated EE_SUBTYPE_DTOF sdev_dtof = 5;
+    EE_SUBTYPE_NULL sdev_null = 6;
+}
+
+message SensorIndicator {
+    EE_DEV_MAIN dev_main = 1;
+    EE_DEVICE_TYPE type = 2;
+    EE_COMM_PORT_TYPE port = 3;
+    EE_DEVICE_STATUS status = 4;
+    SubDevices sub_dev = 5;
+}
+
+message SensorInfo {
+    string name = 1;
+    string manufacture_by = 2;
+    string type = 3;
+}
+
+message CircularBufSetting {
+    int32 parser_freq = 1;
+    string circle_name = 2;
+    int32 circlular_size = 3;
+}
+
+////////////// PORT-CAN //////////////
+message CanDataRaw {
+    int32 id = 1;
+    repeated int32 data = 2;
+}
+
+message CanDevSetting {
+    string dev = 1;
+    int32 baud = 2;
+    int32 can_read_freq = 3;
+    int32 can_read_timeout = 4;
+}
+
+message CanConfig {
+    CanDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-CAN //////////////
+
+////////////// PORT-UART //////////////
+message UartDevSetting {
+    string uart_dev = 1;
+    int32 baud = 2;
+    int32 data_bits = 3;
+    int32 stop_bits = 4;
+    int32 parity = 5;
+    int32 once_read_size = 6;
+    int32 serial_read_freq = 7;
+}
+
+message UartConfig {
+    UartDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-UART //////////////
+
+////////////// GPIO //////////////
+enum EE_GPIO_DIR {
+    E_GPIO_DIR_IN = 0;
+    E_GPIO_DIR_OUT = 1;
+    E_GPIO_DIR_NONE = 2;
+}
+
+enum EE_GPIO_TRIGGER {
+    E_GPIO_TRIG_LEVEL_HIGH = 0;
+    E_GPIO_TRIG_LEVEL_LOW = 1;
+    E_GPIO_TRIG_EDGE_HGIG = 2;
+    E_GPIO_TRIG_EDGE_LOW = 3;
+    E_GPIO_TRIG_EDGE_BOTH = 4;
+    E_GPIO_TRIG_NONE = 5;
+}
+
+enum EE_GPIO_LEVEL {
+    E_GPIO_LEVEL_LOW = 0;
+    E_GPIO_LEVEL_HIGH = 1;
+}
+
+enum EE_GPIO_ACTION {
+    E_GPIO_ACTION_PRESSED = 0;
+    E_GPIO_ACTION_RELEASED = 1;
+}
+
+message GpioConfig {
+    bool used = 1;
+    string gpio_name = 2;
+    string gpio_des = 3;
+    EE_GPIO_DIR direction = 4;
+    EE_GPIO_TRIGGER trigger = 5;
+}
+
+message GpioConfigs {
+    string dev_name = 1; //device path for GPIO
+    repeated GpioConfig conf = 2;
+}
+
+message GpioDevices {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+    GpioConfigs gpio_configs = 3;
+    bool used = 4;
+}
+
+//for GPIO switch
+message SwitchDev {
+    string gpio_pin = 1;
+}
+////////////// GPIO //////////////
+
+////////////// Audio //////////////
+enum EE_AUDIO_TYPE {
+    E_AUDIO_TYPE_MP3 = 0;
+    E_AUDIO_TYPE_WAV = 1;
+    E_AUDIO_TYPE_UNKONWN = 2;
+}
+
+message AudioMap {
+    string sub_dir = 1;
+    message Voice {
+        string name = 1;
+        int32 idx = 2;
+        int32 type = 3;
+        string note = 4;
+    }
+    repeated Voice voice = 2;
+}
+
+message AudioConfig {
+    string audio_path = 1;
+    string voice_pack = 2;
+    repeated AudioMap a_maps = 3;
+}
+
+message AudioDevice {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+    AudioConfig audio_conf = 3;
+    bool used = 4;
+}
+////////////// Audio //////////////
+
+////////////// ADC //////////////
+//TODO
+message AdcDevice {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+    bool used = 3;
+}
+////////////// ADC //////////////
+
+////////////// PWM //////////////
+message PwmConfig {
+    //unique ID
+    uint32 pwm_id = 1;
+
+    //device name for pwm
+    string dev_name = 2;
+
+    //des for this pwm
+    string des = 3;
+
+    //period lower limit
+    uint32 period_lower_lmt = 4;
+
+    //period typical limit
+    uint32 period_typical_lmt = 5;
+
+    //period upper limit
+    uint32 period_upper_lmt = 6;
+
+    //duty lower limit
+    uint32 duty_lower_lmt = 7;
+
+    //duty typical limit
+    uint32 duty_typical_lmt = 8;
+
+    //duty upper limit
+    uint32 duty_upper_lmt = 9;
+
+    bool used = 10;
+}
+
+message PwmConfigs {
+    string pwm_path = 1; //device path for pwm
+    repeated PwmConfig conf = 2;
+}
+
+message PwmDevice {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+
+    PwmConfigs pwm_confs = 3;
+
+    bool used = 4;
+}
+////////////// PWM //////////////
+
+////////////// Lidar //////////////
+message LidarAssemble {
+    uint32 diameter = 1;
+    uint32 height = 2;
+    float set_angle = 3;
+    float locate = 4;
+}
+
+message LidarDevice {
+    SensorInfo si = 1;
+    oneof LidarInterface {
+        UartConfig uart_conf = 2;
+        //may be SPI device, then instantiate other interface
+        //TODO
+    }
+    LidarAssemble lidar_assemble = 3;
+    SensorIndicator sn_ind = 4;
+    SwitchDev lidar_switch = 5;
+    google.protobuf.UInt32Value pwm_unique_id = 6;
+    bool used = 7;
+}
+////////////// Lidar //////////////
+
+////////////// Imu //////////////
+message ImuAssemble {
+    uint32 height = 1;
+    float set_angle = 2;
+    float locate = 3;
+}
+
+message ImuDevice {
+    SensorInfo si = 1;
+    oneof ImuInterface {
+        UartConfig uart_conf = 2;
+        //may be SPI device, then instantiate other interface
+        //TODO
+    }
+    ImuAssemble imu_assemble = 3;
+    SensorIndicator sn_ind = 4;
+    bool used = 5;
+}
+////////////// Imu //////////////
+
+////////////// Dtof //////////////
+message DtofAssemble {
+    uint32 height = 1;
+    float set_angle = 2;
+    float locate = 3;
+}
+
+message DtofDevice {
+    SensorInfo si = 1;
+    oneof DtofInterface {
+        UartConfig uart_conf = 2;
+        //may be SPI device, then instantiate other interface
+        //TODO
+    }
+    DtofAssemble dtof_assemble = 3;
+    SensorIndicator sn_ind = 4;
+    bool used = 5;
+}
+////////////// Dtof //////////////
+
+////////////// Camera //////////////
+enum EE_CAMERA_ITF {
+    E_ITF_MIPI = 0;
+    E_ITF_DVP = 1;
+    E_ITF_USB = 2;
+}
+
+message CameraConfig {
+    string sensor_name = 1;
+    string interface = 2;
+    string cam_dev = 3;
+    string format = 4;
+    int32 width = 5;
+    int32 height = 6;
+    int32 fps = 7;
+    bool used = 8;
+}
+
+message CameraConfigs {
+    bool used = 1;
+    string dev_name = 2;
+    repeated CameraConfig conf = 3;
+}
+
+message CamerAssemble {
+    uint32 height = 1;
+    float set_angle = 2;
+    float locate = 3;
+    EE_CAMERA_ITF iface = 4;
+    uint32 number = 5;
+}
+
+message CameraDevice {
+    SensorInfo si = 1;
+    CamerAssemble ca = 2;
+    SensorIndicator sn_ind = 3;
+    CameraConfigs camera_conf = 4;
+    bool used = 5;
+}
+////////////// Camera //////////////
+
+////////////// MCU //////////////
+message McuAssemble {
+    uint32 height = 1;
+    float set_angle = 2;
+    float locate = 3;
+}
+
+message McuDevice {
+    SensorInfo si = 1;
+    oneof McuInterface {
+        UartConfig uart_conf = 2;
+    }
+    McuAssemble mcu_assemble = 3;
+    SensorIndicator sn_ind = 4;
+    bool used = 5;
+}
+////////////// MCU //////////////
+
+////////////// Servo //////////////
+message ServoDevice {
+    SensorInfo si = 1;
+    oneof ServoInterface {
+        CanConfig can_conf = 2;
+    }
+    SensorIndicator sn_ind = 3;
+    bool used = 4;
+}
+////////////// Servo //////////////
+
+////////////// Servo //////////////
+message WirelessDevice {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+    bool used = 4;
+}
+
+message LineLaserDevice {
+    SensorInfo si = 1;
+    oneof LidarInterface {
+        UartConfig uart_conf = 2;
+    }
+    SensorIndicator sn_ind = 3;
+    bool used = 4;
+}
+////////////// Servo //////////////
+
+////////////// TTY //////////////
+message TtyDevice {
+    SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
+    int32 scan_interval = 3;
+    bool used = 4;
+}
+////////////// TTY //////////////
+
+//for message transact
+message ChassissTopicConfig {
+    //write channel
+    string chassis_output_channel = 1;
+
+    //writer, for upstream messages
+    string output_imu_topic_name = 2;
+    string output_odom_topic_name = 3;
+    string output_lpa_topic_name = 4;
+    string output_cmd_topic_name = 5;
+    string output_cfd_topic_name = 6;
+    string output_img_topic_name = 7;
+    string output_hcr_topic_name = 8;
+
+    //read channel
+    string chassis_input_channel = 9;
+    //reader, for downstream messages
+    string input_crtl_topic_name = 10;
+}
+
+message ChassisConfig {
+    GpioDevices gpio_dev = 1;
+    AdcDevice adc_dev = 2;
+    PwmDevice pwm_dev = 3;
+    LidarDevice lidar_dev = 4;
+    ImuDevice imu_dev = 5;
+    DtofDevice dtof_dev = 6;
+    CameraDevice camera_dev = 7;
+    McuDevice mcu_dev = 8;
+    TtyDevice tty_dev = 9;
+    AudioDevice aud_dev = 10;
+    ServoDevice servo_dev = 11;
+    WirelessDevice wireless_dev = 12;
+    LineLaserDevice linelaser_dev = 13;
+
+    ChassissTopicConfig chs_topic_conf = 14;
+}

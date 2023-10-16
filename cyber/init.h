@@ -17,11 +17,17 @@
 #ifndef CYBER_INIT_H_
 #define CYBER_INIT_H_
 
+#include <functional>
+
 #include "cyber/common/log.h"
 #include "cyber/state.h"
 
 namespace apollo {
 namespace cyber {
+
+static std::function<void(void)> kUserExitHandle;
+void RegisterUserExitHandle(std::function<void(void)> fc);
+void UserExit(void);
 
 bool Init(const char* binary_name);
 void Clear();

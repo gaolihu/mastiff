@@ -1,0 +1,437 @@
+gpio_dev {
+    si {
+        name: "RK-Platform-GPIO"
+        manufacture_by: "RK"
+        type: "RK3588"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_GPIO
+        port: E_COMM_PORT_GPIO
+        status: E_STATUS_UNINITIALIZED
+        sub_dev: {
+            sdev_null: E_SUB_TYPE_NULL
+        }
+    }
+    gpio_configs {
+        dev_name: "/sys/class/gpio/"
+        conf: [
+            {
+                used: true
+                gpio_name: "1A6"
+                gpio_des: "lidar power control"
+                direction: E_GPIO_DIR_OUT
+                trigger: E_GPIO_TRIG_EDGE_HGIG
+            },
+            {
+                used: true
+                gpio_name: "0C6"
+                gpio_des: "shutdown RGB 2"
+                direction: E_GPIO_DIR_OUT
+                trigger: E_GPIO_TRIG_EDGE_HGIG
+            },
+            {
+                used: true
+                gpio_name: "0D3"
+                gpio_des: "shutdown RGB 1"
+                direction: E_GPIO_DIR_OUT
+                trigger: E_GPIO_TRIG_EDGE_HGIG
+            },
+            {
+                used: true
+                gpio_name: "0D4"
+                gpio_des: "press for configing network"
+                direction: E_GPIO_DIR_IN
+                trigger: E_GPIO_TRIG_EDGE_HGIG
+            }
+        ]
+    }
+    used: true
+}
+
+adc_dev {
+    used: false
+}
+
+pwm_dev {
+    si {
+        name: "RK-Platform-PWM"
+        manufacture_by: "RK"
+        type: "RK3588"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_PWM
+        port: E_COMM_PORT_GPIO
+        status: E_STATUS_UNINITIALIZED
+        sub_dev: {
+            sdev_null: E_SUB_TYPE_NULL
+        }
+    }
+    pwm_confs: {
+        pwm_path: "/sys/class/pwm/pwmchip0/"
+        conf: [
+            {
+                pwm_id: 13
+                dev_name: "pwm0"
+                des: "for lidar speed regulate"
+                period_lower_lmt: 50000
+                period_typical_lmt: 33333
+                period_upper_lmt: 20000
+                duty_lower_lmt: 46
+                duty_typical_lmt: 50
+                duty_upper_lmt: 54
+                used: true
+            },
+            {
+                pwm_id: 12
+                dev_name: "pwm0"
+                des: "for motor speed control"
+                period_lower_lmt: 30000
+                period_typical_lmt: 40000
+                period_upper_lmt: 50000
+                duty_lower_lmt: 30
+                duty_typical_lmt: 50
+                duty_upper_lmt: 80
+                used: true
+            }
+        ]
+    }
+    used: true
+}
+
+lidar_dev {
+    si {
+        name: "LD-Lidar"
+        manufacture_by: "LD"
+        type: "STL-26"
+    }
+    uart_conf {
+        dev_setting {
+            uart_dev: "/dev/ttyS8"
+            baud: 230400
+            data_bits: 8
+            stop_bits: 1
+            parity: 110
+            once_read_size: 256
+            serial_read_freq: 5
+        }
+        buf_setting {
+            parser_freq: 4000
+            circle_name: "cbf-lidar"
+            circlular_size: 4096
+        }
+        dev_name: "dev-Lidar"
+    }
+    lidar_assemble {
+        diameter: 20
+        height: 0
+        set_angle: 0.1f
+        locate: 0.5f
+    }
+    sn_ind {
+        type: E_DEVICE_LIDAR
+        port: E_COMM_PORT_SERIAL
+        status: E_STATUS_UNINITIALIZED
+    }
+    lidar_switch {
+        gpio_pin: "1A6"
+    }
+    pwm_unique_id: {
+        value: 13
+    }
+    used: true
+}
+
+imu_dev {
+    used: false
+}
+
+dtof_dev {
+    used: false
+}
+
+camera_dev {
+    si {
+        name: "Camera"
+        manufacture_by: "Unknown"
+        type: "USB-camera"
+    }
+    ca {
+        height: 100
+        set_angle: 90.0f
+        locate: 10.0f
+        iface: E_ITF_USB
+        number: 1
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_CAMERA
+        port: E_COMM_PORT_USB
+        status: E_STATUS_UNINITIALIZED
+    }
+    camera_conf {
+        used: true
+        dev_name: "usb-caemra"
+        conf: [
+            {
+		        sensor_name: "HBV-1780-2 S2.0"
+                interface: "usb"
+                cam_dev: "/dev/video9"
+                format: "mjpeg"
+                width: 1280
+                height: 480
+                fps: 7
+                used: true
+            }
+        ]
+    }
+    used: true
+}
+
+mcu_dev {
+    si {
+        name: "GD-MCU-Chs"
+        manufacture_by: "GD"
+        type: "GD32F305VET6"
+    }
+    uart_conf {
+        dev_setting {
+            uart_dev: "/dev/ttyS0"
+            baud: 460800
+            data_bits: 8
+            stop_bits: 1
+            parity: 110
+            once_read_size: 128
+            serial_read_freq: 5
+        }
+        buf_setting {
+            parser_freq: 5000
+            circle_name: "cbf-mcu"
+            circlular_size: 4096
+        }
+        dev_name: "dev-MCU"
+    }
+    mcu_assemble {
+        height: 20
+        set_angle: 0.0f
+        locate: 0.5f
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_MCU
+        type: E_DEVICE_MCU
+        port: E_COMM_PORT_SERIAL
+        status: E_STATUS_UNINITIALIZED
+        sub_dev {
+            sdev_gpio: [
+                E_KEY_1,
+                E_NO_WATER,
+                E_DUST_BOX,
+                E_WATER_TANK,
+                E_MOP,
+                E_BUMP,
+                E_CLIFF_EN,
+                E_CLIFF_BOOST,
+                E_WALL
+            ]
+            sdev_pwm: [
+                E_LED_1,
+                E_WHEELS_RP,
+                E_WHEELS_RN,
+                E_WHEELS_LP,
+                E_WHEELS_LN,
+                E_PUMP,
+                E_MBRUSH,
+                E_SBRUSH,
+                E_FAN
+            ]
+            sdev_adc: [
+                E_CLIFF_2,
+                E_CLIFF_3,
+                E_CLIFF_4,
+                E_WALL_ADC,
+                E_FAN_ADC,
+                E_SBRUSH_ADC,
+                E_MBRUSH_ADC,
+                E_PUMP_ADC,
+                E_LWHEEL_ADC,
+                E_RWHEEL_ADC,
+                E_HWID_ADC,
+                E_BATTERY_ADC,
+                E_LIDAR_BUMP_ADC,
+                E_CURRENT_ADC
+            ]
+            sdev_imu: [
+                E_IMU
+            ]
+        }
+    }
+    used: true
+}
+
+tty_dev {
+    si {
+        name: "Device manage"
+        manufacture_by: "SilverStar"
+        type: "mastiff"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_TTY
+        port: E_COMM_PORT_SERIAL
+        status: E_STATUS_UNINITIALIZED
+    }
+    scan_interval: 20
+    used: true
+}
+
+aud_dev {
+    si {
+        name: "Audio-Play"
+        manufacture_by: "RK3588"
+        type: "RK806"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_AUDIO
+        port: E_COMM_PORT_I2S
+        status: E_STATUS_UNINITIALIZED
+    }
+    audio_conf {
+        audio_path: "/mastiff/audio/voice"
+        voice_pack: "beep"
+        a_maps: [
+            {
+                sub_dir: "beep"
+                voice: [
+                    { name: "Q001.mp3" idx: 1 type: 0 note: "" },
+                    { name: "wheel_error.mp3" idx: 97 type: 0 note: "" }
+                ]
+            },
+            {
+                sub_dir: "beep_bak"
+                voice: [
+                    { name: "Q001.mp3" idx: 1 type: 0 note: "" },
+                    { name: "Q003.mp3" idx: 2 type: 0 note: "" },
+                    { name: "Q174.mp3" idx: 76 type: 0 note: "" }
+                ]
+            },
+            {
+                sub_dir: "chinese"
+                voice: [
+                    { name: "Q001.mp3" idx: 1 type: 0 note: "" },
+                    { name: "Q002.mp3" idx: 2 type: 0 note: "" }
+                ]
+            },
+            {
+                sub_dir: "debug"
+                voice: [
+                    { name: "abnormal_collision.mp3" idx: 1 type: 0 note: "" },
+                    { name: "add_water_abort.mp3" idx: 2 type: 0 note: "" }
+                ]
+            },
+            {
+                sub_dir: "english"
+                voice: [
+                    { name: "abnormal_collision.mp3" idx: 1 type: 0 note: "" }
+                ]
+            },
+            {
+                sub_dir: "factory"
+                voice: [
+                    { name: "yilian_success.mp3" idx: 29 type: 0 note: "" }
+                ]
+            }
+        ]
+    }
+    used: true
+}
+
+servo_dev {
+    si {
+        name: "Servo-Motor"
+        manufacture_by: "Syntron"
+        type: "DS20270DA"
+    }
+    can_conf {
+        dev_setting {
+            dev: "can0"
+            baud: 1000000
+            can_read_freq: 1
+            can_read_timeout: 2700
+        }
+        buf_setting {
+            parser_freq: 300
+            circle_name: "cbuf-servo-motor"
+            circlular_size: 2048
+        }
+        dev_name: "dev-Motor"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_MOTOR
+        type: E_DEVICE_MOTOR
+        port: E_COMM_PORT_CAN
+        status: E_STATUS_UNINITIALIZED
+    }
+    used: true
+}
+
+wireless_dev {
+    si {
+        name: "Wifi-4G"
+        manufacture_by: "AVT"
+        type: "typical"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_WIRELESS
+        port: E_COMM_PORT_SDIO
+        status: E_STATUS_UNINITIALIZED
+    }
+    used: true
+}
+
+linelaser_dev {
+    si {
+        name: "Line-Laser"
+        manufacture_by: "AVT-Laser"
+        type: "typical"
+    }
+    uart_conf {
+        dev_setting {
+            uart_dev: "/dev/ttyS8"
+            baud: 230400
+            data_bits: 8
+            stop_bits: 1
+            parity: 110
+            once_read_size: 256
+            serial_read_freq: 5
+        }
+        buf_setting {
+            parser_freq: 4000
+            circle_name: "cbf-lidar"
+            circlular_size: 4096
+        }
+        dev_name: "dev-Lidar"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_SOC
+        type: E_DEVICE_LINELASER
+        port: E_COMM_PORT_SERIAL
+        status: E_STATUS_UNINITIALIZED
+    }
+    used: true
+}
+
+chs_topic_conf {
+    chassis_output_channel: "robot/publish"
+    output_imu_topic_name: "mastiff/chassis/output/chs_imu"
+    output_odom_topic_name: "mastiff/chassis/output/chs_odome"
+    output_lpa_topic_name: "mastiff/chassis/output/chs_lpa"
+    output_cmd_topic_name: "mastiff/chassis/output/chs_cmd"
+    output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
+    output_img_topic_name: "mastiff/chassis/output/chs_img"
+    output_hcr_topic_name: "mastiff/chassis/output/chs_hcr"
+    chassis_input_channel: "robot/subscribe"
+    input_crtl_topic_name: "mastiff/chassis/input/chs_ctrl"
+}

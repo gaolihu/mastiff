@@ -130,11 +130,21 @@ bool Init(const char* binary_name) {
   return true;
 }
 
+void RegisterUserExitHandle(std::function<void(void)> fc) {
+  kUserExitHandle = fc;
+}
+
+void UserExit(void) {
+  if (kUserExitHandle)
+    kUserExitHandle();
+}
+
 void Clear() {
   std::lock_guard<std::mutex> lg(g_mutex);
   if (GetState() == STATE_SHUTDOWN || GetState() == STATE_UNINITIALIZED) {
     return;
   }
+  UserExit();
   SysMo::CleanUp();
   TaskManager::CleanUp();
   TimingWheel::CleanUp();
