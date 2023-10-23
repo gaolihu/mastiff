@@ -17,6 +17,10 @@ namespace parser {
 #ifdef CHSS_PKG_DBG
         AINFO << "RawManage sigleton de-construct";
 #endif
+        for (auto x : serial_data_) {
+            if (x.second)
+                delete x.second;
+        }
     }
 
     int RawManage::Init(const ChassisConfig* cc,
@@ -45,13 +49,41 @@ namespace parser {
             sis_.emplace_back(si);
         }
 
+        //2, serial devices line-laser
+        if (chs_conf_->has_linelaser_dev() &&
+                &chs_conf_->linelaser_dev().si() == si) {
+            //judge port type
+            auto s = new SerialData
+                (std::bind(&RawManage::OnRecvUart, this,
+                           std::placeholders::_1,
+                           std::placeholders::_2),
+                 &chs_conf_->linelaser_dev().uart_conf());
+            s->Init();
+            sis_.emplace_back(si);
+            serial_data_[si] = s;
+        }
+
+        //3, serial devices lidar
+        if (chs_conf_->has_lidar_dev() &&
+                &chs_conf_->lidar_dev().si() == si) {
+            //judge port type
+            auto s = new SerialData
+                (std::bind(&RawManage::OnRecvUart, this,
+                           std::placeholders::_1,
+                           std::placeholders::_2),
+                 &chs_conf_->lidar_dev().uart_conf());
+            s->Init();
+            sis_.emplace_back(si);
+            serial_data_[si] = s;
+        }
+
         //3-1, soc - audio
         if (chs_conf_->has_aud_dev() &&
                 &chs_conf_->aud_dev().si() == si) {
             soc_data_->Init(cc);
         }
 
-        //3-2, soc - audio
+        //3-2, soc - network
         // TODO         
         return 0;
     }
@@ -60,17 +92,28 @@ namespace parser {
         if (chs_conf_->has_servo_dev() &&
                 &chs_conf_->servo_dev().si() == si) {
             //1, CAN driver start
-            can_data_->Start();
+            return can_data_->Start();
         } else if (chs_conf_->has_aud_dev() &&
                 &chs_conf_->aud_dev().si() == si) {
             //2, SOC driver start
-            soc_data_->Start();
-        } else if (chs_conf_->has_servo_dev() &&
-                &chs_conf_->servo_dev().si() == si) {
-            //3, UART driver start
-            // TODO
-            //serial_data_->Start();
+            return soc_data_->Start();
+        } else if (chs_conf_->has_linelaser_dev() &&
+                &chs_conf_->linelaser_dev().si() == si) {
+            //3, UART-linelaser start
+            if (auto s = _FindSerialData(si)) {
+                return s->Start();
+            }
+            AERROR << "start uart linelaser error!";
+        } else if (chs_conf_->has_lidar_dev() &&
+                &chs_conf_->lidar_dev().si() == si) {
+            //3, UART-lidar start
+            if (auto s = _FindSerialData(si)) {
+                return s->Start();
+            }
+            AERROR << "write uart lidar error!";
         }
+
+        AWARN << "Start TODO for\n" << si->DebugString();
 
         return 0;
     }
@@ -81,6 +124,8 @@ namespace parser {
             can_data_->Stop();
         }
 
+        AWARN << "Stop TODO for\n" << si->DebugString();
+
         return 0;
     }
 
@@ -90,13 +135,33 @@ namespace parser {
             can_data_->Close();
         }
 
+        AWARN << "Close TODO for\n" << si->DebugString();
+
         return 0;
     }
 
-    //will not used
-    size_t RawManage::WriteCan(const
-            std::vector<uint8_t>& msg) {
-        return can_data_->WritePort(msg);
+    size_t RawManage::WriteUart(const SensorInfo* si,
+            const uint8_t* info,
+            const size_t len) {
+#if 1
+        std::ostringstream oss;
+        for (size_t i = 0; i < len; i++) {
+            oss << std::hex << std::setw(2) << std::setfill('0') <<
+                static_cast<int>(info[i]) << " ";
+        }
+        AINFO << "write uart: [ " << oss.str() << " ]";
+#endif
+        if (info == nullptr || len == 0) {
+            AWARN << "no contents to write for UART!";
+            return 0;
+        }
+        if (auto s = _FindSerialData(si)) {
+            return s->Push(info, len);
+        }
+
+        AERROR << "write uart error!";
+
+        return 0;
     }
 
     size_t RawManage::WriteCan(const int id,
@@ -110,16 +175,6 @@ namespace parser {
         return can_data_->WritePort(id, info, len);
     }
 
-    size_t RawManage::WriteUart(const uint8_t* info,
-            const uint32_t len) {
-        if (info == nullptr || len == 0) {
-            AWARN << "no contents to write for UART!";
-            return 0;
-        }
-        //return uart_data_->WritePort(info, len);
-        return 0;
-    }
-
     bool RawManage::WriteSoc(const Message& info) {
         return soc_data_->SocWrite(info);
     }
@@ -130,11 +185,8 @@ namespace parser {
     }
 
     void RawManage::OnRecvUart(const uint8_t* buf,
-            const size_t l) {
-#ifdef CHSS_PKG_DBG
-        AINFO << "receive uart data: " << buf <<
-            ", len: " << l;
-#endif
+            const size_t len) {
+        _UartMessageHandle(buf, len);
     }
 
     void RawManage::OnRecvSoc(const Message& msg) {

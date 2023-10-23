@@ -13,7 +13,9 @@ namespace device {
             LineLaser(const ChassisConfig*);
             virtual ~LineLaser();
 
-        private:
+            virtual int Init(void) override;
+            virtual int Start(void) override;
+            virtual int Stop(void) override;
     };
 
 } //namespace device

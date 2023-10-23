@@ -46,7 +46,7 @@ gpio_dev {
             }
         ]
     }
-    used: true
+    used: false
 }
 
 adc_dev {
@@ -97,19 +97,19 @@ pwm_dev {
             }
         ]
     }
-    used: true
+    used: false
 }
 
 lidar_dev {
     si {
-        name: "LD-Lidar"
-        manufacture_by: "LD"
-        type: "STL-26"
+        name: "LDS-Lidar"
+        manufacture_by: "PeaceCat"
+        type: "LDS-50C-R"
     }
     uart_conf {
         dev_setting {
-            uart_dev: "/dev/ttyS8"
-            baud: 230400
+            uart_dev: "/dev/ttyS3"
+            baud: 921600
             data_bits: 8
             stop_bits: 1
             parity: 110
@@ -186,7 +186,7 @@ camera_dev {
             }
         ]
     }
-    used: true
+    used: false
 }
 
 mcu_dev {
@@ -266,7 +266,7 @@ mcu_dev {
             ]
         }
     }
-    used: true
+    used: false
 }
 
 tty_dev {
@@ -282,7 +282,7 @@ tty_dev {
         status: E_STATUS_UNINITIALIZED
     }
     scan_interval: 20
-    used: true
+    used: false
 }
 
 aud_dev {
@@ -373,7 +373,7 @@ servo_dev {
         port: E_COMM_PORT_CAN
         status: E_STATUS_UNINITIALIZED
     }
-    used: true
+    used: false
 }
 
 wireless_dev {
@@ -388,31 +388,31 @@ wireless_dev {
         port: E_COMM_PORT_SDIO
         status: E_STATUS_UNINITIALIZED
     }
-    used: true
+    used: false
 }
 
 linelaser_dev {
     si {
         name: "Line-Laser"
-        manufacture_by: "AVT-Laser"
+        manufacture_by: "AVT-Line-Laser"
         type: "typical"
     }
     uart_conf {
         dev_setting {
-            uart_dev: "/dev/ttyS8"
-            baud: 230400
+            uart_dev: "/dev/ttyS0"
+            baud: 921600
             data_bits: 8
             stop_bits: 1
             parity: 110
             once_read_size: 256
-            serial_read_freq: 5
+            serial_read_freq: 2
         }
         buf_setting {
             parser_freq: 4000
-            circle_name: "cbf-lidar"
+            circle_name: "cbf-line-lidar"
             circlular_size: 4096
         }
-        dev_name: "dev-Lidar"
+        dev_name: "dev-line-laser"
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -420,7 +420,7 @@ linelaser_dev {
         port: E_COMM_PORT_SERIAL
         status: E_STATUS_UNINITIALIZED
     }
-    used: true
+    used: false
 }
 
 chs_topic_conf {

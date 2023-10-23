@@ -9,11 +9,13 @@
 #include "modules/chassis/parser/raw_manage.h"
 #include "modules/chassis/parser/circular_buffer.h"
 #include "modules/chassis/parser/pack_libs/servo_packer.h"
+#include "modules/chassis/parser/pack_libs/llaser_packer.h"
 
 namespace mstf {
 namespace chss {
 namespace parser {
 
+    using namespace /*mstf::chss::*/proto;
     using namespace /*mstf::chss::*/parser;
 
     using FrameProcessor = std::function<int(const
@@ -34,10 +36,6 @@ namespace parser {
             }
             virtual ~ParserBaseItf() {
                 AINFO << "ParserBaseItf de-construction";
-                tim_.reset();
-                packer_.reset();
-                cbuf_raw_.reset();
-                cbuf_can_.reset();
             }
             ParserBaseItf(const ParserBaseItf&) = delete;
             ParserBaseItf& operator=(const ParserBaseItf&) = delete;
@@ -45,11 +43,11 @@ namespace parser {
             int Init(const EE_COMM_PORT_TYPE type,
                     const CircularBufSetting* cbs = nullptr) {
                 AINFO << "Init ParserBaseItf, port type: " << type <<
-                    ", cbuf: " <<
-                    (cbs == nullptr ? " null" : cbs->DebugString());
+                    ", sensor name: " << snsr_info_->name() <<
+                    ", cbuf:\n" << (cbs == nullptr ? "no cbuf" : cbs->DebugString());
                 switch (type) {
                     case E_COMM_PORT_I2C:
-                    case E_COMM_PORT_SERIAL:
+                    case E_COMM_PORT_SERIAL: {
                         if (cbs != nullptr) {
                             cbuf_raw_ = std::make_unique<CircularBuffer<uint8_t>>
                                 (cbs->circlular_size(), cbs->circle_name());
@@ -63,12 +61,21 @@ namespace parser {
                         } else {
                             AINFO << "no circular buf for uart port";
                         }
+                        const SensorIndicator* it = nullptr;
+                        if ((it = GetIndicator()) != nullptr) {
+                            if (it->type() == E_DEVICE_LINELASER)
+                                packer_ = std::make_unique<LlaserPacker>(snsr_info_->name());
+                            //else if (it->type() == E_DEVICE_LINELASER())
+                            else
+                                AINFO << "TODO, packer!";
+                        }
                         RawManage::Instance()->RegisterRawListener
                             (std::bind(&ParserBaseItf::OnOriginalDataRaw,
                                        this, std::placeholders::_1,
                                        std::placeholders::_2), snsr_info_);
+                    }
                         break;
-                    case E_COMM_PORT_CAN:
+                    case E_COMM_PORT_CAN: {
                         if (cbs != nullptr) {
                             cbuf_can_ = std::make_unique<CircularBuffer<uint8_t>>
                                 (cbs->circlular_size(), cbs->circle_name());
@@ -87,14 +94,16 @@ namespace parser {
                             (std::bind(&ParserBaseItf::OnOriginalDataCan,
                                        this, std::placeholders::_1,
                                        std::placeholders::_2), snsr_info_);
+                    }
                         break;
                     case E_COMM_PORT_USB:
                     case E_COMM_PORT_GPIO:
                     case E_COMM_PORT_I2S:
-                    case E_COMM_PORT_SDIO:
+                    case E_COMM_PORT_SDIO: {
                         RawManage::Instance()->RegisterSocListener
                             (std::bind(&ParserBaseItf::OnOriginalDataSoc,
                                        this, std::placeholders::_1), snsr_info_);
+                    }
                         break;
                     default:
                         AERROR << "type error: " << type;
@@ -114,7 +123,7 @@ namespace parser {
 
                 //data parser setting
                 if (tim_ != nullptr) {
-                    AINFO << "Start ParserBaseItf timer" <<
+                    AINFO << "Start ParserBaseItf timer for " <<
                         snsr_info_->name();
                     tim_->Start();
                 }
@@ -152,7 +161,8 @@ namespace parser {
             }
 
             ////////// data upstream //////////
-            virtual int ParseRawBuffer() {
+            virtual int ParseRawBuffer(const uint8_t*,
+                    const size_t) {
                 return 0;
             }
             virtual int ParseCanBuffer(const uint8_t*,
@@ -172,20 +182,24 @@ namespace parser {
             ////////// data upstream //////////
 
             ////////// data downstream //////////
+            virtual int WriteSocMessage(const DownToSocData& data) {
+                return RawManage::Instance()->WriteSoc(data);
+            }
+
             virtual int WriteMcuMessage(const DownToMcuData& data) {
                 std::vector<uint8_t> packed_data =
                     packer_->PackMcuMessage(data);
                 AWARN << "packer: " << packer_.get();
                 return RawManage::Instance()->
-                    WriteUart(&packed_data[0], packed_data.size());
+                    WriteUart(snsr_info_, &packed_data[0], packed_data.size());
             }
 
             virtual int WriteServoMessage(const DownToServoData& data) {
                 return 0;
             }
 
-            virtual int WriteSocMessage(const DownToSocData& data) {
-                return RawManage::Instance()->WriteSoc(data);
+            virtual int WriteMiscMessage(const DownToMiscData& data) {
+                return 0;
             }
             ////////// data downstream //////////
 
@@ -199,7 +213,7 @@ namespace parser {
                         snsr_info_->name();
                 }
                 //notify the specific raw parser work
-                ParseRawBuffer();
+                ParseRawBuffer(buf, size);
             }
             void OnOriginalDataCan(const uint8_t* buf,
                     const size_t len) {
@@ -217,6 +231,61 @@ namespace parser {
             void OnOriginalDataSoc(const Message& msg) {
                 //notify the specific soc parser work
                 ParseSocInfo(msg);
+            }
+
+            //helper
+            const SensorIndicator* GetIndicator() {
+                if (chs_conf_->has_gpio_dev())
+                    if (&chs_conf_->gpio_dev().si() == snsr_info_)
+                        return &chs_conf_->gpio_dev().sn_ind();
+
+                if (chs_conf_->has_adc_dev())
+                    if (&chs_conf_->adc_dev().si() == snsr_info_)
+                        return &chs_conf_->adc_dev().sn_ind();
+
+                if (chs_conf_->has_pwm_dev())
+                    if (&chs_conf_->pwm_dev().si() == snsr_info_)
+                        return &chs_conf_->pwm_dev().sn_ind();
+
+                if (chs_conf_->has_lidar_dev())
+                    if (&chs_conf_->lidar_dev().si() == snsr_info_)
+                        return &chs_conf_->lidar_dev().sn_ind();
+
+                if (chs_conf_->has_imu_dev())
+                    if (&chs_conf_->imu_dev().si() == snsr_info_)
+                        return &chs_conf_->imu_dev().sn_ind();
+
+                if (chs_conf_->has_dtof_dev())
+                    if (&chs_conf_->dtof_dev().si() == snsr_info_)
+                        return &chs_conf_->dtof_dev().sn_ind();
+
+                if (chs_conf_->has_camera_dev())
+                    if (&chs_conf_->camera_dev().si() == snsr_info_)
+                        return &chs_conf_->camera_dev().sn_ind();
+
+                if (chs_conf_->has_mcu_dev())
+                    if (&chs_conf_->mcu_dev().si() == snsr_info_)
+                        return &chs_conf_->mcu_dev().sn_ind();
+
+                if (chs_conf_->has_aud_dev())
+                    if (&chs_conf_->aud_dev().si() == snsr_info_)
+                        return &chs_conf_->aud_dev().sn_ind();
+
+                if (chs_conf_->has_servo_dev())
+                    if (&chs_conf_->servo_dev().si() == snsr_info_)
+                        return &chs_conf_->servo_dev().sn_ind();
+
+                if (chs_conf_->has_wireless_dev())
+                    if (&chs_conf_->wireless_dev().si() == snsr_info_)
+                        return &chs_conf_->wireless_dev().sn_ind();
+
+                if (chs_conf_->has_linelaser_dev())
+                    if (&chs_conf_->linelaser_dev().si() == snsr_info_)
+                        return &chs_conf_->linelaser_dev().sn_ind();
+
+                AERROR << "can't get sensor indicator!";
+
+                return nullptr;
             }
 
         protected:

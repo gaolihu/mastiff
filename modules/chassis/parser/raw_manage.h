@@ -6,7 +6,7 @@
 
 #include "modules/chassis/drivers/can/can_data.h"
 #include "modules/chassis/drivers/soc/soc_data.h"
-//#include "modules/chassis/drivers/uart/serial_data.h"
+#include "modules/chassis/drivers/uart/serial_data.h"
 
 namespace mstf {
 namespace chss {
@@ -35,7 +35,7 @@ namespace parser {
 
             inline void RegisterRawListener(const
                     RawDataListener l, const SensorInfo* si) {
-                uart_raw_handle_[const_cast<SensorInfo*>(si)] = l;
+                serial_raw_handle_[const_cast<SensorInfo*>(si)] = l;
             }
 
             inline void RegisterCanListener(const
@@ -48,10 +48,22 @@ namespace parser {
                 soc_raw_handle_[const_cast<SensorInfo*>(si)] = l;
             }
 
-            // write serial & can
-            size_t WriteCan(const std::vector<uint8_t>&);
+            // write UART & CAN & SOC
+            size_t WriteUart(const SensorInfo* si,
+                    const uint8_t*, const size_t);
+            inline size_t WriteUart(const SensorInfo* si,
+                    const std::vector<uint8_t>& data) {
+                if (data.empty())
+                    return 0;
+                return WriteUart(si, &data[0], data.size());
+            }
             size_t WriteCan(const int, const uint8_t*, const size_t);
-            size_t WriteUart(const uint8_t*, const uint32_t);
+            inline size_t WriteCan(const int id, const
+                    std::vector<uint8_t>& data) {
+                if (data.empty())
+                    return 0;
+                return WriteCan(id, &data[0], data.size());
+            }
             bool WriteSoc(const Message&);
 
             // data come
@@ -60,6 +72,7 @@ namespace parser {
             void OnRecvSoc(const Message&);
 
         private:
+            //helpers
             inline void _CanMessageHandle(const uint8_t* buf,
                     const size_t len) {
                 for (auto c : sis_) {
@@ -71,18 +84,16 @@ namespace parser {
                 }
             }
 
-            /*
             inline void _UartMessageHandle(const uint8_t* buf,
                     const size_t len) {
                 for (auto c : sis_) {
-                    for (auto x : uart_raw_handle_) {
+                    for (auto x : serial_raw_handle_) {
                         if (x.first == c) {
                             x.second(buf, len);
                         }
                     }
                 }
             }
-            */
 
             inline void _SocMessageHandle(const Message& msg) {
                 for (auto c : sis_) {
@@ -94,20 +105,32 @@ namespace parser {
                 }
             }
 
+            inline SerialData* _FindSerialData(const SensorInfo* si) {
+                for (auto s : serial_data_) {
+                    if (s.first == si) {
+                        return s.second;
+                    }
+                }
+                AERROR << "can't get serial data for\n" <<
+                    si->DebugString();
+
+                return nullptr;
+            }
+
         private:
             //can
             std::unique_ptr<CanData> can_data_ = nullptr;
             // =&ParserBaseItf::OnOriginalDataCan()
-            std::map<SensorInfo*, CanDataListener> can_raw_handle_;
+            std::map<SensorInfo*, CanDataListener> can_raw_handle_ {};
 
-            //serial TODO
-            //std::unique_ptr<SerialData> serial_data_ = nullptr;
-            std::map<SensorInfo*, RawDataListener> uart_raw_handle_;
+            //serial
+            std::map<const SensorInfo*, SerialData*> serial_data_ {};
+            std::map<SensorInfo*, RawDataListener> serial_raw_handle_ {};
 
             std::unique_ptr<SocData> soc_data_ = nullptr;
-            std::map<SensorInfo*, SocDataListener> soc_raw_handle_;
+            std::map<SensorInfo*, SocDataListener> soc_raw_handle_ {};
 
-            std::vector<const SensorInfo*> sis_;
+            std::vector<const SensorInfo*> sis_ {};
 
             const ChassisConfig* chs_conf_ = nullptr;
     };

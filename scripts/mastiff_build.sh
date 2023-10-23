@@ -291,7 +291,6 @@ function main() {
         sed  "/.build_cache/d" |
         sed  "/proto/d" |
         sed  "/cyber/d" |
-        sed  "/tools/d" |
         sed  "/docker/d" |
         sed  "/cartographer_ros_msgs/d" |
         sed  "/3rd_party/d" |
@@ -307,7 +306,6 @@ function main() {
         sed  "/.build_cache/d" |
         sed  "/proto/d" |
         sed  "/cyber/d" |
-        sed  "/tools/d" |
         sed  "/docker/d" |
         sed  "/cartographer_ros_msgs/d" |
         sed  "/3rd_party/d" |

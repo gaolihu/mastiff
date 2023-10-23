@@ -21,6 +21,8 @@ namespace device {
     using namespace /*mstf::chss::*/proto;
     using namespace /*mstf::chss::*/parser;
 
+    using ProtoMessagePublish = std::function<int(Message*, const std::string&)>;
+
     class DataTransact {
         public:
             DECLARE_SINGLETON(DataTransact)
@@ -33,8 +35,10 @@ namespace device {
 
             int RegisterDevice(const std::string&,
                     const SensorIndicator&, DeviceBaseItf*);
-
             int RecvChassCtrl(const std::shared_ptr<ChassisCtrl>&);
+            inline void RegisterPublisher(const ProtoMessagePublish& p) {
+                proto_publisher_ = p;
+            }
 
         private:
             //upstream
@@ -73,6 +77,7 @@ namespace device {
             //std::shared_ptr<DispactchRaw> dispatcher_ = nullptr;
             std::unordered_map<DeviceBaseItf*, SensorIndicator*> device_parser_pair_;
             //std::unique_ptr<LidarUndistortion> lidar_undistortion_ = nullptr;
+            ProtoMessagePublish proto_publisher_ = nullptr;
     };
 
 } //namespace device

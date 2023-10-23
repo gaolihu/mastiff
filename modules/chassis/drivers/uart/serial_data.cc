@@ -27,6 +27,14 @@ namespace driver {
 
     int SerialData::Init(const int cycle,
             const DriveDataPolling& p) {
+#ifdef SERIAL_PORTING
+        comm_ = new Serial(uart_conf_->dev_setting().uart_dev(),
+                uart_conf_->dev_setting().baud(),
+                Timeout::simpleTimeout(DEFAULT_TIMEOUT));
+        //bind
+        comm_->bindport(uart_conf_->dev_setting().uart_dev().data(),
+                uart_conf_->dev_setting().baud());
+#else
         AINFO << "Init serial dev: " << uart_conf_->dev_setting().uart_dev() <<
             ", baud: " << uart_conf_->dev_setting().baud() <<
             ", datab: " << uart_conf_->dev_setting().data_bits() <<
@@ -48,12 +56,13 @@ namespace driver {
                     uart_conf_->dev_setting().serial_read_freq() : cycle,
                     std::bind(&SerialData:: serial_poll_func, this));
         }
+#endif
 
         return 0;
     }
 
     //send to serail device
-    int SerialData::Push(const uint8_t* data, const uint32_t len) {
+    int SerialData::Push(const uint8_t* data, const size_t len) {
 #ifdef SERIAL_DBG
         std::ostringstream os;
         std::ostringstream oss;
@@ -67,6 +76,10 @@ namespace driver {
             os.str() << " -> " << uart_conf_->dev_setting().uart_dev() <<
             ", [ " << oss.str() << " ]";
 #endif
+        int count = 0;
+#ifdef SERIAL_PORTING
+        count = comm_->writeData(data, len);
+#else
         if (serial_fd_ <= 0 || serial_monitor_ == nullptr) {
             //do not write when serial doesn't open
             AWARN << "write? serial fd: " << serial_fd_ <<
@@ -74,7 +87,6 @@ namespace driver {
             return 0;
         }
 
-        int count = 0;
         count = write_uart(serial_fd_, data, len);
 
         if(count < 0) {
@@ -85,7 +97,7 @@ namespace driver {
             AINFO << "write uart OK: " << count;
         }
 #endif
-
+#endif
         return count;
     }
 
@@ -96,6 +108,12 @@ namespace driver {
             return -1;
         }
 
+#ifdef SERIAL_PORTING
+        //open
+        if (!comm_->open()) {
+            return -1;
+        }
+#else
         if (serial_fd_ > 0) {
             AWARN << "device: " << uart_conf_->dev_setting().uart_dev() <<
                 ", already opened!";
@@ -126,11 +144,10 @@ namespace driver {
                 return -1;
             }
         }
-
+#endif
         AINFO << "Start " << uart_conf_->dev_setting().uart_dev() <<
             ", fd: " << serial_fd_ <<
             "ms, baud: " << uart_conf_->dev_setting().baud() << ", OK";
-
         return DriveDataItf::Start();
     }
 
@@ -142,6 +159,12 @@ namespace driver {
     }
 
     int SerialData::Close() {
+#ifdef SERIAL_PORTING
+        comm_->flush();
+        comm_->closePort();
+        delete comm_;
+        comm_ = nullptr;
+#else
         AINFO << "Close SerialData, dev: " <<
             uart_conf_->dev_setting().uart_dev();
 
@@ -153,7 +176,7 @@ namespace driver {
             AWARN << uart_conf_->dev_setting().uart_dev() <<
                 " not opened, can't be closed!";
         }
-
+#endif
         return DriveDataItf::Close();
     }
 

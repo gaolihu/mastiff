@@ -62,11 +62,11 @@ namespace parser {
             const std::vector<uint8_t>>> tds;
 
         if (sd.has_config()) {
-            if (sd.config().opt() == E_SERVO_OPTS_INIT) {
+            if (sd.config().opt() == E_SUBDEV_OPTS_INIT) {
                 init_servo_motor_fn_des();
                 init_servo_motor_dn_des();
                 init_servo_motor_pn_des();
-            } else if (sd.config().opt() == E_SERVO_OPTS_START) {
+            } else if (sd.config().opt() == E_SUBDEV_OPTS_START) {
                 int size = 0;
                 int addr[200] = {0};
 
@@ -87,7 +87,7 @@ namespace parser {
                 if (!FillDataContainer(tds, "PN", addr, size)) {
                     AERROR << "fill PN data ERROR!";
                 }
-            } else if (sd.config().opt() == E_SERVO_OPTS_STORE) {
+            } else if (sd.config().opt() == E_SUBDEV_OPTS_STORE) {
                 show_all_servo_motor_fn_des();
                 show_all_servo_motor_dn_des();
                 show_all_servo_motor_pn_des();

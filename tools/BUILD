@@ -1,3 +1,6 @@
+##BZL.DEL:this
+##BZL.DEL:all
+
 load("//tools/install:install.bzl", "install", "install_files", "install_src_files")
 
 package(

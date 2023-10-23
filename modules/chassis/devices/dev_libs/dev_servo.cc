@@ -42,7 +42,7 @@ namespace device {
         DeviceBaseItf::Init();
 
         DownToServoData data;
-        data.mutable_config()->set_opt(E_SERVO_OPTS_INIT);
+        data.mutable_config()->set_opt(E_SUBDEV_OPTS_INIT);
 
         return data_parser_->WriteServoMessage(data);
     }
@@ -56,14 +56,14 @@ namespace device {
         std::this_thread::sleep_for(std::chrono::milliseconds(80));
 
         DownToServoData data;
-        data.mutable_config()->set_opt(E_SERVO_OPTS_START);
+        data.mutable_config()->set_opt(E_SUBDEV_OPTS_START);
         //start servo motor
         data_parser_->WriteServoMessage(data);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         //load servo motor registers
-        data.mutable_config()->set_opt(E_SERVO_OPTS_STORE);
+        data.mutable_config()->set_opt(E_SUBDEV_OPTS_STORE);
         return data_parser_->WriteServoMessage(data);
     }
 

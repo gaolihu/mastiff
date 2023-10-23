@@ -20,7 +20,6 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
             <LidarParser>(cc, &cc->lidar_dev().si());
         DataTransact::Instance()->RegisterDevice(

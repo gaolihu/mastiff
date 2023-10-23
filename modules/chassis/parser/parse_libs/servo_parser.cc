@@ -24,42 +24,16 @@ namespace parser {
                 can_conf().buf_setting());
     }
 
-    int ServoParser::ParseCanBuffer(const uint8_t* buf,
-            const size_t len) {
-#if 0
-        AINFO << "ParseCanBuffer len ~ " <<
-            len << ", [" <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
-            " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
-            " ]";
-#endif
-        //if the current frame is good enough to parse
-        //a whole frame of data, send upstream directly
-
-        parse_servo_motor_info(buf, len);
-
-        return 0;
-    }
-
     int ServoParser::WriteServoMessage(const DownToServoData& data) {
+#if 1
+        AINFO << "data to servo motor:\n" << data.DebugString();
+#endif
 #if 0
         //for testing
         std::vector<uint8_t> packed_data =
             packer_->PackMotorMessageString(data);
         return RawManage::Instance()->WriteCan(packed_data);
 #else
-
-#if 1
-        AINFO << "data to servo motor:\n" << data.DebugString();
-#endif
         if (data.has_diff_speed()) {
             std::tuple<const int,
                 const std::vector<uint8_t>> packed_data =
@@ -84,6 +58,32 @@ namespace parser {
             return 0;
         }
 #endif
+    }
+
+    int ServoParser::ParseCanBuffer(const uint8_t* buf,
+            const size_t len) {
+#if 0
+        AINFO << "ParseCanBuffer len ~ " <<
+            len << ", [" <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
+            " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
+            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
+            " ]";
+#endif
+        //if the current frame is good enough to parse
+        //a whole frame of data, send upstream directly
+
+        parse_servo_motor_info(buf, len);
+        //TODO 
+
+        return 0;
     }
 
     int ServoParser::ParseSigleFrame(const

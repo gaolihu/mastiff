@@ -42,7 +42,7 @@ namespace device {
             const SensorIndicator& ind, DeviceBaseItf* snsr) {
         //message upstream handler
         std::function<int(const google::protobuf::Message*,
-                const std::string&)> proc =
+                const std::string&)> proto_proc =
             [this](const google::protobuf::Message* msg,
                     const std::string& type)->int {
                 return DataRelease(const_cast<google::
@@ -53,10 +53,7 @@ namespace device {
 
         auto parser = reinterpret_cast<ParserBaseItf*>(snsr->
                 GetDeviceParser());
-        //          
-        //parser->SetProtoMessageHandler(proc);
-        //          
-        //          TODO
+        parser->SetProtobufHandle(proto_proc);
 
         AINFO << "Register msg publisher for: " << dev <<
             ", seq: " << device_parser_pair_.size() << "\n";
@@ -88,11 +85,15 @@ namespace device {
     //MCU data upstream
     int DataTransact::DataRelease(::google::protobuf::Message* msg,
             const std::string& type) {
+        /*
         auto parser = GetSensorIndicator(E_DEVICE_MCU);
         if (parser == nullptr) {
             AWARN << "can't get parser for MCU";
             return -1;
         }
+        //TODO
+            
+        */
 
         //find corresponding sensor and release the message
         //static bool first_laser = true;
@@ -154,16 +155,26 @@ namespace device {
                 }
             }
             */
-        } else if (type == "LaserPointArray") {
+        } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
             //lidar data
+            /*
             auto l_parser = GetSensorIndicator(E_DEVICE_LIDAR);
-            auto lsr = std::make_shared<LaserData>();
+            if (l_parser == nullptr) {
+                AERROR << "can't get parser for lidar";
+                return -1;
+            }
+            */
+
+            if (proto_publisher_) {
+                proto_publisher_(msg, type);
+            }
+
             //if (l_parser->ConvertLaserMsg(msg, lsr) == 0) {
                 // lidar_undistortion_->LaserMemory(lsr);
                 //dispatcher_->DataDispatchLaser(std::make_shared<LaserData>(
                 //lidar_undistortion_->ScanCallback(lsr)));
             //} else {
-                AERROR << "convert laser message error!";
+                //AERROR << "convert laser message error!";
             //}
         } else {
 #ifdef CHSS_PKG_DBG

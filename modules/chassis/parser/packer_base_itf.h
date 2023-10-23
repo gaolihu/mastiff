@@ -25,6 +25,7 @@ namespace parser {
                 return {};
             }
 
+            //for servo motor device
             virtual std::tuple<const int, const std::vector<uint8_t>>
             PackMotorMessageRaw(const DownToServoData&) {
                 return {};
@@ -37,6 +38,12 @@ namespace parser {
 
             virtual const std::vector<uint8_t>
             PackMotorMessageString(const DownToServoData&) {
+                return {};
+            }
+
+            //for serial device
+            virtual const std::vector<uint8_t>
+            PackLineLaserMessageRaw(const DownToMiscData&) {
                 return {};
             }
     };

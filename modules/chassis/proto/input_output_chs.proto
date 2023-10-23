@@ -202,7 +202,7 @@ message ChassisMixData {
 message ChassisFacotryData {
     //Header header = 1;
 
-    McuReportFactoryData fac_data = 3;
+    ReportFactoryData fac_data = 3;
 }
 
 message HfChassisRaw {

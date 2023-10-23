@@ -20,7 +20,7 @@ namespace chss {
     using OdomPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<OdomData>>()>;
     using LpaPublisherGenerator =
-        std::function<std::shared_ptr<cyber::Writer<LaserData>>()>;
+        std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::sensor_msgs::PointCloud>>()>;
     using CmdPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<ChassisMixData>>()>;
     using CfdPublisherGenerator =
@@ -38,6 +38,15 @@ namespace chss {
                 AINFO << "DispatchChs construct <message upstream>";
 #endif
                 chs_topic_conf_ = ctp;
+
+                publish_node_ = cyber::CreateNode(chs_topic_conf_->
+                        chassis_output_channel());
+                RegisterLpaPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>> {
+                        AINFO << "create writer for ventura::common_msgs::sensor_msgs::PointCloud";
+                        return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::PointCloud>(
+                                chs_topic_conf_->output_lpa_topic_name());
+                        });
+                LpaFlowSwitch(true);
                 MsgTransfer::Instance()->SetTransferPublishers(
                         imu_publisher_, odom_publisher_,
                         lpa_publisher_, cmd_publisher_,
@@ -167,9 +176,9 @@ namespace chss {
             inline bool LpaFlowSwitch(const bool sw) {
                 bool ret = false;
                 if (sw)
-                    ret = ConstructPublishChannel<LaserData>();
+                    ret = ConstructPublishChannel<ventura::common_msgs::sensor_msgs::PointCloud>();
                 else
-                    ret = UnconstructPublishChannel<LaserData>();
+                    ret = UnconstructPublishChannel<ventura::common_msgs::sensor_msgs::PointCloud>();
 #ifdef CHSS_PKG_DBG
                 AINFO << "chassis lpa publish channel " <<
                     (sw ? "construct" : "deconstruct") <<
@@ -258,6 +267,8 @@ namespace chss {
 
             std::mutex hcr_mx;
             const ChassissTopicConfig* chs_topic_conf_  = nullptr;
+
+            std::unique_ptr<Node> publish_node_ = nullptr;
     };
 
     template <typename MessageT>
@@ -274,7 +285,7 @@ namespace chss {
                 cyber::message::GetMessageName<OdomData>()) {
             return OdomFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<LaserData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             return LpaFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ChassisMixData>()) {
@@ -336,7 +347,7 @@ namespace chss {
                 return false;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<LaserData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             if (lpa_publisher_) {
                 AERROR << "odmo publish channel aready build!";
                 return false;
@@ -432,7 +443,7 @@ namespace chss {
                 return true;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<LaserData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             if (lpa_publisher_) {
                 lpa_publisher_.reset();
                 return true;

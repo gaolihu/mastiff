@@ -20,7 +20,6 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
             <LineLaserParser>(cc, &cc->linelaser_dev().si());
         DataTransact::Instance()->RegisterDevice(
@@ -33,6 +32,65 @@ namespace device {
 #ifdef CHSS_PKG_DBG
         AINFO << "LineLaser de-construct";
 #endif
+    }
+
+    int LineLaser::Init(void) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "LineLaser init";
+#endif
+        DeviceBaseItf::Init();
+
+        DownToMiscData data;
+        data.set_opt(E_SUBDEV_OPTS_INIT);
+
+        return data_parser_->WriteMiscMessage(data);
+    }
+
+    int LineLaser::Start(void) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "LineLaser start";
+#endif
+        DeviceBaseItf::Start();
+
+        DownToMiscData data;
+
+        data.set_opt(E_SUBDEV_OPTS_STOP);
+        data_parser_->WriteMiscMessage(data);
+        data.set_opt(E_SUBDEV_OPTS_STOP);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_RAW);
+        data.set_raw_data(0x6b);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_RAW);
+        data.set_raw_data(0x62);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_STOP);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_RAW);
+        data.set_raw_data(0x60);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_STORE);
+        data_parser_->WriteMiscMessage(data);
+
+        data.set_opt(E_SUBDEV_OPTS_START);
+        return data_parser_->WriteMiscMessage(data);
+    }
+
+    int LineLaser::Stop(void) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "LineLaser stop";
+#endif
+        DownToMiscData data;
+        data.set_opt(E_SUBDEV_OPTS_STOP);
+        //stop line laser
+        data_parser_->WriteMiscMessage(data);
+
+        return DeviceBaseItf::Stop();
     }
 
 } //namespace device

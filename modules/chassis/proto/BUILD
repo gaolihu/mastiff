@@ -40,6 +40,39 @@ proto_library(
 )
 
 cc_proto_library(
+    name = "frame_up_stream_cc_proto",
+    deps = [
+        ":frame_up_stream_proto",
+    ],
+)
+
+proto_library(
+    name = "frame_up_stream_proto",
+    srcs = [
+        "frame_up_stream.proto",
+    ],
+    deps = [
+        "@com_google_protobuf//:wrappers_proto",
+        ":ys_pack_mcu_protocol_proto",
+        ":external_msg_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "external_msg_cc_proto",
+    deps = [
+        ":external_msg_proto",
+    ],
+)
+
+proto_library(
+    name = "external_msg_proto",
+    srcs = [
+        "external_msg.proto",
+    ],
+)
+
+cc_proto_library(
     name = "frame_down_stream_cc_proto",
     deps = [
         ":frame_down_stream_proto",
@@ -68,20 +101,6 @@ proto_library(
     name = "ys_pack_mcu_protocol_proto",
     srcs = [
         "protocol_libs/ys_pack_mcu_protocol.proto",
-    ],
-)
-
-cc_proto_library(
-    name = "frame_up_stream_cc_proto",
-    deps = [
-        ":frame_up_stream_proto",
-    ],
-)
-
-proto_library(
-    name = "frame_up_stream_proto",
-    srcs = [
-        "frame_up_stream.proto",
     ],
     deps = [
         "@com_google_protobuf//:wrappers_proto",

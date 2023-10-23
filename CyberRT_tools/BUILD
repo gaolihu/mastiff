@@ -4,6 +4,14 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "CyberRT_tools",
+    deps = [
+        #"//CyberRT_tools/cyber_monitor",
+        "//CyberRT_tools/cyber_recorder",
+    ],
+)
+
 install(
     name = "install",
     deps = [

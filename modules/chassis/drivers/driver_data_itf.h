@@ -115,8 +115,8 @@ namespace driver {
         private:
             size_t once_read_size_ = 256;
 
-            std::atomic<bool> readable_ = false;
-            std::atomic<bool> writable_ = false;
+            std::atomic<bool> readable_ = {false};
+            std::atomic<bool> writable_ = {false};
 
             std::string drive_data_des_ = "";
             std::string drive_data_status_ = "";

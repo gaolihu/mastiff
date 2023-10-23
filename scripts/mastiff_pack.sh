@@ -70,20 +70,20 @@ function choose_plat()
 #choose_plat
 
 # chassis
-cp srcs/chassis/conf/ChassisConfigRK3588.pb.txt out/conf/ChassisConfigRK3588.conf -fr
+cp modules/chassis/conf/ChassisConfigRK3588.pb.txt out/conf/ChassisConfigRK3588.conf -fr
 if [ $? -eq 0 ]; then
     good "copy ChassisConfigRK3588 config OK!"
 else
     warning "copy ChassisConfigRK3588 config NG!"
 fi
-cp bazel-bin/srcs/chassis/chss_pkg out/bin/ -fr
+cp bazel-bin/modules/chassis/chss_pkg out/bin/ -fr
 if [ $? -eq 0 ]; then
     good "copy chss_pkg OK!"
 else
     warning "copy chss_pkg NG!"
 fi
 # chassis so libs
-find bazel-bin/srcs/chassis/libchss_component.so.runfiles/ -name *.so | xargs cp -ft out/lib
+find bazel-bin/modules/chassis/libchss_component.so.runfiles/ -name *.so | xargs cp -ft out/lib
 if [ $? -eq 0 ]; then
     good "copy chassis so lib files OK!"
 else

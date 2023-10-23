@@ -17,14 +17,15 @@ namespace parser {
             virtual  ~LineLaserParser() final;
 
             virtual int Init() override;
+            virtual int WriteMiscMessage(const
+                    DownToMiscData&) override;
 
         private:
-            /*
-            virtual int ParseRawBuffer() override;
+            virtual int ParseRawBuffer(const uint8_t*,
+                    const size_t) override;
             virtual int ParseSigleFrame(const
                     std::vector<uint8_t>&,
                     const size_t) override;
-                    */
     };
 
 } //namespace parser

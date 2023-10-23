@@ -5,7 +5,19 @@ package mstf.chss.proto;
 import "google/protobuf/wrappers.proto";
 import "modules/chassis/proto/protocol_libs/ys_pack_mcu_protocol.proto";
 
-/*============================ Control ==============================*/
+enum EE_SUBDEV_OPTS {
+    E_SUBDEV_OPTS_SENTINEL = 0;
+    E_SUBDEV_OPTS_INIT = 1;
+    E_SUBDEV_OPTS_START = 2;
+    E_SUBDEV_OPTS_RAW = 3;      //raw data to sub device
+    E_SUBDEV_OPTS_STORE = 4;    //load init info
+    E_SUBDEV_OPTS_PAUSE = 5;
+    E_SUBDEV_OPTS_RESUME = 6;
+    E_SUBDEV_OPTS_STOP = 7;
+    E_SUBDEV_OPTS_CLOSE = 8;
+}
+
+/*===================== Control ======================*/
 enum EE_CTRL_LED_DISPLAY_SCENE {
     E_CTRL_LED_SCENE_SENTINEL = 0;
     E_CTRL_LED_SCENE_NORMAL = 1;
@@ -69,7 +81,6 @@ message WetSuckCtrl {
     uint32 wet_suck_val = 1;
 }
 
-//      
 message MopCtrl {
     int32 mop_val = 1;
 }
@@ -105,10 +116,10 @@ message McuPeripheralCtrl {
     //water absorber
     WetSuckCtrl wet_ctrl = 10;
 }
+/*===================== Control ======================*/
 
-/*============================ Control ==============================*/
 
-/*============================ Config ==============================*/
+/*===================== Config ======================*/
 enum EE_CTRL_ONLINE_DEVICE_TYPE {
     E_CTRL_NULL = 0;
     E_CTRL_LS_MD = 0x01;
@@ -175,11 +186,11 @@ message McuConfigSetting {
     //switchs
     SensorEnableCtrl enable_ctrl = 4;
 }
+/*===================== Config ======================*/
 
-/*============================ Config ==============================*/
 
-/*============================ SOC Packer ==============================*/
-message CameraCtrl {                
+/*===================== 1, SOC Packer ======================*/
+message CameraCtrl {
     google.protobuf.BoolValue sw = 1;
     google.protobuf.Int32Value flip = 2;
 }
@@ -278,9 +289,9 @@ message DownToSocData {
     WirelessCtrl wireless = 5;
     DevicesManager dev_maganger = 6;
 }
-/*============================ SOC Packer ==============================*/
+/*===================== 1, SOC Packer ======================*/
 
-/*============================ MCU PAcker ==============================*/
+/*===================== 2, MCU Packer ======================*/
 message DownToMcuData {
     EE_SEND_MCU_COMMAND_TYPE e_command = 2;
     oneof SpecificData {
@@ -321,18 +332,12 @@ message DownToMcuData {
     }
     reserved 3 to 4;
 }
-/*============================ MCU PAcker ==============================*/
+/*===================== 2, MCU Packer ======================*/
 
-/*============================ Motor PAcker ==============================*/
-enum EE_SERVO_OPTS {
-    E_SERVO_OPTS_SENTINEL = 0;
-    E_SERVO_OPTS_INIT = 1;
-    E_SERVO_OPTS_START = 2;
-    E_SERVO_OPTS_STORE = 3;
-}
-
+/*===================== 3, MOTOR Packer ======================*/
 message ServoConfig {
-    EE_SERVO_OPTS opt = 1;
+    EE_SUBDEV_OPTS opt = 1;
+    bytes raw_data = 2;
 }
 
 message DownToServoData {
@@ -342,4 +347,11 @@ message DownToServoData {
         ServoConfig                 config = 3;
     }
 }
-/*============================ Motor PAcker ==============================*/
+/*===================== 3, MOTOR Packer ======================*/
+
+/*===================== 4, MISC Packer ======================*/
+message DownToMiscData {
+    EE_SUBDEV_OPTS opt = 1;
+    uint32 raw_data = 2;
+}
+/*===================== 4, MISC Packer ======================*/

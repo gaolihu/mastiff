@@ -22,7 +22,7 @@ namespace chss {
                 chs_conf_ = cc;
 
                 subscribe_node_ = cyber::CreateNode(chs_conf_->
-                        chs_topic_conf().chassis_output_channel());
+                        chs_topic_conf().chassis_input_channel());
 
                 //AINFO << "start to generate devices manager";
                 devices_mgr_ = std::make_unique<DeviceManager>(chs_conf_);

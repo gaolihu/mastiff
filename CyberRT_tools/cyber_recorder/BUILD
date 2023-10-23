@@ -24,7 +24,7 @@ cc_binary(
         "//cyber:init",
         "//cyber/common:file",
         "//cyber/common:time_conversion",
-        "//cyber/tools/cyber_recorder/player",
+        "//CyberRT_tools/cyber_recorder/player",
     ],
 )
 

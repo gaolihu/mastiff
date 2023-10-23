@@ -457,6 +457,7 @@ cc_library(
     ],
     hdrs = [
         "parser/parse_libs/lidar_parser.h",
+        "parser/parse_libs/lidar_50cr.h",
     ],
     copts = [
         CHSS_COPTS,
@@ -464,6 +465,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:frame_up_stream_cc_proto",
         ":parser_base_itf",
     ]
 )
@@ -557,6 +559,7 @@ cc_library(
         ":raw_manage",
         ":raw_packer",
         ":servo_packer",
+        ":llaser_packer",
         ":circular_buffer",
     ]
 )
@@ -603,12 +606,29 @@ cc_library(
     ],
     copts = [
         CHSS_COPTS,
-        '-DSERVO_MOTOR_GEN_DEV'
     ],
     deps = [
         "//cyber",
         ":packer_base_itf",
         ":ds20270da_driver",
+    ]
+)
+
+cc_library(
+    name = "llaser_packer",
+    srcs = [
+        "parser/pack_libs/llaser_packer.cc",
+    ],
+    hdrs = [
+        "parser/pack_libs/llaser_packer.h",
+        "parser/parse_libs/ydlidar_protocol.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        ":packer_base_itf",
     ]
 )
 
@@ -740,6 +760,7 @@ cc_library(
     ],
     copts = [
         CHSS_COPTS,
+        #'-DSERIAL_PORTING',
     ],
     deps = [
         "//cyber",
@@ -751,10 +772,17 @@ cc_library(
 cc_library(
     name = "uart_drive",
     srcs = [
-        "drivers/uart/uart_drive.c"
+        "drivers/uart/uart_drive.c",
+
+        "drivers/uart/serial.cpp",
+        "drivers/uart/unix_serial.cpp"
     ],
     hdrs = [
         "drivers/uart/uart_drive.h",
+
+        "drivers/uart/ChannelDevice.h",
+        "drivers/uart/serial.h",
+        "drivers/uart/unix_serial.h",
     ],
     copts = [
         CHSS_COPTS,

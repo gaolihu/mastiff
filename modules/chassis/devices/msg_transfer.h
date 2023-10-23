@@ -13,7 +13,7 @@
 #endif
 
 #ifndef RLS_DATA_PEEP
-#define RLS_DATA_PEEP 1
+//#define RLS_DATA_PEEP 0
 #endif
 
 namespace mstf {
@@ -26,7 +26,7 @@ namespace device {
 
     using ImuPublisher = std::shared_ptr<Writer<IMUdata>>;
     using OdomPublisher = std::shared_ptr<Writer<OdomData>>;
-    using LpaPublisher = std::shared_ptr<Writer<LaserData>>;
+    using LpaPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>>;
     using CmdPublisher = std::shared_ptr<Writer<ChassisMixData>>;
     using CfdPublisher = std::shared_ptr<Writer<ChassisFacotryData>>;
     using ImgPublisher = std::shared_ptr<Writer<CameraCaptureFrame>>;
@@ -51,6 +51,7 @@ namespace device {
                     const CfdPublisher& cfd,
                     const ImgPublisher& ccf,
                     const HcrPublisher& hcr) {
+                AINFO << "setup upstream channel dispathers";
                 imu_publisher_ = imu;
                 odom_publisher_ = odom;
                 lpa_publisher_ = laser;
@@ -58,6 +59,17 @@ namespace device {
                 cfd_publisher_ = cfd;
                 img_publisher_ = ccf;
                 hcr_publisher_ = hcr;
+
+                AERROR << "lpa_publisher_: " << lpa_publisher_;
+
+                DataTransact::Instance()->RegisterPublisher(
+                        [&](Message* m, const std::string& type)->int {
+                        if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
+                            DataDispatchLaser(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud>(
+                                        *dynamic_cast<ventura::common_msgs::sensor_msgs::PointCloud*>(m)));
+                        }
+                        return 0;
+                        });
             }
 
             //2, downstream interface in ReceiveCtrl
@@ -119,11 +131,11 @@ namespace device {
                 return -1;
             }
 
-            int DataDispatchLaser(const std::shared_ptr<LaserData>& laser) {
+            int DataDispatchLaser(const std::shared_ptr<ventura::common_msgs::sensor_msgs::PointCloud>& laser) {
 #ifdef RLS_DATA_PEEP
-                AINFO << "release IMUdata:\n"
+                AINFO << "release Laser:\n"
 #if 0
-                    << imu->DebugString();
+                    << laser->DebugString();
 #else
                 ;
 #endif
@@ -131,8 +143,12 @@ namespace device {
                 if (lpa_publisher_)
                     return lpa_publisher_->Write(laser);
 
-                AINFO << "release LaserData error:\n" <<
+                AINFO << "release ventura::common_msgs::sensor_msgs::PointCloud error:\n" <<
+#if 0
                     laser->DebugString();
+#else
+                    "";
+#endif
 
                 return -1;
             }

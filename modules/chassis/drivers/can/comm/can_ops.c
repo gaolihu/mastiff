@@ -72,7 +72,7 @@ int can_config(int s, int baud, int timeout)
     if (system("ip link set can0 up") != 0)
         return -1;
 
-    if (system("echo 500 > /sys/class/net/can0/tx_queue_len") != 0)
+    if (system("echo 600 > /sys/class/net/can0/tx_queue_len") != 0)
         return -1;
 
     poll_time_out = timeout;
@@ -288,7 +288,7 @@ size_t can_recv(int s, const char* dev, char* buf)
         buf[0] = frame.can_id & 0xff;
         buf[1] = (frame.can_id & 0xff00) >> 4;
         len = frame.len + 2;
-        for (int i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             buf[2 + i] = frame.data[i];
         }
 #endif
