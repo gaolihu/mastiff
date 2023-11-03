@@ -140,7 +140,7 @@ namespace parser {
             }
             if(raw.angle == (tmp.angle+tmp.span) % 3600)
             {
-                //ËµÃ÷ÊÇÁ¬ĞøµÄÉÈÇø
+                //è¯´æ˜æ˜¯è¿ç»­çš„æ‰‡åŒº
                 raws.push_back(raw);
 
             }
@@ -706,7 +706,7 @@ namespace parser {
             } else if (buf[idx] == 0x4c && buf[idx + 1] == 0x48 &&
                     (unsigned char)buf[idx + 2] == 0xbe &&
                     (unsigned char)buf[idx + 3] == 0xb4) {
-                //Ê±¼äÍ¬²½·µ»ØµÄÓ¦´ğ
+                //æ—¶é—´åŒæ­¥è¿”å›çš„åº”ç­”
                 consume = idx + 2;
                 return 4;
             } else if (buf[idx] == 0x4c && buf[idx + 1] == 0x48 &&
@@ -934,7 +934,7 @@ namespace parser {
             switch (r) {
                 case 1: {
                     if (start_angle_ == -1) {
-                        // »ñÈ¡µ±Ç°À×´ïµÄÆğÊ¼Í³¼Æ½Ç¶È
+                        // è·å–å½“å‰é›·è¾¾çš„èµ·å§‹ç»Ÿè®¡è§’åº¦
                         if (state_ < 0) {
                             state_ = autoGetFirstAngle(dat, /*0,*/ whole_datas_, error_);
                         }
@@ -966,7 +966,7 @@ namespace parser {
                             }
                         }
                         userdata_.data.framedata.N = sum;
-                        // Ö´ĞĞ»Øµ÷º¯Êı
+                        // æ‰§è¡Œå›è°ƒå‡½æ•°
                         if (sum > 0)
                         {
                             /*
@@ -1004,7 +1004,7 @@ namespace parser {
                     ParseSigleFrame({}, 0);
 
                     //          
-                    //±ÜÃâÀÛ¼ÓÔ½½ç
+                    //é¿å…ç´¯åŠ è¶Šç•Œ
                     if (userdata_.idx >= MAX_FRAMEIDX)
                         userdata_.idx = 0;
                     break;
@@ -1013,7 +1013,7 @@ namespace parser {
                 ///////////////////////////////////////
                 case 2: {
                     AINFO << "alarm info";
-                    // ±¨¾¯ĞÅÏ¢
+                    // æŠ¥è­¦ä¿¡æ¯
                     memcpy(&zonemsg_, &result, sizeof(LidarMsgHdr));
                     //((void (*)(int, void*))cfg->callback)(2, &result);
                     action_ = FINISH;
@@ -1021,7 +1021,7 @@ namespace parser {
                 }
                 case 3: {
                     AINFO << "global param";
-                    // È«¾Ö²ÎÊı
+                    // å…¨å±€å‚æ•°
                     memcpy(&eepromv101_, &result, sizeof(EEpromV101));
                     //((void (*)(int, void*))cfg->callback)(3, &result);
                     action_ = FINISH;
@@ -1029,7 +1029,7 @@ namespace parser {
                 }
                 case 4: {
                     AINFO << "time sync ack";
-                    // Ê±¼äÍ¬²½·µ»ØµÄÓ¦´ğ
+                    // æ—¶é—´åŒæ­¥è¿”å›çš„åº”ç­”
                     break;
                 }
                 case 5:
@@ -1060,7 +1060,7 @@ namespace parser {
                     }
                 case 9:
                     {
-                        // ´®¿ÚÃ¿È¦Í··¢ËÍµÄ×´Ì¬ĞÅÏ¢
+                        // ä¸²å£æ¯åœˆå¤´å‘é€çš„çŠ¶æ€ä¿¡æ¯
                         // uartstate.with_fitter,uartstate.with_smooth
                         break;
                     }
@@ -1081,7 +1081,7 @@ namespace parser {
                 cbuf_raw_->RestoreCbuf(consume);
             }
 
-            // ´æÔÚĞèÒª²Ù×÷µÄÖ¸Áî
+            // å­˜åœ¨éœ€è¦æ“ä½œçš„æŒ‡ä»¤
             switch (action_) {
                 case CONTROL:
                 case GETALLPARAMS:
@@ -1125,7 +1125,7 @@ namespace parser {
 
         pcs.mutable_header()->set_seq(userdata_.idx);
         pcs.mutable_header()->mutable_stamp()->set_sec(userdata_.data.framedata.ts[0]);
-        pcs.mutable_header()->mutable_stamp()->set_nsec(userdata_.data.framedata.ts[1]);
+        pcs.mutable_header()->mutable_stamp()->set_nsec(userdata_.data.framedata.ts[1] * 1e3);
         pcs.mutable_header()->set_frame_id("laser_link");
 
         auto intensity = pcs.add_channels();
@@ -1140,10 +1140,10 @@ namespace parser {
             intensity->add_values(userdata_.data.framedata.data[i].confidence);
         }
 
-        double this_time = userdata_.data.framedata.ts[0] + userdata_.data.framedata.ts[1] / 1e9;
+        double this_time = userdata_.data.framedata.ts[0] + userdata_.data.framedata.ts[1] / 1e6;
         auto time_increment = pcs.add_channels();
-        intensity->set_name("time_increment");
-        time_increment->add_values((this_time - point_cloud_last_) / 1200.f);
+        time_increment->set_name("time_increment");
+        time_increment->add_values((this_time - point_cloud_last_) / (float)(userdata_.data.framedata.N));
         point_cloud_last_ = this_time;
 
         return frame_processor_(&pcs, "ventura::common_msgs::sensor_msgs::PointCloud");

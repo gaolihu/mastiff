@@ -32,6 +32,21 @@ namespace parser {
             }
 
             virtual std::vector<std::tuple<const int, const std::vector<uint8_t>>>
+            PackMotorDiffSpeedDouble(const DownToServoData&) {
+                return {};
+            }
+
+            virtual std::tuple<const int, const std::vector<uint8_t>>
+            PackMotorDiffSpeed(const DownToServoData&) {
+                return {};
+            }
+
+            virtual std::tuple<const int, const std::vector<uint8_t>>
+            PackMotorWheelSpeed(const DownToServoData&) {
+                return {};
+            }
+
+            virtual std::vector<std::tuple<const int, const std::vector<uint8_t>>>
             PackMotorMessageArrayRaw(const DownToServoData&) {
                 return {};
             }

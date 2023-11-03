@@ -15,6 +15,7 @@ namespace device {
 #endif
 
         chs_conf_ = const_cast<ChassisConfig*>(cc.get());
+        AINFO << "start to instantiate peripheral devices";
 
         //1, servo motor
         if (chs_conf_->has_servo_dev() &&

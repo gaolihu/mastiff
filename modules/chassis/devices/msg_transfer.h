@@ -12,8 +12,8 @@
 #define KEY_SIMULATE 1
 #endif
 
-#ifndef RLS_DATA_PEEP
-//#define RLS_DATA_PEEP 0
+#ifdef RLS_DATA_PEEP
+#define RLS_DATA_PEEP 0
 #endif
 
 namespace mstf {
@@ -25,7 +25,7 @@ namespace device {
     using namespace /*mstf::chss::*/device;
 
     using ImuPublisher = std::shared_ptr<Writer<IMUdata>>;
-    using OdomPublisher = std::shared_ptr<Writer<OdomData>>;
+    using OdomPublisher = std::shared_ptr<Writer<ventura::common_msgs::nav_msgs::Odometry>>;
     using LpaPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>>;
     using CmdPublisher = std::shared_ptr<Writer<ChassisMixData>>;
     using CfdPublisher = std::shared_ptr<Writer<ChassisFacotryData>>;
@@ -60,11 +60,12 @@ namespace device {
                 img_publisher_ = ccf;
                 hcr_publisher_ = hcr;
 
-                AERROR << "lpa_publisher_: " << lpa_publisher_;
-
                 DataTransact::Instance()->RegisterPublisher(
                         [&](Message* m, const std::string& type)->int {
-                        if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
+                        if (type == "ventura::common_msgs::nav_msgs::Odometry") {
+                            DataDispatchOdom(std::make_shared<ventura::common_msgs::nav_msgs::Odometry>(
+                                        *dynamic_cast<ventura::common_msgs::nav_msgs::Odometry*>(m)));
+                        } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
                             DataDispatchLaser(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud>(
                                         *dynamic_cast<ventura::common_msgs::sensor_msgs::PointCloud*>(m)));
                         }
@@ -79,7 +80,10 @@ namespace device {
             }
 
             void SetChassisContrlSimItf(const SimulateProtoHandle& s) {
+#ifdef KEY_SIMULATE
+                AINFO << "set simulative chassis control handler";
                 sim_handle_ = s;
+#endif
             }
 
         private:
@@ -107,17 +111,17 @@ namespace device {
                 if (imu_publisher_)
                     return imu_publisher_->Write(imu);
 
-                AINFO << "release IMUdata error:\n" <<
+                AWARN << "release IMUdata error:\n" <<
                     imu->DebugString();
 
                 return -1;
             }
 
-            int DataDispatchOdom(const std::shared_ptr<OdomData>& odom) {
+            int DataDispatchOdom(const std::shared_ptr<ventura::common_msgs::nav_msgs::Odometry>& odom) {
 #ifdef RLS_DATA_PEEP
-                AINFO << "release IMUdata:\n"
+                AINFO << "release Odometry:\n"
 #if 0
-                    << imu->DebugString();
+                    << odom->DebugString();
 #else
                 ;
 #endif
@@ -125,7 +129,7 @@ namespace device {
                 if (odom_publisher_)
                     return odom_publisher_->Write(odom);
 
-                AINFO << "release OdomData error:\n" <<
+                AWARN << "release ventura::common_msgs::nav_msgs::Odometry error:\n" <<
                     odom->DebugString();
 
                 return -1;
@@ -143,7 +147,7 @@ namespace device {
                 if (lpa_publisher_)
                     return lpa_publisher_->Write(laser);
 
-                AINFO << "release ventura::common_msgs::sensor_msgs::PointCloud error:\n" <<
+                AWARN << "release ventura::common_msgs::sensor_msgs::PointCloud error:\n" <<
 #if 0
                     laser->DebugString();
 #else
@@ -165,7 +169,7 @@ namespace device {
                 if (cmd_publisher_)
                     return cmd_publisher_->Write(mix);
 
-                AINFO << "release ChassisMixData error:\n" <<
+                AWARN << "release ChassisMixData error:\n" <<
                     mix->DebugString();
 
                 return -1;
@@ -183,7 +187,7 @@ namespace device {
                 if (cfd_publisher_)
                     return cfd_publisher_->Write(fac);
 
-                AINFO << "release ChassisFacotryData error:\n" <<
+                AWARN << "release ChassisFacotryData error:\n" <<
                     fac->DebugString();
 
                 return -1;
@@ -201,7 +205,7 @@ namespace device {
                 if (img_publisher_)
                     return img_publisher_->Write(img);
 
-                AINFO << "release CameraCaptureFrame error:\n" <<
+                AWARN << "release CameraCaptureFrame error:\n" <<
                     img->DebugString();
 
                 return -1;
@@ -219,7 +223,7 @@ namespace device {
                 if (hcr_publisher_)
                     return hcr_publisher_->Write(hcr);
 
-                AINFO << "release HfChassisRaw error:\n" <<
+                AWARN << "release HfChassisRaw error:\n" <<
                     hcr->DebugString();
 
                 return -1;

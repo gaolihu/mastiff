@@ -9,12 +9,14 @@ enum EE_SUBDEV_OPTS {
     E_SUBDEV_OPTS_SENTINEL = 0;
     E_SUBDEV_OPTS_INIT = 1;
     E_SUBDEV_OPTS_START = 2;
-    E_SUBDEV_OPTS_RAW = 3;      //raw data to sub device
-    E_SUBDEV_OPTS_STORE = 4;    //load init info
+    E_SUBDEV_OPTS_ENABLE = 3;
+    E_SUBDEV_OPTS_RAW = 4;      //raw data to sub device
     E_SUBDEV_OPTS_PAUSE = 5;
     E_SUBDEV_OPTS_RESUME = 6;
     E_SUBDEV_OPTS_STOP = 7;
-    E_SUBDEV_OPTS_CLOSE = 8;
+    E_SUBDEV_OPTS_DISABLE = 8;
+    E_SUBDEV_OPTS_CLOSE = 9;
+    E_SUBDEV_OPTS_STORE = 10;    //load init info
 }
 
 /*===================== Control ======================*/
@@ -38,11 +40,10 @@ enum EE_CTRL_LED_DISPLAY_TYPE {
 message SpeedCtrl {
     float linear = 1;
     float angular = 2;
-}
 
-message DiffSpeed {
-    float linear = 1;       // m/s
-    float palstance = 2;    // rad/s
+    bool use_diff_speed = 3;
+    google.protobuf.BoolValue wheel_reverse = 4;
+    google.protobuf.BoolValue release_wheels = 5;
 }
 
 message WheelSpeed {
@@ -340,11 +341,17 @@ message ServoConfig {
     bytes raw_data = 2;
 }
 
+message ServoSpeed {
+    float linear = 1;
+    float angular = 2;
+    bool use_diff_speed = 3;
+    google.protobuf.BoolValue wheel_reverse = 4;
+}
+
 message DownToServoData {
     oneof SpecificData {
-        DiffSpeed                   diff_speed = 1;
-        WheelSpeed                  whl_speed = 2;
-        ServoConfig                 config = 3;
+        ServoConfig                 config = 1;
+        ServoSpeed                  motor_speed = 2;
     }
 }
 /*===================== 3, MOTOR Packer ======================*/

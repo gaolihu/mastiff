@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-    int open_uart(const char*, int, int, int, int);
+    int open_uart(const char*, const int, const int, const int, const int, const int);
     void close_uart(const int);
-    int write_uart(int, const uint8_t*, int);
-    int read_uart(int, uint8_t*, int);
+    int write_uart(const int, const uint8_t*, const size_t);
+    int read_uart(const int, uint8_t*, const size_t);
 
 #ifdef __cplusplus
 }

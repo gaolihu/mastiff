@@ -2,8 +2,13 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <sys/epoll.h>
 
 #include "uart_drive.h"
+
+static int fd_epoll_ = 0;
+static int poll_time_out_ = 0;
 
 static int set_uart_speed(int fd, int speed)
 {
@@ -123,8 +128,8 @@ static int set_uart_ctrl_flag(int fd, int databits, int stopbits, int parity)
 }
 
 //package for
-int open_uart(const char *dev, int baud, int data_bits,
-        int stop_bits, int parity)
+int open_uart(const char *dev, const int baud, const int data_bits,
+        const int stop_bits, const int parity, const int timeout)
 {
     int fd = -1;
 
@@ -155,15 +160,42 @@ int open_uart(const char *dev, int baud, int data_bits,
         return -4;
     }
 
+    //set poll
+    poll_time_out_ = timeout;
+
+    struct epoll_event event_setup = {
+        .events = EPOLLIN,
+    };
+
+    fd_epoll_ = epoll_create(1);
+    if (fd_epoll_ < 0) {
+        perror("epoll_create");
+        return -1;
+    }
+
+    if (epoll_ctl(fd_epoll_, EPOLL_CTL_ADD, fd, &event_setup)) {
+        perror("failed to add socket to epoll");
+        return 1;
+    }
+
     return fd;
 }
 
-void close_uart(int fd)
+void close_uart(const int fd)
 {
+    struct epoll_event event_setup = {
+        .events = EPOLLIN,
+    };
+
+    if (epoll_ctl(fd_epoll_, EPOLL_CTL_DEL, fd, &event_setup)) {
+        perror("failed to del socket to epoll");
+    }
+
+    close(fd_epoll_);
     close(fd);
 }
 
-int write_uart(int fd, const uint8_t *data, int len)
+int write_uart(const int fd, const uint8_t *data, const size_t len)
 {
     int count;
 
@@ -180,15 +212,18 @@ int write_uart(int fd, const uint8_t *data, int len)
     return count;
 }
 
-int read_uart(int fd, uint8_t *data, int len)
+int read_uart(const int fd, uint8_t *data, const size_t len)
 {
-    int count;
-
     if(!data || 0 == len || fd < 0) {
         return -1;
     }
 
-    count = read(fd, (char *)data, len);
+    struct epoll_event events_pending[2];
+    int num_events = epoll_wait(fd_epoll_, events_pending, 2, poll_time_out_);
+    if (num_events == -1) {
+        perror("poll wait");
+        return -1;
+    }
 
-    return count;
+    return read(fd, (char *)data, len);
 }

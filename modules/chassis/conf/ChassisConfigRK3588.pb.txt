@@ -114,7 +114,8 @@ lidar_dev {
             stop_bits: 1
             parity: 110
             once_read_size: 256
-            serial_read_freq: 5
+            serial_read_freq: 2
+            serial_read_timeout: 2500
         }
         buf_setting {
             parser_freq: 4000
@@ -203,7 +204,8 @@ mcu_dev {
             stop_bits: 1
             parity: 110
             once_read_size: 128
-            serial_read_freq: 5
+            serial_read_freq: 3
+            serial_read_timeout: 2500
         }
         buf_setting {
             parser_freq: 5000
@@ -357,7 +359,7 @@ servo_dev {
         dev_setting {
             dev: "can0"
             baud: 1000000
-            can_read_freq: 1
+            can_read_freq: 4
             can_read_timeout: 2700
         }
         buf_setting {
@@ -367,13 +369,23 @@ servo_dev {
         }
         dev_name: "dev-Motor"
     }
+    servo_info {
+        wheel_diameter_10th1_mm: 1411
+        wheel_distance_10th1_mm: 5310
+        accelerate_time_ms: 1500
+        decelerate_time_ms: 1500
+        speed_report_period_ms: 20
+        status_report_period_ms: 2000
+        servo_motor_resolution: 131072
+        servo_motor_reduction: 1
+    }
     sn_ind {
         dev_main: EE_DEV_MAIN_MOTOR
         type: E_DEVICE_MOTOR
         port: E_COMM_PORT_CAN
         status: E_STATUS_UNINITIALIZED
     }
-    used: false
+    used: true
 }
 
 wireless_dev {
@@ -405,7 +417,8 @@ linelaser_dev {
             stop_bits: 1
             parity: 110
             once_read_size: 256
-            serial_read_freq: 2
+            serial_read_freq: 5
+            serial_read_timeout: 2500
         }
         buf_setting {
             parser_freq: 4000
@@ -426,8 +439,8 @@ linelaser_dev {
 chs_topic_conf {
     chassis_output_channel: "robot/publish"
     output_imu_topic_name: "mastiff/chassis/output/chs_imu"
-    output_odom_topic_name: "mastiff/chassis/output/chs_odome"
-    output_lpa_topic_name: "mastiff/chassis/output/chs_lpa"
+    output_odom_topic_name: "odometry"
+    output_lpa_topic_name: "point_cloud"
     output_cmd_topic_name: "mastiff/chassis/output/chs_cmd"
     output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
     output_img_topic_name: "mastiff/chassis/output/chs_img"

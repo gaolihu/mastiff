@@ -35,22 +35,23 @@ namespace driver {
         comm_->bindport(uart_conf_->dev_setting().uart_dev().data(),
                 uart_conf_->dev_setting().baud());
 #else
-        AINFO << "Init serial dev: " << uart_conf_->dev_setting().uart_dev() <<
+        AINFO << "serial init: " << uart_conf_->dev_setting().uart_dev() <<
             ", baud: " << uart_conf_->dev_setting().baud() <<
             ", datab: " << uart_conf_->dev_setting().data_bits() <<
             ", stopb: " << uart_conf_->dev_setting().stop_bits() <<
             ", parity: " << uart_conf_->dev_setting().parity() <<
             ", freq: " << uart_conf_->dev_setting().serial_read_freq() <<
+            ", timeout: " << uart_conf_->dev_setting().serial_read_timeout() <<
             "ms, once read: " << uart_conf_->dev_setting().once_read_size() <<
             " Bytes";
 
         if (p != nullptr) {
-            AINFO << "Init serial driver with upper poller, cycle ms: " <<
+            AINFO << "init serial driver with upper poller, cycle ms: " <<
                 (cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle);
             DriveDataItf::Init(cycle == 0 ?
                     uart_conf_->dev_setting().serial_read_freq() : cycle, p);
         } else {
-            AINFO << "Init serial driver with default poller, cycle ms: " <<
+            AINFO << "init serial driver with default poller, cycle ms: " <<
                 (cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle);
             DriveDataItf::Init(cycle == 0 ?
                     uart_conf_->dev_setting().serial_read_freq() : cycle,
@@ -120,8 +121,8 @@ namespace driver {
         } else {
             //for some situations, can't get data from uart
             serial_fd_ = open_uart(uart_conf_->dev_setting().uart_dev().c_str(),
-                    uart_conf_->dev_setting().baud(),
-                    0, 0, 0);
+                    uart_conf_->dev_setting().baud(), 0, 0, 0,
+                    uart_conf_->dev_setting().serial_read_timeout());
             if (serial_fd_ <= 0) {
                 AFATAL << "open uart device " <<
                     uart_conf_->dev_setting().uart_dev() <<
@@ -135,7 +136,8 @@ namespace driver {
                     uart_conf_->dev_setting().baud(),
                     uart_conf_->dev_setting().data_bits(),
                     uart_conf_->dev_setting().stop_bits(),
-                    uart_conf_->dev_setting().parity());
+                    uart_conf_->dev_setting().parity(),
+                    uart_conf_->dev_setting().serial_read_timeout());
 
             if (serial_fd_ <= 0) {
                 AFATAL << "open uart device " <<

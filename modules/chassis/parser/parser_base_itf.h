@@ -42,15 +42,17 @@ namespace parser {
 
             int Init(const EE_COMM_PORT_TYPE type,
                     const CircularBufSetting* cbs = nullptr) {
-                AINFO << "Init ParserBaseItf, port type: " << type <<
-                    ", sensor name: " << snsr_info_->name() <<
-                    ", cbuf:\n" << (cbs == nullptr ? "no cbuf" : cbs->DebugString());
+                AINFO << "Init ParserBaseItf, port: " << type <<
+                    ", dev: " << snsr_info_->name() <<
+                    ", cbuf:\n" <<
+                    (cbs == nullptr ? "no cbuf" : cbs->DebugString());
                 switch (type) {
                     case E_COMM_PORT_I2C:
                     case E_COMM_PORT_SERIAL: {
                         if (cbs != nullptr) {
                             cbuf_raw_ = std::make_unique<CircularBuffer<uint8_t>>
                                 (cbs->circlular_size(), cbs->circle_name());
+#if USE_PARSER_TIMER
                             tim_.reset(new cyber::Timer(cbs->parser_freq(),
                                         [this] ()->void {
                                         if (cbuf_raw_->CheckCbuf())
@@ -58,6 +60,7 @@ namespace parser {
                                         },
                                         false)
                                     );
+#endif
                         } else {
                             AINFO << "no circular buf for uart port";
                         }
@@ -67,7 +70,7 @@ namespace parser {
                                 packer_ = std::make_unique<LlaserPacker>(snsr_info_->name());
                             //else if (it->type() == E_DEVICE_LINELASER())
                             else
-                                AINFO << "TODO, packer!";
+                                AINFO << "packer TODO for: " << snsr_info_->name();
                         }
                         RawManage::Instance()->RegisterRawListener
                             (std::bind(&ParserBaseItf::OnOriginalDataRaw,
@@ -79,6 +82,7 @@ namespace parser {
                         if (cbs != nullptr) {
                             cbuf_can_ = std::make_unique<CircularBuffer<uint8_t>>
                                 (cbs->circlular_size(), cbs->circle_name());
+#if USE_PARSER_TIMER
                             tim_.reset(new cyber::Timer(cbs->parser_freq(),
                                         [this] ()->void {
                                         if (cbuf_can_->CheckCbuf())
@@ -86,6 +90,7 @@ namespace parser {
                                         },
                                         false)
                                     );
+#endif
                             packer_ = std::make_unique<ServoPacker>(snsr_info_->name());
                         } else {
                             AINFO << "no circular buf for can port";
@@ -112,47 +117,54 @@ namespace parser {
                 return RawManage::Instance()->Init(chs_conf_, snsr_info_);
             }
             virtual int Init() {
-                AINFO << "ParserBaseItf DFT init";
+                AINFO << "ParserBaseItf DFT Init ~ ";
                 return 0;
             }
             virtual int Start() {
-                AINFO << "ParserBaseItf DFT start " <<
+                AINFO << "ParserBaseItf DFT Start ~ " <<
                     snsr_info_->name();
                 if (cbuf_raw_)
                     cbuf_raw_->Open();
 
                 //data parser setting
+#if USE_PARSER_TIMER
                 if (tim_ != nullptr) {
                     AINFO << "Start ParserBaseItf timer for " <<
                         snsr_info_->name();
                     tim_->Start();
                 }
+#endif
                 return RawManage::Instance()->Start(snsr_info_);
             }
             virtual int Stop() {
-                AINFO << "ParserBaseItf DFT Stop" <<
+                AINFO << "ParserBaseItf DFT Stop ~ " <<
                     snsr_info_->name();
                 if (cbuf_raw_)
                     cbuf_raw_->Close();
 
+#if USE_PARSER_TIMER
                 if (tim_ != nullptr) {
                     AINFO << "Stop ParserBaseItf timer" <<
                         snsr_info_->name();
                     tim_->Stop();
                 }
+#endif
                 return RawManage::Instance()->Stop(snsr_info_);
             }
             virtual int Close() {
-                AINFO << "ParserBaseItf DFT Close" <<
+                AINFO << "ParserBaseItf DFT Close ~ " <<
                     snsr_info_->name();
+
                 if (cbuf_raw_)
                     cbuf_raw_->Close();
 
+#if USE_PARSER_TIMER
                 if (tim_ != nullptr) {
                     AINFO << "Close ParserBaseItf timer" <<
                         snsr_info_->name();
                     tim_->Stop();
                 }
+#endif
                 return RawManage::Instance()->Close(snsr_info_);
             }
 
@@ -212,7 +224,7 @@ namespace parser {
                     AWARN << "push circulor buf error!" <<
                         snsr_info_->name();
                 }
-                //notify the specific raw parser work
+                //notify the specific raw parser working
                 ParseRawBuffer(buf, size);
             }
             void OnOriginalDataCan(const uint8_t* buf,
@@ -296,7 +308,9 @@ namespace parser {
                 cbuf_can_ = nullptr;
 
             //for parsing data periodically
+#if USE_PARSER_TIMER
             std::unique_ptr<cyber::Timer> tim_ = nullptr;
+#endif
 
             //for data packing and downstream
             std::unique_ptr<PackerBaseItf> packer_ = nullptr;

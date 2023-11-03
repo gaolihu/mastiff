@@ -37,7 +37,7 @@ namespace device {
                     const SensorIndicator&, DeviceBaseItf*);
             int RecvChassCtrl(const std::shared_ptr<ChassisCtrl>&);
             inline void RegisterPublisher(const ProtoMessagePublish& p) {
-                proto_publisher_ = p;
+                pbmsg_publisher_ = p;
             }
 
         private:
@@ -77,7 +77,7 @@ namespace device {
             //std::shared_ptr<DispactchRaw> dispatcher_ = nullptr;
             std::unordered_map<DeviceBaseItf*, SensorIndicator*> device_parser_pair_;
             //std::unique_ptr<LidarUndistortion> lidar_undistortion_ = nullptr;
-            ProtoMessagePublish proto_publisher_ = nullptr;
+            ProtoMessagePublish pbmsg_publisher_ = nullptr;
     };
 
 } //namespace device

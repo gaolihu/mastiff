@@ -60,7 +60,7 @@ namespace parser {
                 if (closed_) {
                     closed_ = false;
                 }
-                AINFO << "open cbuf for: " << dev_ <<
+                AINFO << "open cbuf for " << dev_ <<
                     ", size: " << data_.size();
             }
             void Close()  {

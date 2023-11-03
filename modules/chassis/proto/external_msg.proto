@@ -1,7 +1,9 @@
 syntax = "proto3";
 
-package ventura.common_msgs.sensor_msgs;
+import "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/nav_msgs.proto";
 
+/*
 message Time {
   uint32 sec = 1;
   uint32 nsec = 2;
@@ -29,3 +31,4 @@ message PointCloud {
   repeated Point32 points = 2;
   repeated ChannelFloat32 channels = 3;
 }
+*/

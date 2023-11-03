@@ -15,7 +15,8 @@ namespace device {
 
             virtual int Init(void) override;
             virtual int Start(void) override;
-            //Close TODO
+            virtual int Stop(void) override;
+            virtual void Close(void) override;
     };
 
 } //namespace device

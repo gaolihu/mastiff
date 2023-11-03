@@ -4,22 +4,6 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-#define DISTANCE_BETWEEN_WHEELS 0.21818
-
-
-#ifndef SET_BIT_VAL
-#define SET_BIT_VAL(data, bit, val) \
-    ((data) |= ((val) << (bit)))
-#endif
-#ifndef STT_BIT_VAL
-#define STT_BIT_VAL(data, bit, v) \
-    ((data) = (((data) & ~(1 << (bit))) | ((v) << (bit))))
-#endif
-#ifndef TST_BIT_VAL
-#define TST_BIT_VAL(data, bit) \
-    (((data) & (1 << (bit))) >> (bit))
-#endif
-
     DataTransact::DataTransact() {
 #ifdef CHSS_PKG_DBG
         AINFO << "DataTransact singleton construct";
@@ -55,8 +39,8 @@ namespace device {
                 GetDeviceParser());
         parser->SetProtobufHandle(proto_proc);
 
-        AINFO << "Register msg publisher for: " << dev <<
-            ", seq: " << device_parser_pair_.size() << "\n";
+        AINFO << "register msg publisher for: " << dev <<
+            ", index: " << device_parser_pair_.size();
 
         // if(dev == "EAI-Lidar") {
         //     //TODO
@@ -155,6 +139,10 @@ namespace device {
                 }
             }
             */
+        } else if (type == "ventura::common_msgs::nav_msgs::Odometry") {
+            if (pbmsg_publisher_) {
+                pbmsg_publisher_(msg, type);
+            }
         } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
             //lidar data
             /*
@@ -165,8 +153,8 @@ namespace device {
             }
             */
 
-            if (proto_publisher_) {
-                proto_publisher_(msg, type);
+            if (pbmsg_publisher_) {
+                pbmsg_publisher_(msg, type);
             }
 
             //if (l_parser->ConvertLaserMsg(msg, lsr) == 0) {
@@ -312,17 +300,38 @@ namespace device {
         return ret;
     }
 
-    int DataTransact::CtrlMotor(const SpeedCtrl& ctl_msg) {
+    int DataTransact::CtrlMotor(const SpeedCtrl& speed_ctrl) {
         auto parser = GetSensorIndicator(E_DEVICE_MOTOR);
         if (parser != nullptr) {
             DownToServoData servo_data;
-            servo_data.mutable_diff_speed()->
-                set_linear(ctl_msg.linear());
-            servo_data.mutable_diff_speed()->
-                set_palstance(ctl_msg.angular());
-            if (parser->WriteServoMessage(servo_data) < 0) {
-                AWARN << "write servo speed msg error!";
-                return -1;
+
+            if (speed_ctrl.has_release_wheels()) {
+                if (speed_ctrl.release_wheels().value())
+                    servo_data.mutable_config()->set_opt(E_SUBDEV_OPTS_ENABLE);
+                else
+                    servo_data.mutable_config()->set_opt(E_SUBDEV_OPTS_DISABLE);
+                if (parser->WriteServoMessage(servo_data) < 0) {
+                    AWARN << "write servo config msg error!";
+                    return -1;
+                }
+            } else {
+                //speed setting
+                servo_data.mutable_motor_speed()->
+                    set_linear(speed_ctrl.linear());
+                servo_data.mutable_motor_speed()->
+                    set_angular(speed_ctrl.angular());
+                servo_data.mutable_motor_speed()->
+                    set_use_diff_speed(speed_ctrl.use_diff_speed());
+                if (speed_ctrl.has_wheel_reverse()) {
+                    servo_data.mutable_motor_speed()->
+                        mutable_wheel_reverse()->
+                        CopyFrom(speed_ctrl.wheel_reverse());
+                }
+
+                if (parser->WriteServoMessage(servo_data) < 0) {
+                    AWARN << "write servo speed msg error!";
+                    return -1;
+                }
             }
         } else {
             AWARN << "no parser for Motor, try MCU";

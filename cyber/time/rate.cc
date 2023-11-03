@@ -93,7 +93,12 @@ void Rate::Sleep() {
 
   // if we've taken too much time we won't sleep
   if (sleep_time < Duration(0.0)) {
-    AWARN << "Detect forward jumps in time";
+  //if (sleep_time < Duration(-1.5)) {
+      AWARN << "Detect forward jumps in time, sleep: " << sleep_time <<
+          ", expected cycle: " << expected_cycle_time_ <<
+          ", start: " << start_ <<
+          ", actual sleep: " << actual_cycle_time_ <<
+          ", actual end: " << actual_end;
     // if we've jumped forward in time, or the loop has taken more than a full
     // extra cycle, reset our cycle
     if (actual_end > expected_end + expected_cycle_time_) {

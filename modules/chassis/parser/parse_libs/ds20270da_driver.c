@@ -2,7 +2,14 @@
 
 static struct ServoMotorDes* servo_fn_des_ptr_array[98];
 static struct ServoMotorDes* servo_dn_des_ptr_array[22];
-static struct ServoMotorDes* servo_pn_des_ptr_array[44];
+static struct ServoMotorDes* servo_pn_des_ptr_array[46];
+
+static int32_t l_wheel_diameter_mm = -1;
+static int32_t l_wheel_distance_mm = -1;
+static int32_t l_accelerate_time_ms = -1;
+static int32_t l_decelerate_time_ms = -1;
+static int32_t l_speed_report_period_ms = -1;
+static int32_t l_status_report_period_ms = -1;
 
 // 1, FN
 GEN_SERVO_MOTOR_FN_DES(0, 0, 0x0, 0, 0x0, 100, 800, "电机额定转速")
@@ -29,7 +36,7 @@ GEN_SERVO_MOTOR_FN_DES(20, 1, 0x13, 1, 0x12, 0, 300, "制动器动作滤波器")
 GEN_SERVO_MOTOR_FN_DES(21, 1, 0x14, 1, 0x13, 0, 11111, "报警使能寄存器1(万位：EH 千位：PE 百位：ST 十位：EC 个位：LU)")
 GEN_SERVO_MOTOR_FN_DES(22, 1, 0x15, 1, 0x14, 0, 11111, "报警使能寄存器2(百位：OU 十位：OL 个位：IC)")
 GEN_SERVO_MOTOR_FN_DES(23, 1, 0x16, 1, 0x15, 0, 11111, "报警使能寄存器3")
-GEN_SERVO_MOTOR_FN_DES(24, 1, 0x17, 1, 0x16, 0, 1, "三项绕组短接(0：无功能 1：三项绕组短接)")
+GEN_SERVO_MOTOR_FN_DES(24, 1, 0x17, 1, 0x16, 0, 1, "柔性阻尼停车(0：无功能 1：启动)")
 GEN_SERVO_MOTOR_FN_DES(25, 1, 0x18, 1, 0x17, 0, 2000, "电机")
 GEN_SERVO_MOTOR_FN_DES(26, 1, 0x19, 1, 0x18, 100, 9999, "密码")
 GEN_SERVO_MOTOR_FN_DES(27, 1, 0x1a, 1, 0x19, 0, 20, "EC报警滤波")
@@ -162,7 +169,7 @@ GEN_SERVO_MOTOR_PN_DES(29, 5, 0x8, 5, 0x7, 0, 6, "CAN 通讯协议")
 GEN_SERVO_MOTOR_PN_DES(30, 5, 0x9, 5, 0x8, 0, 1111, "屏蔽选择")
 GEN_SERVO_MOTOR_PN_DES(31, 5, 0xa, 5, 0x9, 0, 1, "通讯写 EPROM 保护开关")
 GEN_SERVO_MOTOR_PN_DES(32, 5, 0xb, 5, 0xa, 0, 9999, "CAN 看门狗时间")
-GEN_SERVO_MOTOR_PN_DES(33, 5, 0xc, 5, 0xb, 0, 2, "通讯断线动作定义")
+GEN_SERVO_MOTOR_PN_DES(33, 5, 0xc, 5, 0xb, 0, 2, "通讯断线动作定义, 0：报警 1：关使能 2：零速")
 GEN_SERVO_MOTOR_PN_DES(34, 5, 0xd, 5, 0xc, 0, 1, "CAN 差速上报标志")
 GEN_SERVO_MOTOR_PN_DES(35, 5, 0xe, 5, 0xd, 0, 9999, "232 通讯断线检测时间")
 GEN_SERVO_MOTOR_PN_DES(36, 5, 0xf, 5, 0xe, 0, 9999, "485 通讯断线检测时间")
@@ -172,7 +179,9 @@ GEN_SERVO_MOTOR_PN_DES(39, 6, 0x3, 6, 0x2, 0, 9999, "驱动器复位")
 GEN_SERVO_MOTOR_PN_DES(40, 6, 0x4, 6, 0x3, 0, 1, "绕组短接")
 GEN_SERVO_MOTOR_PN_DES(41, 6, 0xa, 6, 0x4, 0, 9999, "小车轮径（0.1mm）")
 GEN_SERVO_MOTOR_PN_DES(42, 6, 0xb, 6, 0xa, 0, 20000, "小车轮距（0.1mm）")
-GEN_SERVO_MOTOR_PN_DES(43, 6, 0xc, 6, 0xb, 0, 9999, "小车左右轮定义")
+GEN_SERVO_MOTOR_PN_DES(43, 6, 0xc, 6, 0xb, 0, 1, "小车左右轮定义")
+GEN_SERVO_MOTOR_PN_DES(44, 6, 0xd, 6, 0xc, 0, 9999, "柔性阻尼停车，0：无功能 1：报警后启动")
+GEN_SERVO_MOTOR_PN_DES(45, 6, 0xe, 6, 0xd, 0, 9999, "柔性阻尼停车, 0：无功能 1：双轴启动")
 
 static int find_servo_motor_fn_des(int code_m, int param_xyz)
 {
@@ -228,7 +237,7 @@ static int find_servo_motor_dn_des_by_addr(int addr_l, int addr_h, bool* is_ax0)
 
 static int find_servo_motor_pn_des_by_addr(int addr_l, int addr_h, bool* is_ax0)
 {
-    for (int i = 0; i < 44; i++) {
+    for (int i = 0; i < 46; i++) {
         if ((servo_pn_des_ptr_array[i]->ax0.func_addr & 0xff) == addr_l &&
                 ((servo_pn_des_ptr_array[i]->ax0.func_addr & 0xff00) >> 8) == addr_h) {
             *is_ax0 = true;
@@ -260,7 +269,7 @@ static int find_servo_motor_dn_des(int param_xyz)
 
 static int find_servo_motor_pn_des(int code_m, int param_xyz)
 {
-    for (int i = 0; i < 44; i++) {
+    for (int i = 0; i < 46; i++) {
         if (servo_pn_des_ptr_array[i]->code_m == code_m &&
                 servo_pn_des_ptr_array[i]->param_xyz == param_xyz) {
             return i;
@@ -363,7 +372,7 @@ void init_servo_motor_pn_des()
 {
     struct ServoMotorDes* x = &p_6_0xc;
 
-    for (int i = 43; i >= 0; i--) {
+    for (int i = 45; i >= 0; i--) {
         servo_pn_des_ptr_array[i] = x;
         x = x->des_last;
     }
@@ -387,13 +396,13 @@ void show_all_servo_motor_dn_des()
 
 void show_all_servo_motor_pn_des()
 {
-    for (int i = 0; i < 44; i++) {
+    for (int i = 0; i < 46; i++) {
         struct ServoMotorDes* x = servo_pn_des_ptr_array[i];
         show_servo_motor_pn_des(x->code_m, x->param_xyz);
     }
 }
 
-void get_servo_motor_all_fn_addrs(int* addr, int* size)
+void get_servo_motor_all_fn_addrs(int16_t* addr, int* size)
 {
     *size = 98 * 2;
 
@@ -404,7 +413,7 @@ void get_servo_motor_all_fn_addrs(int* addr, int* size)
     }
 }
 
-void get_servo_motor_all_dn_addrs(int* addr, int* size)
+void get_servo_motor_all_dn_addrs(int16_t* addr, int* size)
 {
     *size = 22 * 2;
 
@@ -415,29 +424,96 @@ void get_servo_motor_all_dn_addrs(int* addr, int* size)
     }
 }
 
-void get_servo_motor_all_pn_addrs(int* addr, int* size)
+void get_servo_motor_all_pn_addrs(int16_t* addr, int* size)
 {
-    *size = 44;
+    *size = 46;
 
-    for (int i = 0; i < 44; i++) {
+    for (int i = 0; i < 46; i++) {
         struct ServoMotorDes* x = servo_pn_des_ptr_array[i];
         addr[i] = x->ax0.func_addr;
     }
 }
 
-void parse_servo_motor_info(const uint8_t* addr, size_t len)
+void config_servo_motor_parameters(const int32_t wheel_diameter_mm,
+        const int32_t wheel_distance_mm,
+        const int32_t accelerate_time_ms,
+        const int32_t decelerate_time_ms,
+        const int32_t speed_report_period_ms,
+        const int32_t status_report_period_ms)
 {
-    if (len != 10) {
-        printf("len: %ld error!\n", len);
+    l_wheel_diameter_mm = wheel_diameter_mm;
+    l_wheel_distance_mm = wheel_distance_mm;
+    l_accelerate_time_ms = accelerate_time_ms;
+    l_decelerate_time_ms = decelerate_time_ms;
+    l_speed_report_period_ms = speed_report_period_ms;
+    l_status_report_period_ms = status_report_period_ms;
+}
+
+void parse_servo_motor_info(const uint8_t* addr, size_t len,
+        int* speed_left, int* speed_right,
+        int* encoder_left, int* encoder_right,
+        int* status_left, int* status_right)
+{
+#if 1
+    if (addr[2] == DS_MOTOR_READ_BOTH_CMD ||
+            addr[2] == DS_MOTOR_WRITE_BOTH_CMD ||
+            addr[2] == DS_MOTOR_WRITE_CANOPEN_1 ||
+            addr[2] == DS_MOTOR_WRITE_CANOPEN_2 ||
+            addr[2] == DS_MOTOR_WRITE_CANOPEN_4) {
+        //ignore read/write echo messages
+        /*
+        printf("can echo!!: [ 0x%02x 0x%02x | 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4],
+                addr[5], addr[6], addr[7], addr[8], addr[9]);
+                */
+        return;
+    }
+#endif
+
+    if (len != 10 && len != 6 && len != 5) {
+        printf("parse invalid data len: %2ld [ ", len);
+        for (size_t l = 0; l < len ; l++) {
+            printf("0x%02x ", addr[l]);
+        }
+        printf("]\n");
         return;
     }
 
-    if (addr[2] == DS_MOTOR_READ_BOTH_CMD) {
-        //ignore echo messages
+    int id = addr[0] | (addr[1] << 8);
+
+    //speed & encoder
+    if (id == 0x1081) {
+        //speed & encoder for axle-1 : right
+        int speed = addr[2] | (addr[3] << 8) | (addr[4] << 16) | (addr[5] << 24);
+        int encoder = addr[6] | (addr[7] << 8) | (addr[8] << 16) | (addr[9] << 24);
+        *speed_right = speed;
+        *encoder_right = encoder;
+        return;
+    } else if (id == 0x1082) {
+        //speed & encoder for axle-2 : left
+        int speed = addr[2] | (addr[3] << 8) | (addr[4] << 16) | (addr[5] << 24);
+        int encoder = addr[6] | (addr[7] << 8) | (addr[8] << 16) | (addr[9] << 24);
+        *speed_left = speed;
+        *encoder_left = encoder;
+        return;
+    } else if (id == 0x2081) {
+        //status for axle-1 : right
+        int status = addr[2] | (addr[3] << 8) | (addr[4] << 16) | (addr[5] << 24);
+        *status_right = status;
+        return;
+    } else if (id == 0x2082) {
+        int status = addr[2] | (addr[3] << 8) | (addr[4] << 16) | (addr[5] << 24);
+        //status for axle-2 : left
+        *status_left = status;
         return;
     }
 
     if (addr[2] == DS_MOTOR_ACK_READ_CMD) {
+#if 0
+        printf("READ ACK: [ 0x%02x 0x%02x | 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4],
+                addr[5], addr[6], addr[7], addr[8], addr[9]);
+#endif
         //addr[3] : addr Low
         //addr[4] : addr High
         int i = 0;
@@ -464,9 +540,244 @@ void parse_servo_motor_info(const uint8_t* addr, size_t len)
                 x->ax1.reg_value = addr[6] | (addr[7] << 8);
             //printf("pn ~ i: %d, ax0: %#x, ax1: %#x\n", i, x->ax0.reg_value, x->ax1.reg_value);
         }
+    } else if (addr[2] == DS_MOTOR_ACK_WRITE_CMD){
+#if 1
+        printf("WRITE ACK: [ 0x%02x 0x%02x | 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4],
+                addr[5], addr[6], addr[7], addr[8], addr[9]);
+#endif
+    } else if (addr[2] == DS_MOTOR_WRITE_DIFF_SPEED){
+#if 1
+        printf("WRITE DIFF SPEED ACK: [ 0x%02x 0x%02x | 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4],
+                addr[5], addr[6], addr[7], addr[8], addr[9]);
+#endif
+    } else if (addr[2] == 0x2b && addr[3] == 0x40) {
+        //axle operation echo
     } else {
-        printf("cmd: %x, [%#x %#x %#x %#X %#x %#x %#x\n",
-                addr[2], addr[3], addr[4], addr[5], addr[6],
-                addr[7], addr[8], addr[9]);
+        printf("DATA UNKNOWN: [ 0x%02x 0x%02x | 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4],
+                addr[5], addr[6], addr[7], addr[8], addr[9]);
     }
+}
+
+//control APIs
+void config_servo_motor_init(int16_t* addr, int* value, int* size)
+{
+    //speed 0
+    addr[*size] = f_3_0x18.ax0.func_addr;
+    value[*size] = 0;
+    *size += 1;
+
+    //diff speed report
+    addr[*size] = p_5_0xd.ax0.func_addr;
+    value[*size] = 0x00010000; //enable
+    *size += 1;
+
+    //wheel diameter
+    addr[*size] = p_6_0xa.ax0.func_addr;
+    value[*size] = l_wheel_diameter_mm | (l_wheel_diameter_mm << 16); //1411 (0.1mm)
+    *size += 1;
+
+    //wheels distance
+    addr[*size] = p_6_0xb.ax0.func_addr;
+    value[*size] = l_wheel_distance_mm | (l_wheel_distance_mm << 16);//5310 (0.1mm)
+    *size += 1;
+
+    //left & right wheel define
+    addr[*size] = p_6_0xc.ax0.func_addr;
+    value[*size] = 0x00000000;
+    *size += 1;
+
+    //speed 0
+    addr[*size] = f_3_0x18.ax0.func_addr;
+    value[*size] = 0;
+    *size += 1;
+}
+
+void config_servo_motor_disable(int16_t* addr, int* value, int* size)
+{
+    //speed 0
+    addr[*size] = f_3_0x18.ax0.func_addr;
+    value[*size] = 0;
+    *size += 1;
+
+    //axle disable
+    addr[*size] = f_1_0x0.ax0.func_addr;
+    value[*size] = 0;
+    *size += 1;
+}
+
+void config_servo_motor_stop(int16_t* addr, int* value, int* size)
+{
+    addr[*size] = f_3_0x18.ax0.func_addr;
+    value[*size] = 0;
+    *size += 1;
+}
+
+void config_servo_motor_wheel_speed(int16_t* addr, int* value, int* size)
+{
+    addr[*size] = f_3_0x18.ax0.func_addr;
+    *size += 1;
+}
+
+void config_servo_motor_wheel_reverse(int16_t* addr, int* value, int* size)
+{
+    //left & right wheel define
+    addr[*size] = p_5_0xd.ax0.func_addr;
+    *size += 1;
+}
+
+//canopen config
+void config_servo_motor_canopen_enable(int16_t* addr, int* value, int* size)
+{
+    //can open mode
+    addr[*size] = f_1_0x2.ax0.func_addr;
+    value[*size] = 0x00140014;
+    *size += 1;
+}
+
+void config_servo_motor_canopen_mode(uint8_t* cmd, int16_t* addr, uint8_t* sub_id, int* value, int* size)
+{
+    //mode config, speed mode: PV(0x03)
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x6060;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00030000;
+    *size += 1;
+}
+
+//config accelerate / moderate time
+void config_servo_motor_acc_moderate_time(uint8_t* cmd, int16_t* addr, uint8_t* sub_id, int* value, int* size)
+{
+    //acc time
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x6083;
+    sub_id[*size] = 0x00;
+    value[*size] = l_accelerate_time_ms << 16;
+    *size += 1;
+
+    //moderate time
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x6084;
+    sub_id[*size] = 0x00;
+    value[*size] = l_decelerate_time_ms << 16;
+    *size += 1;
+}
+
+//config tpdo & rpdo
+void config_servo_motor_tpdo_rpdo(uint8_t* cmd, int16_t* addr, uint8_t* sub_id, int* value, int* size)
+{
+    //tpdo1, speed & encoder
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1a00;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00000000;
+    *size += 1;
+
+    //speed dictionary
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x1a00;
+    sub_id[*size] = 0x01;
+    value[*size] = 0x00206069;
+    *size += 1;
+
+    //encoder dictionary
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x1a00;
+    sub_id[*size] = 0x02;
+    value[*size] = 0x00206063;
+    *size += 1;
+
+    /*
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1a00;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00020000;
+    *size += 1;
+    */
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1800;
+    sub_id[*size] = 0x02;
+    value[*size] = 0x00fe0000;
+    *size += 1;
+
+    //speed & encoder period
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1800;
+    sub_id[*size] = 0x03;
+    value[*size] = l_speed_report_period_ms << 16;
+    *size += 1;
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1800;
+    sub_id[*size] = 0x05;
+    value[*size] = l_speed_report_period_ms << 16;
+    *size += 1;
+
+    //tpdo2, status
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1a01;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00000000;
+    *size += 1;
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x1a01;
+    sub_id[*size] = 0x01;
+    value[*size] = 0x00106041;
+    *size += 1;
+
+    /*
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x1a01;
+    sub_id[*size] = 0x02;
+    value[*size] = 0x00105002;
+    *size += 1;
+    */
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1a01;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00020000;
+    *size += 1;
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1801;
+    sub_id[*size] = 0x02;
+    value[*size] = 0x00fe0000;
+    *size += 1;
+
+    //status period
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1801;
+    sub_id[*size] = 0x03;
+    value[*size] = l_status_report_period_ms << 16;
+    *size += 1;
+
+    //status period
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1801;
+    sub_id[*size] = 0x05;
+    value[*size] = l_status_report_period_ms << 16;
+    *size += 1;
+
+    //rpdo3
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1602;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00000000;
+    *size += 1;
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_4;
+    addr[*size] = 0x1602;
+    sub_id[*size] = 0x01;
+    value[*size] = 0x001060ff;
+    *size += 1;
+
+    cmd[*size] = DS_MOTOR_WRITE_CANOPEN_1;
+    addr[*size] = 0x1602;
+    sub_id[*size] = 0x00;
+    value[*size] = 0x00010000;
+    *size += 1;
 }

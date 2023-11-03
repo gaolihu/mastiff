@@ -183,6 +183,7 @@ message UartDevSetting {
     int32 parity = 5;
     int32 once_read_size = 6;
     int32 serial_read_freq = 7;
+    int32 serial_read_timeout = 8;
 }
 
 message UartConfig {
@@ -455,13 +456,25 @@ message McuDevice {
 ////////////// MCU //////////////
 
 ////////////// Servo //////////////
+message ServoDriverInfo {
+    uint32 wheel_diameter_10th1_mm = 1;
+    uint32 wheel_distance_10th1_mm = 2;
+    uint32 accelerate_time_ms = 3;
+    uint32 decelerate_time_ms = 4;
+    uint32 speed_report_period_ms = 5;
+    uint32 status_report_period_ms = 6;
+    uint32 servo_motor_resolution = 7;
+    uint32 servo_motor_reduction = 8;
+}
+
 message ServoDevice {
     SensorInfo si = 1;
     oneof ServoInterface {
         CanConfig can_conf = 2;
     }
-    SensorIndicator sn_ind = 3;
-    bool used = 4;
+    ServoDriverInfo servo_info = 4;
+    SensorIndicator sn_ind = 5;
+    bool used = 6;
 }
 ////////////// Servo //////////////
 

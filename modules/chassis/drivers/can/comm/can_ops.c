@@ -16,6 +16,65 @@
 
 static int poll_time_out = 2000; //2s
 static int can_socket_ = 0;
+static int fd_epoll_;
+
+static int set_write()
+{
+    struct ifreq ifr;
+    struct sockaddr_can addr;
+
+    strncpy(ifr.ifr_name, "can0", IFNAMSIZ - 1);
+    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
+    ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
+    ioctl(can_socket_, SIOCGIFINDEX, &ifr);
+    if (!ifr.ifr_ifindex) {
+        perror("if_nametoindex");
+        return 1;
+    }
+
+    int param = 0;
+    //disable self send msg
+    setsockopt(can_socket_, SOL_CAN_RAW, CAN_RAW_RECV_OWN_MSGS,
+            &param, sizeof(param));
+    setsockopt(can_socket_, SOL_CAN_RAW, CAN_RAW_LOOPBACK,
+            &param, sizeof(param));
+
+#if 0
+    struct can_filter rfilter[8];
+    rfilter[0].can_id = 0x5081;
+    rfilter[0].can_mask = CAN_SFF_MASK;
+    rfilter[1].can_id = 0x5082;
+    rfilter[1].can_mask = CAN_SFF_MASK;
+    rfilter[2].can_id = 0x1081;
+    rfilter[2].can_mask = CAN_SFF_MASK;
+    rfilter[3].can_id = 0x1082;
+    rfilter[3].can_mask = CAN_SFF_MASK;
+    rfilter[4].can_id = 0x2081;
+    rfilter[4].can_mask = CAN_SFF_MASK;
+    rfilter[5].can_id = 0x2082;
+    rfilter[5].can_mask = CAN_SFF_MASK;
+    /*
+    rfilter[6].can_id = 0x6001;
+    rfilter[6].can_mask = CAN_SFF_MASK;
+    rfilter[7].can_id = 0x6002;
+    rfilter[7].can_mask = CAN_SFF_MASK;
+    */
+
+    setsockopt(can_socket_, SOL_CAN_RAW, CAN_RAW_FILTER,
+            &rfilter, sizeof(rfilter));
+#endif
+
+    memset(&addr, 0, sizeof(addr));
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    if (bind(can_socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        return 1;
+    }
+
+    return 0;
+}
 
 int can_open()
 {
@@ -28,35 +87,22 @@ int can_open()
 
     can_socket_ = s;
 
+    fd_epoll_ = epoll_create(1);
+    if (fd_epoll_ < 0) {
+        perror("epoll_create");
+        return 1;
+    }
+
+    struct epoll_event event_setup = {
+        .events = EPOLLIN,
+    };
+
+    if (epoll_ctl(fd_epoll_, EPOLL_CTL_ADD, s, &event_setup)) {
+        perror("failed to add socket to epoll");
+        return 1;
+    }
+
     return s;
-}
-
-int set_write()
-{
-    struct ifreq ifr;
-    struct sockaddr_can addr;
-
-    strncpy(ifr.ifr_name, "can0", IFNAMSIZ - 1);
-    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-    ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
-    //ioctl(can_socket_, SIOCGIFINDEX, &ifr);
-    if (!ifr.ifr_ifindex) {
-        perror("if_nametoindex");
-        return 1;
-    }
-
-    memset(&addr, 0, sizeof(addr));
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-
-    setsockopt(can_socket_, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
-
-    if (bind(can_socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        perror("bind");
-        return 1;
-    }
-
-    return 0;
 }
 
 int can_config(int s, int baud, int timeout)
@@ -77,15 +123,22 @@ int can_config(int s, int baud, int timeout)
 
     poll_time_out = timeout;
 
-#if 0
     set_write();
-#endif
 
     return 0;
 }
 
 int can_close(int s)
 {
+    struct epoll_event event_setup = {
+        .events = EPOLLIN,
+    };
+
+    if (epoll_ctl(fd_epoll_, EPOLL_CTL_DEL, s, &event_setup)) {
+        perror("failed to del socket to epoll");
+    }
+    close(fd_epoll_);
+
     close(s);
 
     if (system("ip link set can0 down") != 0)
@@ -100,15 +153,15 @@ int can_send_raw(int id, const unsigned char* buf, const size_t size)
 
     frame.len = size;
     frame.can_id = id;
-#if 0
-    set_write();
-#endif
+
     for (size_t x = 0; x < size; x++) {
         frame.data[x] = buf[x];
-        //printf("%ld: id %#x, fd %d, val %#x\n", x, id, can_socket_, buf[x]);
     }
 
     if (write(can_socket_, &frame, CAN_MTU) != CAN_MTU) {
+        for (size_t x = 0; x < size; x++) {
+            printf("%ld: id %#x, fd %d, val %#x\n", x, id, can_socket_, buf[x]);
+        }
         perror("write");
         return -1;
     }
@@ -189,10 +242,7 @@ int can_send_string(int s, const char* dev, const char* buf)
 
 size_t can_recv(int s, const char* dev, char* buf)
 {
-    struct epoll_event event_setup = {
-        .events = EPOLLIN,
-    };
-    struct epoll_event events_pending[16];
+    struct epoll_event events_pending[2];
 
     struct sockaddr_can addr;
     char ctrlmsg[CMSG_SPACE(sizeof(struct timeval) +
@@ -203,18 +253,6 @@ size_t can_recv(int s, const char* dev, char* buf)
     struct ifreq ifr;
     const int canfd_on = 1;
     size_t len = 0;
-
-    int fd_epoll;
-    fd_epoll = epoll_create(1);
-    if (fd_epoll < 0) {
-        perror("epoll_create");
-        return 1;
-    }
-
-    if (epoll_ctl(fd_epoll, EPOLL_CTL_ADD, s, &event_setup)) {
-        perror("failed to add socket to epoll");
-        return 1;
-    }
 
     addr.can_family = AF_CAN;
 
@@ -244,14 +282,14 @@ size_t can_recv(int s, const char* dev, char* buf)
     msg.msg_iovlen = 1;
     msg.msg_control = &ctrlmsg;
 
-    int num_events = epoll_wait(fd_epoll, events_pending, 1024, poll_time_out);
+    int num_events = epoll_wait(fd_epoll_, events_pending, 2, poll_time_out);
     if (num_events == -1) {
         perror("poll wait");
         return -1;
     }
 
 
-    for (int i = 0; i < num_events; i++) {
+    //for (int i = 0; i < num_events; i++) {
         /* check waiting CAN RAW sockets */
         /* these settings may be modified by recvmsg() */
 #if 0
@@ -288,13 +326,11 @@ size_t can_recv(int s, const char* dev, char* buf)
         buf[0] = frame.can_id & 0xff;
         buf[1] = (frame.can_id & 0xff00) >> 4;
         len = frame.len + 2;
-        for (size_t i = 0; i < len; i++) {
-            buf[2 + i] = frame.data[i];
+        for (size_t j = 0; j < len; j++) {
+            buf[2 + j] = frame.data[j];
         }
 #endif
-    }
-
-    close(fd_epoll);
+    //}
 
     return len;
 }

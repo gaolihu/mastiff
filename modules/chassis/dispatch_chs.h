@@ -18,7 +18,7 @@ namespace chss {
     using ImuPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<IMUdata>>()>;
     using OdomPublisherGenerator =
-        std::function<std::shared_ptr<cyber::Writer<OdomData>>()>;
+        std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::nav_msgs::Odometry>>()>;
     using LpaPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::sensor_msgs::PointCloud>>()>;
     using CmdPublisherGenerator =
@@ -33,20 +33,29 @@ namespace chss {
     class DispatchChs {
         public:
             DispatchChs(const ChassissTopicConfig* ctp) {
-                //TODO
 #ifdef CHSS_PKG_DBG
-                AINFO << "DispatchChs construct <message upstream>";
+                AINFO << "DispatchChs construct <MESSAGE UPSTREAM>";
 #endif
                 chs_topic_conf_ = ctp;
 
                 publish_node_ = cyber::CreateNode(chs_topic_conf_->
                         chassis_output_channel());
+                RegisterOdomPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::nav_msgs::Odometry>> {
+                        AINFO << "create writer for \"ventura::common_msgs::nav_msgs::Odometry\"";
+                        return publish_node_->CreateWriter<ventura::common_msgs::nav_msgs::Odometry>(
+                                chs_topic_conf_->output_odom_topic_name());
+                        });
                 RegisterLpaPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>> {
-                        AINFO << "create writer for ventura::common_msgs::sensor_msgs::PointCloud";
+                        AINFO << "create writer for \"ventura::common_msgs::sensor_msgs::PointCloud\"";
                         return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::PointCloud>(
                                 chs_topic_conf_->output_lpa_topic_name());
                         });
+
+                AINFO << "turn on odom channel for testing";
+                OdomFlowSwitch(true);
+                AINFO << "turn on lidar channel for testing";
                 LpaFlowSwitch(true);
+
                 MsgTransfer::Instance()->SetTransferPublishers(
                         imu_publisher_, odom_publisher_,
                         lpa_publisher_, cmd_publisher_,
@@ -162,9 +171,9 @@ namespace chss {
             inline bool OdomFlowSwitch(const bool sw) {
                 bool ret = false;
                 if (sw)
-                    ret = ConstructPublishChannel<OdomData>();
+                    ret = ConstructPublishChannel<ventura::common_msgs::nav_msgs::Odometry>();
                 else
-                    ret = UnconstructPublishChannel<OdomData>();
+                    ret = UnconstructPublishChannel<ventura::common_msgs::nav_msgs::Odometry>();
 #ifdef CHSS_PKG_DBG
                 AINFO << "chassis odom publish channel " <<
                     (sw ? "construct" : "deconstruct") <<
@@ -282,7 +291,7 @@ namespace chss {
                 cyber::message::GetMessageName<IMUdata>()) {
             return ImuFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<OdomData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::nav_msgs::Odometry>()) {
             return OdomFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
@@ -333,7 +342,7 @@ namespace chss {
                 return false;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<OdomData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::nav_msgs::Odometry>()) {
             if (odom_publisher_) {
                 AERROR << "odom publish channel aready build!";
                 return false;
@@ -437,7 +446,7 @@ namespace chss {
                 return true;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<OdomData>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::nav_msgs::Odometry>()) {
             if (odom_publisher_) {
                 odom_publisher_.reset();
                 return true;

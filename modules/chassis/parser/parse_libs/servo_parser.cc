@@ -1,5 +1,8 @@
 #include "cyber/common/log.h"
 
+#include "Eigen/Core"
+#include "Eigen/Dense"
+
 #include "modules/chassis/parser/parse_libs/servo_parser.h"
 #include "modules/chassis/parser/parse_libs/ds20270da_driver.h"
 
@@ -18,6 +21,22 @@ namespace parser {
     }
 
     int ServoParser::Init() {
+        AINFO << "motor parameters: " <<
+            ", wheel diameter: " << chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() <<
+            ", distance: " << chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm() <<
+            ", acc time: " << chs_conf_->servo_dev().servo_info().accelerate_time_ms() <<
+            ", dec time: " << chs_conf_->servo_dev().servo_info().decelerate_time_ms() <<
+            ", speed period: " << chs_conf_->servo_dev().servo_info().speed_report_period_ms() <<
+            ", status period: " << chs_conf_->servo_dev().servo_info().status_report_period_ms() <<
+            ", servo resolution: " << chs_conf_->servo_dev().servo_info().servo_motor_resolution() <<
+            ", reduction: " << chs_conf_->servo_dev().servo_info().servo_motor_reduction();
+        config_servo_motor_parameters(
+                chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm(),
+                chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm(),
+                chs_conf_->servo_dev().servo_info().accelerate_time_ms(),
+                chs_conf_->servo_dev().servo_info().decelerate_time_ms(),
+                chs_conf_->servo_dev().servo_info().speed_report_period_ms(),
+                chs_conf_->servo_dev().servo_info().status_report_period_ms());
         return ParserBaseItf::Init(chs_conf_->
                 servo_dev().sn_ind().port(),
                 &chs_conf_->servo_dev().
@@ -34,15 +53,43 @@ namespace parser {
             packer_->PackMotorMessageString(data);
         return RawManage::Instance()->WriteCan(packed_data);
 #else
-        if (data.has_diff_speed()) {
-            std::tuple<const int,
-                const std::vector<uint8_t>> packed_data =
-                    packer_->PackMotorMessageRaw(data);
-            return RawManage::Instance()->
-                WriteCan(std::get<0>(packed_data),
-                        &(std::get<1>(packed_data))[0],
-                        std::get<1>(packed_data).size());
+        if (data.has_motor_speed()) {
+            //set motor speed
+            if (data.motor_speed().use_diff_speed()) {
+#ifdef USE_FREE_CAN_PROTOCOL // 0
+                //use diff speed
+                std::tuple<const int,
+                    const std::vector<uint8_t>> packed_data =
+                        packer_->PackMotorDiffSpeed(data);
+                return RawManage::Instance()->
+                    WriteCan(std::get<0>(packed_data),
+                            &(std::get<1>(packed_data))[0],
+                            std::get<1>(packed_data).size());
+#else
+                std::vector<std::tuple<const int,
+                    const std::vector<uint8_t>>> packed_datas =
+                        packer_->PackMotorDiffSpeedDouble(data);
+                for (int i = 0; i < (int)packed_datas.size(); i++) {
+                    RawManage::Instance()->
+                        WriteCan(std::get<0>(packed_datas[i]),
+                                &(std::get<1>(packed_datas[i]))[0],
+                                std::get<1>(packed_datas[i]).size());
+                    //??? delay for two wheels ???
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+#endif
+            } else {
+                //use wheel speed
+                std::tuple<const int,
+                    const std::vector<uint8_t>> packed_data =
+                        packer_->PackMotorWheelSpeed(data);
+                return RawManage::Instance()->
+                    WriteCan(std::get<0>(packed_data),
+                            &(std::get<1>(packed_data))[0],
+                            std::get<1>(packed_data).size());
+            }
         } else {
+            //config motor
             std::vector<std::tuple<const int,
                 const std::vector<uint8_t>>> packed_datas =
                     packer_->PackMotorMessageArrayRaw(data);
@@ -52,36 +99,117 @@ namespace parser {
                     WriteCan(std::get<0>(packed_datas[i]),
                             &(std::get<1>(packed_datas[i]))[0],
                             std::get<1>(packed_datas[i]).size());
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-
-            return 0;
         }
 #endif
+        return 0;
     }
 
+//#define SERVO_DBG 1
     int ServoParser::ParseCanBuffer(const uint8_t* buf,
             const size_t len) {
-#if 0
-        AINFO << "ParseCanBuffer len ~ " <<
-            len << ", [" <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
-            " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
-            " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
-            " ]";
-#endif
         //if the current frame is good enough to parse
         //a whole frame of data, send upstream directly
 
-        parse_servo_motor_info(buf, len);
-        //TODO 
+        int encoder_left = -1;
+        int encoder_right = -1;
+        int rpm_left = -1;
+        int rpm_right = -1;
+        int status_left = -1;
+        int status_right = -1;
+
+        parse_servo_motor_info(buf, len,
+                &rpm_left, &rpm_right,
+                &encoder_left, &encoder_right,
+                &status_left, &status_right);
+        if (rpm_left != -1 || encoder_left != -1) {
+            left_rpm_ = rpm_left;
+            left_encoder_ = encoder_left;
+#ifdef SERVO_DBG
+            AINFO << "1, rpm left: " << left_rpm_ <<
+                ", encoder left: " << left_encoder_ <<
+                "    len " << len <<
+                ", [" <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
+                " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
+                " ]";
+#endif
+        }
+        if (rpm_right != -1 || encoder_right != -1) {
+            right_rpm_ = -rpm_right;
+            right_encoder_ = -encoder_right;
+
+#ifdef SERVO_DBG
+            AINFO << "2, rpm right: " << right_rpm_ <<
+                ", encoder right: " << right_encoder_ <<
+                "    len " << len <<
+                ", [" <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
+                " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
+                " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
+                " ]";
+#endif
+            ParseSigleFrame({}, 0);
+
+            last_left_encoder_ = left_encoder_;
+            last_right_encoder_ = right_encoder_;
+            last_left_rpm_ = left_rpm_;
+            last_right_rpm_ = right_rpm_;
+        }
+        if (status_left != -1) {
+            if (status_left != 0x37) {
+                AINFO << "3, status left: " << status_left <<
+                    "    len " << len <<
+                    ", [" <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
+                    " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
+                    " ]";
+                left_status_ = status_left;
+            }
+        }
+        if (status_right != -1) {
+            if (status_right != 0x37) {
+                AINFO << "4, status right: " << status_right <<
+                    "    len " << len <<
+                    ", [" <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
+                    " | " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[2]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[3]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[4]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[5]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[6]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[7]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[8]) <<
+                    " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[9]) <<
+                    " ]";
+                right_status_ = status_right;
+            }
+        }
 
         return 0;
     }
@@ -89,10 +217,94 @@ namespace parser {
     int ServoParser::ParseSigleFrame(const
             std::vector<uint8_t>& data,
             const size_t len) {
-        //get protobuf frame & frame_processor_(frame);
-        //TODO
-        //     
-        return 0;
+        ventura::common_msgs::nav_msgs::Odometry odom;
+
+        timeval tv;
+        gettimeofday(&tv, NULL);
+
+        odom.mutable_header()->set_seq(odom_seq_++);
+        odom.mutable_header()->mutable_stamp()->set_sec(tv.tv_sec);
+        odom.mutable_header()->mutable_stamp()->set_nsec(tv.tv_usec * 1000);
+        odom.mutable_header()->set_frame_id("odom");
+
+        odom.set_child_frame_id("base_link");
+
+        float d_left = M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() *
+            (left_encoder_ - last_left_encoder_ /*+ left_scale * encoder_scale_val*/) /
+            ((chs_conf_->servo_dev().servo_info().servo_motor_resolution() /**
+            chs_conf_->servo_dev().servo_info().servo_motor_reduction()*/) * 1e4);
+
+        float d_right = M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() *
+            (right_encoder_ - last_right_encoder_ /*+ right_scale * encoder_scale_val*/) /
+            ((chs_conf_->servo_dev().servo_info().servo_motor_resolution() /**
+            chs_conf_->servo_dev().servo_info().servo_motor_reduction()*/) * 1e4);
+
+        float ds = (d_left + d_right) / 2;
+        float dth = (d_right - d_left) * 1e4 /
+            chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm();
+
+        pose_x_ += ds * (cos(pose_theta_ + dth / 2.f));
+        pose_y_ += ds * (sin(pose_theta_ + dth / 2.f));
+        pose_theta_ += dth;
+
+        /*
+        auto q = Eigen::AngleAxisd(pose_theta_, Eigen::Vector3d::UnitZ()) *
+            Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX()) *
+            Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY());
+            */
+        auto q = Eigen::Quaterniond(Eigen::AngleAxisd(pose_theta_, Eigen::Vector3d::UnitZ()));
+
+        odom.mutable_pose()->mutable_pose()->mutable_position()->set_x(pose_x_);
+        odom.mutable_pose()->mutable_pose()->mutable_position()->set_y(pose_y_);
+        //odom.mutable_pose()->mutable_pose()->mutable_position()->set_z(0);
+        for (int i = 0; i < 36; i++)
+            odom.mutable_pose()->add_covariance(0.f);
+
+        odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_x(q.x());
+        odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_y(q.y());
+        odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(q.z());
+        odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(q.w());
+
+        float vl = left_rpm_ * M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() / 6e6;
+        float vr = right_rpm_ * M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() / 6e6;
+
+        float line = (vl + vr) / 2;
+        float omg = (vr - vl) * 1e4 / chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm();
+
+        //speed
+        odom.mutable_twist()->mutable_twist()->mutable_linear()->set_x(line);
+        //odom.mutable_twist()->mutable_twist()->mutable_linear()->set_y();
+        //odom.mutable_twist()->mutable_twist()->mutable_linear()->set_z();
+        //odom.mutable_twist()->mutable_twist()->mutable_angular()->set_x();
+        //odom.mutable_twist()->mutable_twist()->mutable_angular()->set_y();
+        odom.mutable_twist()->mutable_twist()->mutable_angular()->set_z(omg);
+        for (int i = 0; i < 36; i++)
+            odom.mutable_twist()->add_covariance(0.f);
+
+        //AINFO_EVERY(100) << "odom:\n" << odom.DebugString();
+
+//#define SERVO_DBG
+#ifdef SERVO_DBG
+        AINFO << "L: [" << left_encoder_ <<
+            ", " << last_left_encoder_ <<
+            "], R: [" << right_encoder_ <<
+            ", " << last_right_encoder_ <<
+            "], dL: " << d_left <<
+            ", dR: " << d_right <<
+            ", O: " << ds <<
+            ", dth: " << dth <<
+            ", pose x: " << pose_x_ <<
+            ", y: " << pose_y_ <<
+            ", theta: " << pose_theta_;
+#endif
+#if 0
+//#ifdef SERVO_DBG
+        AINFO << "velocity L/R: [ " << vl << "m/s" <<
+            ", " << vr << " ]m/s" <<
+            ", line speed: " << line << "m/s" <<
+            ", omg: " << omg << "rad/s";
+#endif
+        return frame_processor_(&odom, "ventura::common_msgs::nav_msgs::Odometry");
     }
 
 } //namespace parser

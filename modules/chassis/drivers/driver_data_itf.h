@@ -9,6 +9,8 @@ namespace mstf {
 namespace chss {
 namespace driver {
 
+//#define USE_CYBER_TIMER
+
     using DriveDataPolling = std::function<void()>;
     using DriveDataMonitor = std::function<void
         (const uint8_t*, const size_t)>;
@@ -27,36 +29,70 @@ namespace driver {
                     DriveDataPolling& p = nullptr) {
                 if (p != nullptr) {
                     pollinger_ = p;
+#ifdef USE_CYBER_TIMER
+                    AINFO << "init cyber timer for getting low layer data!";
                     tim_.reset(new apollo::cyber::Timer(
                                 loop_cycle_ms == 0 ? 20 : loop_cycle_ms,
                                 [this] () {
                                     pollinger_();
                                 },
                                 false));
+#else
+                    AINFO << "init thread for getting low layer data!";
+                    raw_capture_thread_ = std::thread(
+                            [this] () {
+                                while (!terminate_) {
+                                    if (running_) {
+                                        pollinger_();
+                                    } else {
+                                        std::this_thread::sleep_for(
+                                            std::chrono::milliseconds(1000));
+                                    }
+                                }
+                            });
+#endif
                 } else {
                     AWARN << "poller NULL!";
                 }
                 return 0;
             }
             virtual int Start() {
+                AINFO << "capture thread start!";
+#ifdef USE_CYBER_TIMER
                 if (tim_)
                     tim_->Start();
                 else
                     return -1;
+#else
+                running_ = true;
+                terminate_ = false;
+#endif
                 return 0;
             }
             virtual int Stop() {
+                AINFO << "capture thread stop!";
+#ifdef USE_CYBER_TIMER
                 if (tim_)
                     tim_->Stop();
                 else
                     return -1;
+#else
+                running_ = false;
+#endif
                 return 0;
             }
             virtual int Close() {
+                AINFO << "capture thread close!";
+#ifdef USE_CYBER_TIMER
                 if (tim_)
                     tim_.reset();
                 else
                     return -1;
+#else
+                running_ = false;
+                terminate_ = true;
+                raw_capture_thread_.join();
+#endif
                 return 0;
             }
 
@@ -124,7 +160,13 @@ namespace driver {
             DriveDataPolling pollinger_ = nullptr;
 
             //timer common for data polling
+#ifdef USE_CYBER_TIMER
             std::unique_ptr<apollo::cyber::Timer> tim_;
+#else
+            bool running_ = false;
+            bool terminate_ = false;
+            std::thread raw_capture_thread_;
+#endif
     };
 
 } // namespace driver

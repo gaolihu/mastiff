@@ -70,6 +70,9 @@ proto_library(
     srcs = [
         "external_msg.proto",
     ],
+    deps = [
+        "//modules/aventurier_common_msgs:ros_msgs_proto",
+    ],
 )
 
 cc_proto_library(

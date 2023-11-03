@@ -17,7 +17,7 @@ namespace chss {
         public:
             ReceiveCtrl(const std::shared_ptr<ChassisConfig>& cc) {
 #ifdef CHSS_PKG_DBG
-                AINFO << "ReceiveCtrl construct <message downstream>";
+                AINFO << "ReceiveCtrl construct <MESSAGE DOWNSTREAM>";
 #endif
                 chs_conf_ = cc;
 
@@ -31,10 +31,10 @@ namespace chss {
                 devices_mgr_->DeviceInit();
 
 #if 1   //for testing
-                //AINFO << "start to powerup peripheral devices";
+                AINFO << "start to powerup peripheral devices, for testing";
                 devices_mgr_->DeviceStart();
 #endif
-
+                AINFO << "peripheral devices manage over, build reader channel";
                 auto reader_ = subscribe_node_->CreateReader<ChassisCtrl>(
                         chs_conf_->chs_topic_conf().input_crtl_topic_name(),
                         [&](const std::shared_ptr<ChassisCtrl>& msg)->void {

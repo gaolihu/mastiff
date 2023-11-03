@@ -22,6 +22,25 @@ namespace parser {
             virtual int ParseSigleFrame(const
                     std::vector<uint8_t>&,
                     const size_t) override;
+
+        private:
+            int32_t left_rpm_ = 0;
+            int32_t last_left_rpm_ = 0;
+            int32_t right_rpm_ = 0;
+            int32_t last_right_rpm_ = 0;
+            int32_t left_encoder_ = 0;
+            int32_t last_left_encoder_ = 0;
+            int32_t right_encoder_ = 0;
+            int32_t last_right_encoder_ = 0;
+
+            float pose_x_ = 0;
+            float pose_y_ = 0;
+            float pose_theta_ = 0;
+
+            int32_t left_status_ = 0;
+            int32_t right_status_ = 0;
+
+            int32_t odom_seq_ = 0;
     };
 
 } //namespace parser

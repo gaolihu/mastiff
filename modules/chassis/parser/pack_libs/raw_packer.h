@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include "cyber/common/log.h"
 
 #include "modules/chassis/proto/frame_down_stream.pb.h"

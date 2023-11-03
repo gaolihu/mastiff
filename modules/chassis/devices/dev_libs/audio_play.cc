@@ -20,7 +20,6 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
             <AudioParser>(cc, &cc->aud_dev().si());
         DataTransact::Instance()->RegisterDevice(

@@ -393,6 +393,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "@org_tuxfamily_eigen//:eigen",
         "//modules/chassis/proto:chassis_config_cc_proto",
         ":parser_base_itf",
         ":ds20270da_driver",

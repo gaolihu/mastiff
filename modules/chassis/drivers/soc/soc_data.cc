@@ -18,6 +18,7 @@ namespace driver {
     }
 
     int SocData::Init(const ChassisConfig* c) {
+        AINFO << "soc data init!";
         chs_conf_ = c;
         return 0;
     }
@@ -29,10 +30,12 @@ namespace driver {
     }
 
     int SocData::Stop(EE_DEVICE_TYPE dev_type, const std::string dev) {
+        AINFO << "soc data stop!";
         return 0;
     }
 
     int SocData::Close(EE_DEVICE_TYPE dev_type, const std::string dev) {
+        AINFO << "soc data close!";
         return 0;
     }
 

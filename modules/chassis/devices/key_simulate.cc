@@ -18,7 +18,7 @@ namespace device {
     }
 
     void KeySimulate::StartSimulate() {
-        AINFO << "Start catching key simulation!";
+        AINFO << "start catching simulative keys!";
 
         auto fc = [&](int ev)->int {
             int cmd = ev & 0xffff;
@@ -58,40 +58,66 @@ namespace device {
 
                     //////////////////////////////SPEED CONTROL//////////////////////////////////
                 case 0x5b41:
-                    //¡ü
-                case 0x4b41: {
-                    //w, forward
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.15);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0);
-                }
+                    //â†‘
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.04);
                     break;
+                case 0x4b41:
+                    //w, enable
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.06);
+                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    break;
+
                 case 0x5b44:
-                    //¡û
-                case 0x4b44: {
-                    //a, left
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(1.5);
-                }
+                    //â† wheel speed
+                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0.2);
                     break;
+                case 0x4b44:
+                    //a, left, use diff speed
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.02);
+                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0.2);
+                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    break;
+
                 case 0x5b43:
-                    //¡ú
-                case 0x4b43: {
+                    //â†’ wheel speed
+                    chassis_ctrl->mutable_speed_ctrl()->set_angular(-0.1);
+                    break;
+                case 0x4b43:
                     //d, right
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(-1.5);
-                }
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.02);
+                    chassis_ctrl->mutable_speed_ctrl()->set_angular(-0.15);
+                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
                     break;
+
                 case 0x5b42:
-                    //¡ý, backward
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-0.15);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0);
-                case 0x4b42: {
-                    //s, backward
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0);
-                }
+                    //â†“, wheel speed
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-0.02);
                     break;
+                case 0x4b42:
+                    //s, backward
+                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-0.03);
+                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    break;
+
+                case 0x4b45:
+                    //e, stop
+                    chassis_ctrl->mutable_speed_ctrl()->mutable_release_wheels()->set_value(false);
+                    break;
+                case 0x4b60:
+                    //f, enable
+                    chassis_ctrl->mutable_speed_ctrl()->mutable_release_wheels()->set_value(true);
                     //////////////////////////////SPEED CONTROL//////////////////////////////////
+                    break;
+                case 0x4b58:
+                    //g, reverse wheels
+                    chassis_ctrl->mutable_speed_ctrl()->mutable_wheel_reverse()->set_value(true);
+                    //////////////////////////////SPEED CONTROL//////////////////////////////////
+                    break;
+                case 0x4b61:
+                    //g, reverse wheels
+                    chassis_ctrl->mutable_speed_ctrl()->mutable_wheel_reverse()->set_value(false);
+                    //////////////////////////////SPEED CONTROL//////////////////////////////////
+                    break;
 
                 default:
                     AWARN << "Nothing to do!";

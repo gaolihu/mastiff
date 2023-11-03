@@ -26,8 +26,14 @@ namespace parser {
     int RawManage::Init(const ChassisConfig* cc,
             const SensorInfo* si) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "RawManage init, ccp: " << cc <<
+        AINFO << "RawManage init " <<
+            "specific dev driver & data channel" <<
+#if 0
+            ", chs config: " << cc <<
             ", sensor info: " << si;
+#else
+            "";
+#endif
 #endif
         if (chs_conf_ == nullptr) {
             //import chassis config
@@ -110,7 +116,7 @@ namespace parser {
             if (auto s = _FindSerialData(si)) {
                 return s->Start();
             }
-            AERROR << "write uart lidar error!";
+            AERROR << "find uart lidar start error!";
         }
 
         AWARN << "Start TODO for\n" << si->DebugString();
@@ -121,7 +127,27 @@ namespace parser {
     int RawManage::Stop(const SensorInfo* si) {
         if (chs_conf_->has_servo_dev() &&
                 &chs_conf_->servo_dev().si() == si) {
+            //1, CAN driver stop
             can_data_->Stop();
+        } else if (chs_conf_->has_aud_dev() &&
+                &chs_conf_->aud_dev().si() == si) {
+            //2, SOC driver start
+            //return soc_data_->Stop();
+            //TODO
+        } else if (chs_conf_->has_linelaser_dev() &&
+                &chs_conf_->linelaser_dev().si() == si) {
+            //3, UART-linelaser stop
+            if (auto s = _FindSerialData(si)) {
+                return s->Stop();
+            }
+            AERROR << "stop uart linelaser error!";
+        } else if (chs_conf_->has_lidar_dev() &&
+                &chs_conf_->lidar_dev().si() == si) {
+            //3, UART-lidar stop
+            if (auto s = _FindSerialData(si)) {
+                return s->Start();
+            }
+            AERROR << "find uart lidar stop error!";
         }
 
         AWARN << "Stop TODO for\n" << si->DebugString();
@@ -132,7 +158,26 @@ namespace parser {
     int RawManage::Close(const SensorInfo* si) {
         if (chs_conf_->has_servo_dev() &&
                 &chs_conf_->servo_dev().si() == si) {
+            //1, CAN driver close
             can_data_->Close();
+        } else if (chs_conf_->has_aud_dev() &&
+                &chs_conf_->aud_dev().si() == si) {
+            //2, SOC driver close
+            //return soc_data_->Close();
+        } else if (chs_conf_->has_linelaser_dev() &&
+                &chs_conf_->linelaser_dev().si() == si) {
+            //3, UART-linelaser close
+            if (auto s = _FindSerialData(si)) {
+                return s->Close();
+            }
+            AERROR << "close uart linelaser error!";
+        } else if (chs_conf_->has_lidar_dev() &&
+                &chs_conf_->lidar_dev().si() == si) {
+            //3, UART-lidar close
+            if (auto s = _FindSerialData(si)) {
+                return s->Close();
+            }
+            AERROR << "find uart lidar close error!";
         }
 
         AWARN << "Close TODO for\n" << si->DebugString();
@@ -167,11 +212,12 @@ namespace parser {
     size_t RawManage::WriteCan(const int id,
             const uint8_t* info,
             const size_t len) {
+#if 0
         if (info == nullptr || len == 0) {
             AWARN << "no contents to write for CAN!";
             return 0;
         }
-
+#endif
         return can_data_->WritePort(id, info, len);
     }
 
@@ -193,6 +239,8 @@ namespace parser {
 #ifdef CHSS_PKG_DBG
         AINFO << "receive soc data: " << msg.DebugString();
 #endif
+        //TODO  
+        _SocMessageHandle(msg);
     }
 
 } //namespace parser
