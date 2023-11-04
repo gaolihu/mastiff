@@ -1,3 +1,6 @@
+##BZL.DEL:this
+##BZL.DEL:all
+
 package(
     default_visibility = ["//visibility:public"],
 )
