@@ -5,6 +5,11 @@
 #include "modules/chassis/proto/chassis_config.pb.h"
 #include "modules/chassis/proto/input_output_chs.pb.h"
 
+#include "network/wifi_tool.h"
+
+#include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
+#include "modules/chassis/drivers/soc/soc_defs.h"
+
 namespace mstf {
 namespace chss {
 namespace driver {
@@ -14,19 +19,16 @@ namespace driver {
     using namespace protobuf;
     using namespace /*mstf::chss::*/proto;
 
-    using SocDataListener = std::function<void
-        (const Message&)>;
-
     class SocData {
         public:
             SocData(const SocDataListener&);
             virtual ~SocData();
 
-            int Init(const ChassisConfig*);
-            //int Start(proto::EE_DEVICE_TYPE, const std::string = "");
-            int Start();
-            int Stop(proto::EE_DEVICE_TYPE, const std::string = "");
-            int Close(proto::EE_DEVICE_TYPE, const std::string = "");
+            int Init(const SensorInfo* si = nullptr,
+                    const ChassisConfig* = nullptr);
+            int Start(const SensorInfo* si);
+            int Stop(const SensorInfo* si);
+            int Close(const SensorInfo* si);
 
             int SocWrite(const Message&);
 
@@ -38,6 +40,9 @@ namespace driver {
 
             //std::vector<GpioHw*> gpio_hws_;
             SocDataListener soc_listner_ = nullptr;
+
+            chss::network::WifiTool wifi_tool_; // wifi control
+            Demo camera_ctrl_; // camera control
 
             const ChassisConfig* chs_conf_ = nullptr;
     };

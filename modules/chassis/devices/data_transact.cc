@@ -76,7 +76,7 @@ namespace device {
             return -1;
         }
         //TODO
-            
+
         */
 
         //find corresponding sensor and release the message
@@ -164,6 +164,10 @@ namespace device {
             //} else {
                 //AERROR << "convert laser message error!";
             //}
+        } else if (type == "ventura::common_msgs::sensor_msgs::Image"){
+            if(pbmsg_publisher_){
+                pbmsg_publisher_(msg, type);
+            }
         } else {
 #ifdef CHSS_PKG_DBG
             if (type == "McuReportSimpleData") {
@@ -231,7 +235,7 @@ namespace device {
             } else if (type == "CtrlChassResult") {
                 AINFO << "MCU ack control chassis result(0x8200):\n";
             } else if (type == "McuReportFactoryData") {
-                 
+
                 //TODO
                 AINFO << "MCU report factory test:\n" <<
                     msg->DebugString();
@@ -257,9 +261,9 @@ namespace device {
 
 #if 0
                 //6, image
-                CameraCaptureFrame img_d;
+                ventura::common_msgs::sensor_msgs::Image img_d;
                 if (parser->ConvertImageMsg(msg, img_d) == 0) {
-                    auto mmsg = std::make_shared<CameraCaptureFrame>(img_d);
+                    auto mmsg = std::make_shared<ventura::common_msgs::sensor_msgs::Image>(img_d);
                     dispatcher_->DataDispatchImg(mmsg);
                 }
 #endif
@@ -320,6 +324,8 @@ namespace device {
                     set_linear(speed_ctrl.linear());
                 servo_data.mutable_motor_speed()->
                     set_angular(speed_ctrl.angular());
+                servo_data.mutable_motor_speed()->
+                    set_acc_dec(speed_ctrl.acc_dec());
                 servo_data.mutable_motor_speed()->
                     set_use_diff_speed(speed_ctrl.use_diff_speed());
                 if (speed_ctrl.has_wheel_reverse()) {

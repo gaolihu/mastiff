@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include "cyber/common/log.h"
 
 #include "modules/chassis/parser/packer_base_itf.h"
@@ -32,6 +33,9 @@ namespace parser {
         private:
             void ConvertDiffSpeed2Wheel(const ServoSpeed&, WheelSpeed&);
             void ConvertDiffSpeed2Rpm(const ServoSpeed&, WheelRpm&);
+
+            float line_last_ = 0;
+            float angular_last_ = 0;
 
             //////////////////////////////////////////////////////////////////
             //double reading registers
@@ -308,8 +312,10 @@ namespace parser {
                             {DS_MOTOR_DRIVE_MOTOR_AXLE_2,
                             {0x43, 0x6b, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00}});
 #endif
+                /*
                 AWARN << "canOpen speed setting left: " << left <<
                     ", right: " << right;
+                    */
             }
             void FillDataContainerCanOpenAxleEnable(std::vector<std::tuple<const int,
                     const std::vector<uint8_t>>>& td) {

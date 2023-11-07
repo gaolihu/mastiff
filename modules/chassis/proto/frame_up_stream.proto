@@ -33,3 +33,8 @@ message McuAckSensorEnStat {
     google.protobuf.BoolValue pump_en = 11;
     google.protobuf.BoolValue pallet_en = 12;
 }
+
+message WifiResponse {
+    // WIFI操作的回复
+    string wifi_result = 1;
+}

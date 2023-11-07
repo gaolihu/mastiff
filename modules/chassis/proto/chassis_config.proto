@@ -146,6 +146,7 @@ message SensorInfo {
     string name = 1;
     string manufacture_by = 2;
     string type = 3;
+    EE_DEVICE_TYPE dev_type = 4;
 }
 
 message CircularBufSetting {

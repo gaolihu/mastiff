@@ -44,7 +44,7 @@ namespace parser {
     }
 
     int ServoParser::WriteServoMessage(const DownToServoData& data) {
-#if 1
+#if 0
         AINFO << "data to servo motor:\n" << data.DebugString();
 #endif
 #if 0

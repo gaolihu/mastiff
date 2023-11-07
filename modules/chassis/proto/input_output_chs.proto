@@ -249,12 +249,10 @@ message HfChassisRaw {
     google.protobuf.FloatValue rwhl_speed = 28;
 }
 
-message CameraCaptureFrame {
-    //Header header = 1;
-    uint32 height = 2;
-    uint32 width = 3;
-    string format = 4;
-    uint32 size = 5;
-    bytes data = 6;
-}
+
 /////////////////////////Message Output////////////////////////
+
+// 返回给上层的wifi信息
+message WirelessInfoStr {
+    string info = 1;
+}

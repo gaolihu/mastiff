@@ -262,6 +262,28 @@ http_archive(
     build_file = "@//3rd_party/wildcards:wc.BUILD",
 )
 
+http_archive(
+    name = "angstrong_camera",
+    sha256 = "802ac6a1e2ddce53b6719fc05cdd72dbbab244cd83988df1147168ec274acb25",
+    strip_prefix = "angstrong_camera",
+    urls = [
+        #"@REMOTE_HTTP_SERVER@/com_google_protobuf/v3.14.0.tar.gz",
+        "http://172.17.0.2/third_party/angstrong_camera/angstrong_camera.tgz",
+    ],
+    build_file = "@//3rd_party/angstrong:as.BUILD",
+)
+
+http_archive(
+    name = "opencv4_8",
+    sha256 = "c7d33822326972c7a2675490b9a1d9ab5fd6abbc548d4839163ca5eee470f155",
+    strip_prefix = "opencv-4.8.0",
+    urls = [
+        #"@REMOTE_HTTP_SERVER@/com_google_protobuf/v3.14.0.tar.gz",
+        "http://172.17.0.2/third_party/opencv/opencv-4.8.0.tgz",
+    ],
+    build_file = "@//3rd_party/opencv:cv.BUILD",
+)
+
 # nginx build
 load("//3rd_party/fringe_nginx:bazel/fringe_nginx.bzl", "nginx_repo")
 nginx_repo()

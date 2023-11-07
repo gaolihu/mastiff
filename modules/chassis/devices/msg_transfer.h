@@ -29,8 +29,9 @@ namespace device {
     using LpaPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>>;
     using CmdPublisher = std::shared_ptr<Writer<ChassisMixData>>;
     using CfdPublisher = std::shared_ptr<Writer<ChassisFacotryData>>;
-    using ImgPublisher = std::shared_ptr<Writer<CameraCaptureFrame>>;
+    using ImgPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::Image>>;
     using HcrPublisher = std::shared_ptr<Writer<HfChassisRaw>>;
+    using WiFiPublisher = std::shared_ptr<Writer<WirelessInfoStr>>;
 
     class MsgTransfer {
         public:
@@ -50,7 +51,8 @@ namespace device {
                     const CmdPublisher& cmd,
                     const CfdPublisher& cfd,
                     const ImgPublisher& ccf,
-                    const HcrPublisher& hcr) {
+                    const HcrPublisher& hcr,
+                    const WiFiPublisher& wifi) {
                 AINFO << "setup upstream channel dispathers";
                 imu_publisher_ = imu;
                 odom_publisher_ = odom;
@@ -59,6 +61,7 @@ namespace device {
                 cfd_publisher_ = cfd;
                 img_publisher_ = ccf;
                 hcr_publisher_ = hcr;
+                wifi_publisher_ = wifi;
 
                 DataTransact::Instance()->RegisterPublisher(
                         [&](Message* m, const std::string& type)->int {
@@ -193,9 +196,9 @@ namespace device {
                 return -1;
             }
 
-            int DataDispatchImg(const std::shared_ptr<CameraCaptureFrame>& img) {
+            int DataDispatchImg(const std::shared_ptr<ventura::common_msgs::sensor_msgs::Image>& img) {
 #ifdef RLS_DATA_PEEP
-                AINFO << "release CameraCaptureFrame:\n"
+                AINFO << "release ventura::common_msgs::sensor_msgs::Image:\n"
 #if 0
                     << img->DebugString();
 #else
@@ -205,7 +208,7 @@ namespace device {
                 if (img_publisher_)
                     return img_publisher_->Write(img);
 
-                AWARN << "release CameraCaptureFrame error:\n" <<
+                AWARN << "release ventura::common_msgs::sensor_msgs::Image error:\n" <<
                     img->DebugString();
 
                 return -1;
@@ -237,6 +240,7 @@ namespace device {
             CfdPublisher cfd_publisher_ = nullptr;
             ImgPublisher img_publisher_ = nullptr;
             HcrPublisher hcr_publisher_ = nullptr;
+            WiFiPublisher wifi_publisher_{nullptr};
 
 #ifdef KEY_SIMULATE
             std::shared_ptr<KeySimulate> key_sim_ = nullptr;

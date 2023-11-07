@@ -41,9 +41,11 @@ message SpeedCtrl {
     float linear = 1;
     float angular = 2;
 
-    bool use_diff_speed = 3;
-    google.protobuf.BoolValue wheel_reverse = 4;
-    google.protobuf.BoolValue release_wheels = 5;
+    float acc_dec = 3;
+
+    bool use_diff_speed = 4;
+    google.protobuf.BoolValue wheel_reverse = 5;
+    google.protobuf.BoolValue release_wheels = 6;
 }
 
 message WheelSpeed {
@@ -82,6 +84,7 @@ message WetSuckCtrl {
     uint32 wet_suck_val = 1;
 }
 
+//
 message MopCtrl {
     int32 mop_val = 1;
 }
@@ -190,18 +193,47 @@ message McuConfigSetting {
 /*===================== Config ======================*/
 
 
-/*===================== 1, SOC Packer ======================*/
+/*============================ SOC Packer ==============================*/
 message CameraCtrl {
     google.protobuf.BoolValue sw = 1;
     google.protobuf.Int32Value flip = 2;
+    bool capture = 3;
+    bool video = 4;
+}
+
+enum WirelessInfoType{
+    WIFI_GET_MODE = 0;             // none, ap, sta, sniffer
+    WIFI_GET_IP = 1;
+    WIFI_GET_MAC = 2;
+    WIFI_GET_DNS = 3;
+    WIFI_GET_WPA_INFO = 4;         // wpa_suppclient.conf
+    WIFI_GET_NAME = 5;             // wifi name
+    WIFI_GET_ROUTER_MAC = 6;       // router mac
+    WIFI_GET_STATUS = 7;           // wpa_cli status
+    WIFI_GET_SCAN_LIST = 8;        // wpa scan wifi results
+    WIFI_GET_RECONNECT = 9;
+
+
+    //以下运行会有延时几秒
+    WIFI_DISCONNECT = 10;
+    WIFI_CHECK_CONNECTION = 11;    // 通过ping 判断是否能连接外网
+    WIFI_TEST_SPEED = 12;          // 获取ping的平均延迟, 单位 ms
+
+    WIFI_CONNECT = 13;             // 需要同时设置wifi ssid和密码
+    WIFI_CREATE_AP = 14;           // 同13
 }
 
 message WirelessCtrl {
     google.protobuf.BoolValue wifi_sw = 1;
     google.protobuf.BoolValue four_g_sw = 2;
+    google.protobuf.BoolValue blue_th_sw = 3; // 蓝牙
+    google.protobuf.BoolValue red_light_sw = 4; // 红外
 
-    string wifi_ssid = 3;
-    string wifi_pswd = 4;
+    // 收到info查询指令后返回string信息
+    WirelessInfoType get_wifi_info =5;
+
+    string wifi_ssid = 6;
+    string wifi_pswd = 7;
 }
 
 //audio
@@ -258,6 +290,7 @@ message ChannelSwitch {
     google.protobuf.BoolValue cfd_sw = 5;
     google.protobuf.BoolValue img_sw = 6;
     google.protobuf.BoolValue hcr_sw = 7;
+    google.protobuf.BoolValue wifi_sw = 8;
 }
 
 message DevicesManager {
@@ -344,8 +377,9 @@ message ServoConfig {
 message ServoSpeed {
     float linear = 1;
     float angular = 2;
-    bool use_diff_speed = 3;
-    google.protobuf.BoolValue wheel_reverse = 4;
+    float acc_dec = 3;
+    bool use_diff_speed = 4;
+    google.protobuf.BoolValue wheel_reverse = 5;
 }
 
 message DownToServoData {

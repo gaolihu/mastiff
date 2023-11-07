@@ -34,7 +34,7 @@ namespace parser {
         AINFO << "packing diff speed, " <<
             "linear: " << sd.motor_speed().linear() <<
             "m/s, angular: " << sd.motor_speed().angular() <<
-            "rad/s";
+            "rad/s, dec/acc: " << sd.motor_speed().acc_dec();
 #endif
 
         WheelRpm rpm;
@@ -310,12 +310,68 @@ namespace parser {
 
     void ServoPacker::ConvertDiffSpeed2Rpm(const
             ServoSpeed& ds, WheelRpm& wr) {
-        float vl = (ds.linear() - WHEEL_DISTANCE *
+        float vl = 0.f, vr = 0.f;
+#if 1
+        if (ds.acc_dec() != 0) {
+            //accelerate / decelerate
+            if (std::abs(std::abs(line_last_) + ds.acc_dec()) < 0.4) {
+                if ((line_last_ > 0 && ds.acc_dec() > 0) ||
+                    //+ acc
+                        (line_last_ > 0 && ds.acc_dec() < 0)) {
+                    //+ dec
+                    vl = (line_last_ + ds.acc_dec() - WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                    vr = (line_last_ + ds.acc_dec() + WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                } else if ((line_last_ < 0 && ds.acc_dec() > 0)) {
+                    //- acc
+                    vl = (line_last_ - ds.acc_dec() - WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                    vr = (line_last_ - ds.acc_dec() + WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                } else if ((line_last_ < 0 && ds.acc_dec() < 0)) {
+                    //- dec
+                    vl = (line_last_ + ds.acc_dec() - WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                    vr = (line_last_ + ds.acc_dec() + WHEEL_DISTANCE *
+                            angular_last_ / 2);
+                }
+
+                wr.set_left_rpm((int)60 * vl / (M_PI * WHEEL_DIAMETER));
+                wr.set_right_rpm((int)60 * vr / (M_PI * WHEEL_DIAMETER));
+
+                line_last_ += ds.acc_dec();
+
+                AWARN << "vehicle acc/dec: " << ds.acc_dec() <<
+                    ", dest speed: " << line_last_ << "m/s";
+            } else {
+                AWARN << "SPEED TOO FAST!!! DANGEROUS!!! IGNORE!!!";
+                vl = (line_last_ - WHEEL_DISTANCE *
+                        angular_last_ / 2);
+                vr = (line_last_ + WHEEL_DISTANCE *
+                        angular_last_ / 2);
+                wr.set_left_rpm((int)60 * vl / (M_PI * WHEEL_DIAMETER));
+                wr.set_right_rpm((int)60 * vr / (M_PI * WHEEL_DIAMETER));
+            }
+        } else {
+            vl = (ds.linear() - WHEEL_DISTANCE *
+                    ds.angular() / 2);
+            vr = (ds.linear() + WHEEL_DISTANCE *
+                    ds.angular() / 2);
+            wr.set_left_rpm((int)60 * vl / (M_PI * WHEEL_DIAMETER));
+            wr.set_right_rpm((int)60 * vr / (M_PI * WHEEL_DIAMETER));
+
+            line_last_ = ds.linear();
+            angular_last_ = ds.angular();
+        }
+#else
+        vl = (ds.linear() - WHEEL_DISTANCE *
                 ds.angular() / 2);
-        float vr = (ds.linear() + WHEEL_DISTANCE *
+        vr = (ds.linear() + WHEEL_DISTANCE *
                 ds.angular() / 2);
         wr.set_left_rpm((int)60 * vl / (M_PI * WHEEL_DIAMETER));
         wr.set_right_rpm((int)60 * vr / (M_PI * WHEEL_DIAMETER));
+#endif
     }
 
 } //namespace parser

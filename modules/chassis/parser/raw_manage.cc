@@ -26,13 +26,12 @@ namespace parser {
     int RawManage::Init(const ChassisConfig* cc,
             const SensorInfo* si) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "RawManage init " <<
-            "specific dev driver & data channel" <<
+        AINFO << "bind specific driver & data channel" <<
 #if 0
             ", chs config: " << cc <<
             ", sensor info: " << si;
 #else
-            "";
+            ": " << si->name();
 #endif
 #endif
         if (chs_conf_ == nullptr) {
@@ -82,15 +81,46 @@ namespace parser {
             sis_.emplace_back(si);
             serial_data_[si] = s;
         }
+        if (chs_conf_->has_imu_dev() &&
+                &chs_conf_->imu_dev().si() == si){
+            auto s = new SerialData(
+                std::bind(&RawManage::OnRecvUart, this,
+                    std::placeholders::_1, std::placeholders::_2),
+                &chs_conf_->imu_dev().uart_conf());
+            s->Init();
+            sis_.emplace_back(si);
+            serial_data_[si] = s;
+        }
 
-        //3-1, soc - audio
+        //4-0, soc - set chs config
+        soc_data_->Init(0, cc);
+
+        //4-1, soc - audio
         if (chs_conf_->has_aud_dev() &&
                 &chs_conf_->aud_dev().si() == si) {
-            soc_data_->Init(cc);
+            soc_data_->Init(&chs_conf_->aud_dev().si());
+        }
+
+        //4-2, soc - network
+        if (chs_conf_->has_wireless_dev() &&
+                &chs_conf_->wireless_dev().si() == si) {
+            soc_data_->Init(&chs_conf_->wireless_dev().si());
+        }
+
+        //4-3, soc - camera
+        if (chs_conf_->has_camera_dev() &&
+                &chs_conf_->camera_dev().si() == si) {
+            soc_data_->Init(&chs_conf_->camera_dev().si());
         }
 
         //3-2, soc - network
-        // TODO         
+        if(chs_conf_->has_wireless_dev() && &chs_conf_->wireless_dev().si() == si){
+            sis_.emplace_back(si);
+        }
+        //3-3, soc - camera
+        if(chs_conf_->has_camera_dev() && &chs_conf_->camera_dev().si() == si){
+            sis_.emplace_back(si);
+        }
         return 0;
     }
 
@@ -99,13 +129,9 @@ namespace parser {
                 &chs_conf_->servo_dev().si() == si) {
             //1, CAN driver start
             return can_data_->Start();
-        } else if (chs_conf_->has_aud_dev() &&
-                &chs_conf_->aud_dev().si() == si) {
-            //2, SOC driver start
-            return soc_data_->Start();
         } else if (chs_conf_->has_linelaser_dev() &&
                 &chs_conf_->linelaser_dev().si() == si) {
-            //3, UART-linelaser start
+            //2, UART-linelaser start
             if (auto s = _FindSerialData(si)) {
                 return s->Start();
             }
@@ -117,6 +143,27 @@ namespace parser {
                 return s->Start();
             }
             AERROR << "find uart lidar start error!";
+        } else if(chs_conf_->has_imu_dev() &&
+                &chs_conf_->imu_dev().si() == si) {
+            if(auto s = _FindSerialData(si)) {
+                return s->Start();
+            }
+            AERROR << "find uart IMU start error!";
+        } else if (chs_conf_->has_wireless_dev() &&
+                &chs_conf_->wireless_dev().si() == si) {
+            //4 - 1, SOC driver - network start
+            //TODO
+            return soc_data_->Start(si);
+        } else if (chs_conf_->has_aud_dev() &&
+                &chs_conf_->aud_dev().si() == si) {
+            //4 - 2, SOC driver - audio start
+            //TODO
+            return soc_data_->Start(si);
+        } else if (chs_conf_->has_camera_dev() &&
+                &chs_conf_->camera_dev().si() == si) {
+            //4 - 3, SOC driver - camera start
+            //TODO
+            return soc_data_->Start(si);
         }
 
         AWARN << "Start TODO for\n" << si->DebugString();
@@ -132,7 +179,7 @@ namespace parser {
         } else if (chs_conf_->has_aud_dev() &&
                 &chs_conf_->aud_dev().si() == si) {
             //2, SOC driver start
-            //return soc_data_->Stop();
+            // return soc_data_->Stop();
             //TODO
         } else if (chs_conf_->has_linelaser_dev() &&
                 &chs_conf_->linelaser_dev().si() == si) {
@@ -145,9 +192,15 @@ namespace parser {
                 &chs_conf_->lidar_dev().si() == si) {
             //3, UART-lidar stop
             if (auto s = _FindSerialData(si)) {
-                return s->Start();
+                return s->Stop();
             }
             AERROR << "find uart lidar stop error!";
+        } else if (chs_conf_->has_imu_dev() &&
+                &chs_conf_->imu_dev().si() == si) {
+            if (auto s = _FindSerialData(si)) {
+                return s->Stop();
+            }
+            AERROR << "find uart IMU stop error!";
         }
 
         AWARN << "Stop TODO for\n" << si->DebugString();
@@ -163,7 +216,7 @@ namespace parser {
         } else if (chs_conf_->has_aud_dev() &&
                 &chs_conf_->aud_dev().si() == si) {
             //2, SOC driver close
-            //return soc_data_->Close();
+            //return soc_data_->Close(si);
         } else if (chs_conf_->has_linelaser_dev() &&
                 &chs_conf_->linelaser_dev().si() == si) {
             //3, UART-linelaser close
@@ -178,6 +231,12 @@ namespace parser {
                 return s->Close();
             }
             AERROR << "find uart lidar close error!";
+        } else if (chs_conf_->has_imu_dev() &&
+                &chs_conf_->imu_dev().si() == si ) {
+            if (auto s = _FindSerialData(si)) {
+                return s->Close();
+            }
+            AERROR << "find uart IMU close error!";
         }
 
         AWARN << "Close TODO for\n" << si->DebugString();
@@ -239,7 +298,7 @@ namespace parser {
 #ifdef CHSS_PKG_DBG
         AINFO << "receive soc data: " << msg.DebugString();
 #endif
-        //TODO  
+        //TODO
         _SocMessageHandle(msg);
     }
 

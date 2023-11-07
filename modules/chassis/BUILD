@@ -9,6 +9,27 @@ package(default_visibility = ["//visibility:public"],)
 
 CHSS_COPTS = '-DCHSS_PKG_DBG'
 
+### test ###
+cc_binary(
+    name = "gs2_serial_read",
+    srcs = [
+        "test/gs2_serial_read.cc",
+    ],
+    copts = [
+        '-DCHSS_PKG',
+        '-DPKG_NAME=\\"chss_pkg\\"',
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":chassis",
+        ":serial_data",
+        ":uart_drive",
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:input_output_chs_cc_proto",
+    ]
+)
+
 #### main target ####
 cc_library(
     name = "chassis",
@@ -138,6 +159,7 @@ cc_library(
         ":dev_camera",
         ":dev_gpio",
         ":line_laser",
+        ":dev_imu",
     ]
 )
 
@@ -357,6 +379,27 @@ cc_library(
 )
 
 cc_library(
+    name = "dev_imu",
+    srcs = [
+        "devices/dev_libs/dev_imu.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/dev_imu.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        ":device_base_itf",
+        ":data_transact",
+
+        ":imu_parser",
+    ]
+)
+
+cc_library(
     name = "dev_lidar",
     srcs = [
         "devices/dev_libs/dev_lidar.cc",
@@ -544,6 +587,24 @@ cc_library(
 )
 
 cc_library(
+    name = "imu_parser",
+    srcs = [
+        "parser/parse_libs/imu_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/imu_parser.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        ":parser_base_itf",
+    ]
+)
+
+cc_library(
     name = "parser_base_itf",
     srcs = [
     ],
@@ -561,6 +622,7 @@ cc_library(
         ":raw_packer",
         ":servo_packer",
         ":llaser_packer",
+        ":imu_packer",
         ":circular_buffer",
     ]
 )
@@ -634,6 +696,24 @@ cc_library(
 )
 
 cc_library(
+    name = "imu_packer",
+    srcs = [
+        "parser/pack_libs/imu_packer.cc",
+    ],
+    hdrs = [
+        "parser/pack_libs/imu_packer.h",
+        "parser/parse_libs/ydlidar_protocol.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        ":packer_base_itf",
+    ]
+)
+
+cc_library(
     name = "packer_base_itf",
     srcs = [
     ],
@@ -673,13 +753,27 @@ cc_library(
 ######## ######## 3 drivers ######## ########
 ######## can ########
 cc_library(
+    name = "driver_data_itf",
+    srcs = [
+    ],
+    hdrs = [
+        "drivers/driver_data_itf.h",
+    ],
+    copts = [
+        '-DUSE_CYBER_TIMER',
+    ],
+    deps = [
+        "//cyber",
+    ]
+)
+
+cc_library(
     name = "can_data",
     srcs = [
         "drivers/can/can_data.cc"
     ],
     hdrs = [
         "drivers/can/can_data.h",
-        "drivers/driver_data_itf.h",
     ],
     copts = [
         CHSS_COPTS,
@@ -687,6 +781,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
+        ":driver_data_itf",
         ":can_ops",
     ]
 )
@@ -736,13 +831,55 @@ cc_library(
     ],
     hdrs = [
         "drivers/soc/soc_data.h",
-        "drivers/driver_data_itf.h",
     ],
     copts = [
         CHSS_COPTS,
     ],
     deps = [
         "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:input_output_chs_cc_proto",
+        ":driver_data_itf",
+        ":network",
+        ":camera",
+    ]
+)
+
+cc_library(
+    name = "network",
+    srcs = glob([
+        "drivers/soc/network/*.cc",
+    ]),
+    hdrs = glob([
+        "drivers/soc/network/*.h",
+    ]),
+    deps = [
+        "//cyber",
+        #"//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:input_output_chs_cc_proto",
+    ]
+)
+
+cc_library(
+    name = "camera",
+    deps = [
+        ":angstrong_camera_node",
+    ]
+)
+
+cc_library(
+    name = "angstrong_camera_node",
+    srcs = glob([
+        "drivers/soc/camera/angstrong_camera_node/*.cc",
+    ]),
+    hdrs = glob([
+        "drivers/soc/soc_defs.h",
+        "drivers/soc/camera/angstrong_camera_node/*.h",
+    ]),
+    deps = [
+        "//cyber",
+        "@opencv4_8//:opencv4",
+        "@angstrong_camera//:angstrong",
         "//modules/chassis/proto:chassis_config_cc_proto",
         "//modules/chassis/proto:input_output_chs_cc_proto",
     ]
@@ -757,7 +894,6 @@ cc_library(
     ],
     hdrs = [
         "drivers/uart/serial_data.h",
-        "drivers/driver_data_itf.h",
     ],
     copts = [
         CHSS_COPTS,
@@ -766,6 +902,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
+        ":driver_data_itf",
         ":uart_drive",
     ]
 )

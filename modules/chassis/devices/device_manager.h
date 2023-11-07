@@ -13,6 +13,7 @@
 #include "modules/chassis/devices/dev_libs/dev_camera.h"
 #include "modules/chassis/devices/dev_libs/dev_gpio.h"
 #include "modules/chassis/devices/dev_libs/line_laser.h"
+#include "modules/chassis/devices/dev_libs/dev_imu.h"
 
 namespace mstf {
 namespace chss {
@@ -53,6 +54,7 @@ namespace device {
             std::unique_ptr<DeviceCamera> dev_camera_ = nullptr;
             std::unique_ptr<DeviceGpio> dev_gpio_ = nullptr;
             std::unique_ptr<LineLaser> line_laser_ = nullptr;
+            std::unique_ptr<DeviceIMU> dev_imu_ = nullptr;
 
             //devices & device indicator map
             std::unordered_map<SensorIndicator*, DeviceBaseItf*>

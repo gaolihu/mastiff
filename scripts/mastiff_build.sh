@@ -292,6 +292,7 @@ function main() {
         sed  "/proto/d" |
         sed  "/cyber/d" |
         sed  "/docker/d" |
+        sed  "/aventurier_common_msgs/d" |
         sed  "/cartographer_ros_msgs/d" |
         sed  "/3rd_party/d" |
         grep "$1" | sort)
@@ -307,6 +308,7 @@ function main() {
         sed  "/proto/d" |
         sed  "/cyber/d" |
         sed  "/docker/d" |
+        sed  "/aventurier_common_msgs/d" |
         sed  "/cartographer_ros_msgs/d" |
         sed  "/3rd_party/d" |
         sed "s#\.#/#g" |\

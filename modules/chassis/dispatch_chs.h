@@ -26,9 +26,11 @@ namespace chss {
     using CfdPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<ChassisFacotryData>>()>;
     using ImgPublisherGenerator =
-        std::function<std::shared_ptr<cyber::Writer<CameraCaptureFrame>>()>;
+        std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::sensor_msgs::Image>>()>;
     using HcrPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<HfChassisRaw>>()>;
+    using WiFiPublisherGenerator =
+        std::function<std::shared_ptr<cyber::Writer<WirelessInfoStr>>()>;
 
     class DispatchChs {
         public:
@@ -50,17 +52,23 @@ namespace chss {
                         return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::PointCloud>(
                                 chs_topic_conf_->output_lpa_topic_name());
                         });
+                RegisterImuPublisher([&]()->std::shared_ptr<Writer<::proto::IMUdata>> {
+                        return publish_node_->CreateWriter<::proto::IMUdata>(
+                            chs_topic_conf_->output_imu_topic_name());
+                        });
 
                 AINFO << "turn on odom channel for testing";
                 OdomFlowSwitch(true);
                 AINFO << "turn on lidar channel for testing";
                 LpaFlowSwitch(true);
+                ImuFlowSwitch(true);
+                AINFO << "turn on IMU channel for testing";
 
                 MsgTransfer::Instance()->SetTransferPublishers(
                         imu_publisher_, odom_publisher_,
                         lpa_publisher_, cmd_publisher_,
                         cfd_publisher_, img_publisher_,
-                        hcr_publisher_);
+                        hcr_publisher_, wifi_publisher_);
             }
             virtual ~DispatchChs() final {
 #ifdef CHSS_PKG_DBG
@@ -149,6 +157,9 @@ namespace chss {
                 if (cs.has_hcr_sw()) {
                     HcrFlowSwitch(cs.hcr_sw().value());
                 }
+                if(cs.has_wifi_sw()){
+                    WiFiFlowSwitch(cs.wifi_sw().value());
+                }
             }
 
             template <typename MessageT> bool ControlFlow(const bool);
@@ -227,9 +238,9 @@ namespace chss {
             inline bool ImgFlowSwitch(const bool sw) {
                 bool ret = false;
                 if (sw)
-                    ret = ConstructPublishChannel<CameraCaptureFrame>();
+                    ret = ConstructPublishChannel<ventura::common_msgs::sensor_msgs::Image>();
                 else
-                    ret = UnconstructPublishChannel<CameraCaptureFrame>();
+                    ret = UnconstructPublishChannel<ventura::common_msgs::sensor_msgs::Image>();
 #ifdef CHSS_PKG_DBG
                 AINFO << "chassis img publish channel " <<
                     (sw ? "construct" : "deconstruct") <<
@@ -251,6 +262,15 @@ namespace chss {
 #endif
                 return ret;
             }
+            inline bool WiFiFlowSwitch(const bool sw){
+                bool ret = false;
+                if(sw){
+                    ConstructPublishChannel<WirelessInfoStr>();
+                }else{
+                    UnconstructPublishChannel<WirelessInfoStr>();
+                }
+                return ret;
+            }
 
             template <typename MessageT> bool ConstructPublishChannel();
             template <typename MessageT> bool UnconstructPublishChannel();
@@ -263,6 +283,7 @@ namespace chss {
             CfdPublisherGenerator cfd_publisher_generator_ = nullptr;
             ImgPublisherGenerator img_publisher_generator_ = nullptr;
             HcrPublisherGenerator hcr_publisher_generator_ = nullptr;
+            WiFiPublisherGenerator wifi_publisher_generator_{nullptr};
 
             ImuPublisher imu_publisher_ = nullptr;
             OdomPublisher odom_publisher_ = nullptr;
@@ -271,6 +292,7 @@ namespace chss {
             CfdPublisher cfd_publisher_ = nullptr;
             ImgPublisher img_publisher_ = nullptr;
             HcrPublisher hcr_publisher_ = nullptr;
+            WiFiPublisher wifi_publisher_{nullptr};
 
             int32_t hcr_cnt = 0;
 
@@ -303,11 +325,14 @@ namespace chss {
                 cyber::message::GetMessageName<ChassisFacotryData>()) {
             return CfdFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<CameraCaptureFrame>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Image>()) {
             return ImgFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<HfChassisRaw>()) {
             HcrFlowSwitch(sw);
+        } else if(cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<WirelessInfoStr>()){
+            WiFiFlowSwitch(sw);
         } else {
             ImuFlowSwitch(sw);
             OdomFlowSwitch(sw);
@@ -398,7 +423,7 @@ namespace chss {
                 return false;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<CameraCaptureFrame>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Image>()) {
             if (img_publisher_) {
                 AERROR << "img publish channel aready build!";
                 return false;
@@ -423,6 +448,18 @@ namespace chss {
                 return true;
             } else {
                 AERROR << "hcr publish channel generator null!";
+                return false;
+            }
+        } else if(cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<WirelessInfoStr>()) {
+            if(wifi_publisher_){
+                AERROR << "wifi publish channel aready build!";
+                return false;
+            }
+            if(wifi_publisher_generator_) {
+                wifi_publisher_ = wifi_publisher_generator_();
+                return true;
+            }else{
                 return false;
             }
         }
@@ -470,7 +507,7 @@ namespace chss {
                 return true;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<CameraCaptureFrame>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Image>()) {
             if (img_publisher_) {
                 img_publisher_.reset();
                 return true;
@@ -479,6 +516,12 @@ namespace chss {
                 cyber::message::GetMessageName<HfChassisRaw>()) {
             if (hcr_publisher_) {
                 hcr_publisher_.reset();
+                return true;
+            }
+        } else if (cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<WirelessInfoStr>()) {
+            if(wifi_publisher_){
+                wifi_publisher_.reset();
                 return true;
             }
         }

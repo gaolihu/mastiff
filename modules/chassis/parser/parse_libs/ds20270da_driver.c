@@ -506,6 +506,9 @@ void parse_servo_motor_info(const uint8_t* addr, size_t len,
         //status for axle-2 : left
         *status_left = status;
         return;
+    } else if (id == 0x4001 || id == 0x4002) {
+        //ignore speed control echo
+        return;
     }
 
     if (addr[2] == DS_MOTOR_ACK_READ_CMD) {

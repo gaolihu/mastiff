@@ -3,6 +3,7 @@ gpio_dev {
         name: "RK-Platform-GPIO"
         manufacture_by: "RK"
         type: "RK3588"
+        dev_type: E_DEVICE_GPIO
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -58,6 +59,7 @@ pwm_dev {
         name: "RK-Platform-PWM"
         manufacture_by: "RK"
         type: "RK3588"
+        dev_type: E_DEVICE_PWM
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -105,6 +107,7 @@ lidar_dev {
         name: "LDS-Lidar"
         manufacture_by: "PeaceCat"
         type: "LDS-50C-R"
+        dev_type: E_DEVICE_LIDAR
     }
     uart_conf {
         dev_setting {
@@ -141,11 +144,40 @@ lidar_dev {
     pwm_unique_id: {
         value: 13
     }
-    used: true
+    used: false
 }
 
 imu_dev {
-    used: false
+    si {
+        name: "CC-IMU-Chs"
+        manufacture_by: "CC"
+        type: "CruizCore-R6082V"
+    }
+    uart_conf {
+        dev_setting {
+            uart_dev: "/dev/ttyS1"
+            baud: 115200
+            data_bits: 8
+            stop_bits: 1
+            parity: 110
+            once_read_size: 64
+            serial_read_freq: 25
+            serial_read_timeout: 1000
+        }
+        buf_setting{
+            parser_freq: 1000
+            circle_name: "cbf-imu"
+            circlular_size: 1024
+        }
+        dev_name: "dev-IMU"
+    }
+    sn_ind {
+        dev_main: EE_DEV_MAIN_MCU
+        type: E_DEVICE_IMU
+        port: E_COMM_PORT_SERIAL
+        status: E_STATUS_UNINITIALIZED
+    }
+    used: true
 }
 
 dtof_dev {
@@ -157,6 +189,7 @@ camera_dev {
         name: "Camera"
         manufacture_by: "Unknown"
         type: "USB-camera"
+        dev_type: E_DEVICE_CAMERA
     }
     ca {
         height: 100
@@ -187,7 +220,7 @@ camera_dev {
             }
         ]
     }
-    used: false
+    used: true
 }
 
 mcu_dev {
@@ -195,6 +228,7 @@ mcu_dev {
         name: "GD-MCU-Chs"
         manufacture_by: "GD"
         type: "GD32F305VET6"
+        dev_type: E_DEVICE_MCU
     }
     uart_conf {
         dev_setting {
@@ -276,6 +310,7 @@ tty_dev {
         name: "Device manage"
         manufacture_by: "SilverStar"
         type: "mastiff"
+        dev_type: E_DEVICE_TTY
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -292,6 +327,7 @@ aud_dev {
         name: "Audio-Play"
         manufacture_by: "RK3588"
         type: "RK806"
+        dev_type: E_DEVICE_AUDIO
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -346,7 +382,7 @@ aud_dev {
             }
         ]
     }
-    used: true
+    used: false
 }
 
 servo_dev {
@@ -354,6 +390,7 @@ servo_dev {
         name: "Servo-Motor"
         manufacture_by: "Syntron"
         type: "DS20270DA"
+        dev_type: E_DEVICE_MOTOR
     }
     can_conf {
         dev_setting {
@@ -385,14 +422,15 @@ servo_dev {
         port: E_COMM_PORT_CAN
         status: E_STATUS_UNINITIALIZED
     }
-    used: true
+    used: false
 }
 
 wireless_dev {
     si {
-        name: "Wifi-4G"
-        manufacture_by: "AVT"
-        type: "typical"
+        name: "Wifi-Module"
+        manufacture_by: "AMPACK"
+        type: "AP6275P"
+        dev_type: E_DEVICE_WIRELESS
     }
     sn_ind {
         dev_main: EE_DEV_MAIN_SOC
@@ -400,14 +438,15 @@ wireless_dev {
         port: E_COMM_PORT_SDIO
         status: E_STATUS_UNINITIALIZED
     }
-    used: false
+    used: true
 }
 
 linelaser_dev {
     si {
         name: "Line-Laser"
         manufacture_by: "AVT-Line-Laser"
-        type: "typical"
+        type: "EAI"
+        dev_type: E_DEVICE_LINELASER
     }
     uart_conf {
         dev_setting {

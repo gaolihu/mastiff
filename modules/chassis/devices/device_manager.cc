@@ -104,6 +104,14 @@ namespace device {
                 dynamic_cast<DeviceBaseItf*>(line_laser_.get());
         }
 
+        //9, IMU device
+        if(chs_conf_->has_imu_dev() &&
+                chs_conf_->mutable_imu_dev()->used()){
+            dev_imu_ = std::make_unique<DeviceIMU>(cc.get());
+            sensor_ind_infos_pair_[chs_conf_->mutable_imu_dev()->mutable_sn_ind()]
+            = dynamic_cast<DeviceBaseItf*>(dev_imu_.get());
+        }
+
 #if 0
         auto start_time = std::chrono::steady_clock::now();
         //1, gpio

@@ -6,6 +6,8 @@ source "${TOPDIR}/scripts/mastiff.bashrc"
 TOPDIR=`pwd`
 GCC_LIB=$TOPDIR/.cache_build/tool_chains/gcc-6.4.1-x86_64-arm-aarch64-linux-gnu/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/lib64/
 
+cd $TOPDIR
+
 rm -fr out/bin/
 rm -fr out/lib/
 rm -fr out/conf/
@@ -70,7 +72,7 @@ function choose_plat()
 #choose_plat
 
 # chassis
-cp modules/chassis/conf/ChassisConfigRK3588.pb.txt out/conf/ChassisConfigRK3588.conf -fr
+cp modules/chassis/conf/ChassisConfigRK3588.pb.txt out/conf/ChassisConfig.conf -fr
 if [ $? -eq 0 ]; then
     good "copy ChassisConfigRK3588 config OK!"
 else
@@ -127,6 +129,24 @@ if [ $? -eq 0 ]; then
 else
     warning "copy aarch so lib files NG!"
 fi
+
+# copy angstrong camera lib
+find bazel-bin/_solib_aarch64/ -not -path '*_objs/*' -name *.so | xargs cp -ft out/lib
+if [ $? -eq 0 ]; then
+    good "copy angstrong so lib files OK!"
+else
+    warning "copy angstrong so lib files NG!"
+fi
+
+# copy opencv libs
+find bazel-mastiff/external/opencv4_8/lib/ -name "*.so*" -exec cp -frd {} out/lib/ \;
+[[ $? -eq 0 ]] &&
+    {
+        good "copy openCV so lib files OK1!";
+    } ||
+    {
+        warning "copy openCV so lib files NG!";
+    }
 
 # running scripts
 cp scripts/mastiff_run_arm.sh out
