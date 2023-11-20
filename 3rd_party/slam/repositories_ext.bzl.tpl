@@ -20,13 +20,11 @@ def cartographer_repositories():
     _maybe(
         http_archive,
         sha256 = "3ef7f5082a035c747f5f0a49d810c722fdff1116b6d853285750ddebd167cc79",
-#        sha256 = "824fcbc4fc435b4b0d24a64d7abd94e0c84119666c9509cb0eb4c3ef60f0c162",
-        # f364c077cf94e479359f09cd88dec70d1420474b, 2023/8/11
         name = "com_github_nelhage_rules_boost",
         strip_prefix = "rules_boost-f364c077cf94e479359f09cd88dec70d1420474b",
         urls = [
             "https://github.com/nelhage/rules_boost/archive/f364c077cf94e479359f09cd88dec70d1420474b.zip",
-#            "http://10.10.3.27/third_party/com_github_nelhage_rules_boost/rules_boost-f364c077cf94e479359f09cd88dec70d1420474b.tgz",
+            #"http://172.17.0.2/third_party/com_github_nelhage_rules_boost/f364c077cf94e479359f09cd88dec70d1420474b.zip",
         ],
     )
 
@@ -262,8 +260,8 @@ def cartographer_repositories():
 
     _maybe(
         http_archive,
-#        sha256 = "9f0a50b1b69688e6ad7f4aef903ae6c3da226faa9875ddfccabfb655b681c20c",
         name = "com_github_googlecartographer_async_grpc",
+        sha256 = "0278c0b35245f04c1f27cabd8ec93f953e19d786d8d3a14741d4793adbf2c40c",
         strip_prefix = "async_grpc-af6e44dd1c18c51bc8608fe937d0b2d376b589d6",
         # af6e44dd1c18c51bc8608fe937d0b2d376b589d6, 2019/2/3
         urls = [

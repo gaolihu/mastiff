@@ -10,7 +10,9 @@ namespace device {
 
     class DeviceWireless : public DeviceBaseItf {
         public:
-            DeviceWireless(const ChassisConfig*);
+            DeviceWireless(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceWireless();
 
         private:

@@ -10,7 +10,9 @@ namespace device {
 
     class DeviceCamera : public DeviceBaseItf {
         public:
-            DeviceCamera(const ChassisConfig*);
+            DeviceCamera(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceCamera();
 
         private:

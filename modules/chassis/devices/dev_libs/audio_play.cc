@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    AudioPlay::AudioPlay(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->aud_dev().si(),
-                    cc->aud_dev().sn_ind()) {
+    AudioPlay::AudioPlay(const ChassisConfig*cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "AudioPlay construct" <<
 #if 0
@@ -21,10 +22,9 @@ namespace device {
 #endif
 #endif
         data_parser_ = std::make_unique
-            <AudioParser>(cc, &cc->aud_dev().si());
+            <AudioParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->aud_dev().si().name(),
-                cc->aud_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

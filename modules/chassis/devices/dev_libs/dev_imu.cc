@@ -1,5 +1,3 @@
-#include "cyber/common/log.h"
-
 #include "modules/chassis/parser/parse_libs/imu_parser.h"
 #include "modules/chassis/devices/data_transact.h"
 #include "modules/chassis/devices/dev_libs/dev_imu.h"
@@ -8,9 +6,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceIMU::DeviceIMU(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->imu_dev().si(),
-                    cc->imu_dev().sn_ind()) {
+    DeviceIMU::DeviceIMU(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceIMU construct" <<
 #if 0
@@ -20,12 +19,10 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
-            <IMUParser>(cc, &cc->imu_dev().si());
+            <IMUParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->imu_dev().si().name(),
-                cc->imu_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

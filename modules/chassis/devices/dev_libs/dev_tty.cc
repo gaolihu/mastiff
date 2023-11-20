@@ -380,18 +380,22 @@ static int tty_filter(tty_hand* tty_hand)
             tty_handle_list_cursor = tty_handle_list_cursor->next;
             return 0;
 
-        case 0x1b: cmd = 0x1b; break;
-        case 0x5b: lcmd = 0x5b; break;
+        case 0x1b:
+            cmd = 0x1b;
+            break;
+        case 0x5b:
+            lcmd = 0x5b;
+            break;
         case 0x41: //up
         case 0x42: //down
         case 0x43: //right
         case 0x44: //left
-                   if (cmd == 0x1b && lcmd == 0x5b) {
-                       k = cmd << 16 | lcmd << 8 | command;
-                       cmd = lcmd = 0;
-                       return k;
-                   } else
-                       return 0;
+            if (cmd == 0x1b && lcmd == 0x5b) {
+                k = cmd << 16 | lcmd << 8 | command;
+                cmd = lcmd = 0;
+                return k;
+            } else
+                return 0;
 
         case '0': k = 0; break;
         case '1': k = 1; break;

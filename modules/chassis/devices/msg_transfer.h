@@ -24,7 +24,7 @@ namespace device {
     using namespace /*mstf::chss::*/proto;
     using namespace /*mstf::chss::*/device;
 
-    using ImuPublisher = std::shared_ptr<Writer<IMUdata>>;
+    using ImuPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::Imu>>;
     using OdomPublisher = std::shared_ptr<Writer<ventura::common_msgs::nav_msgs::Odometry>>;
     using LpaPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud>>;
     using CmdPublisher = std::shared_ptr<Writer<ChassisMixData>>;
@@ -68,6 +68,9 @@ namespace device {
                         if (type == "ventura::common_msgs::nav_msgs::Odometry") {
                             DataDispatchOdom(std::make_shared<ventura::common_msgs::nav_msgs::Odometry>(
                                         *dynamic_cast<ventura::common_msgs::nav_msgs::Odometry*>(m)));
+                        } else if (type == "ventura::common_msgs::sensor_msgs::Imu") {
+                            DataDispatchImu(std::make_shared<ventura::common_msgs::sensor_msgs::Imu>(
+                                        *dynamic_cast<ventura::common_msgs::sensor_msgs::Imu*>(m)));
                         } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
                             DataDispatchLaser(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud>(
                                         *dynamic_cast<ventura::common_msgs::sensor_msgs::PointCloud*>(m)));
@@ -80,6 +83,11 @@ namespace device {
             int TransferChassisControl(const
                     std::shared_ptr<ChassisCtrl>& cc) {
                 return DataTransact::Instance()->RecvChassCtrl(cc);
+            }
+
+            int TransferChassisMovement(const std::shared_ptr
+                    <ventura::common_msgs::geometry_msgs::Twist>& tw) {
+                return DataTransact::Instance()->RecvChassMove(tw);
             }
 
             void SetChassisContrlSimItf(const SimulateProtoHandle& s) {
@@ -102,9 +110,9 @@ namespace device {
             }
 #endif
 
-            int DataDispatchImu(const std::shared_ptr<IMUdata>& imu) {
+            int DataDispatchImu(const std::shared_ptr<ventura::common_msgs::sensor_msgs::Imu>& imu) {
 #ifdef RLS_DATA_PEEP
-                AINFO << "release IMUdata:\n"
+                AINFO << "release IMU:\n"
 #if 0
                     << imu->DebugString();
 #else
@@ -114,7 +122,7 @@ namespace device {
                 if (imu_publisher_)
                     return imu_publisher_->Write(imu);
 
-                AWARN << "release IMUdata error:\n" <<
+                AWARN << "release IMU error:\n" <<
                     imu->DebugString();
 
                 return -1;

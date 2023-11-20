@@ -30,6 +30,7 @@ int network::Run(const std::string &cmd, std::vector<std::string> &output) {
     ssize_t read;
 
     while ((read = getline(&line, &len, fp)) != -1) {
+        ADEBUG << "run script get: " << line;
         output.push_back(line);
     }
 

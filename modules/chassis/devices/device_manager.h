@@ -46,15 +46,15 @@ namespace device {
             //std::shared_ptr<ChassisConfig*> chs_conf_ = nullptr;
             ChassisConfig* chs_conf_ = nullptr;
 
-            std::unique_ptr<DevServo> servo_ = nullptr;
-            std::unique_ptr<AudioPlay> audio_paly_ = nullptr;
-            std::unique_ptr<DeviceWireless> dev_wireless_ = nullptr;
-            std::unique_ptr<DeviceLidar> dev_lidar_ = nullptr;
-            std::unique_ptr<DeviceMcu> dev_mcu_ = nullptr;
-            std::unique_ptr<DeviceCamera> dev_camera_ = nullptr;
-            std::unique_ptr<DeviceGpio> dev_gpio_ = nullptr;
-            std::unique_ptr<LineLaser> line_laser_ = nullptr;
-            std::unique_ptr<DeviceIMU> dev_imu_ = nullptr;
+            std::vector<std::unique_ptr<DevServo>> servo_ = {};
+            std::vector<std::unique_ptr<AudioPlay>> audio_paly_ = {};
+            std::vector<std::unique_ptr<DeviceWireless>> dev_wireless_  = {};
+            std::vector<std::unique_ptr<DeviceLidar>> dev_lidar_ = {};
+            std::vector<std::unique_ptr<DeviceMcu>> dev_mcu_ = {};
+            std::vector<std::unique_ptr<DeviceCamera>> dev_camera_ = {};
+            std::vector<std::unique_ptr<DeviceGpio>> dev_gpio_ = {};
+            std::vector<std::unique_ptr<LineLaser>> line_laser_ = {};
+            std::vector<std::unique_ptr<DeviceIMU>> dev_imu_ = {};
 
             //devices & device indicator map
             std::unordered_map<SensorIndicator*, DeviceBaseItf*>

@@ -134,19 +134,19 @@ message SubDevices {
     EE_SUBTYPE_NULL sdev_null = 6;
 }
 
+message SensorInfo {
+    string name = 1;
+    string manufacture_by = 2;
+    string type = 3;
+    EE_DEVICE_TYPE dev_type = 4;
+}
+
 message SensorIndicator {
     EE_DEV_MAIN dev_main = 1;
     EE_DEVICE_TYPE type = 2;
     EE_COMM_PORT_TYPE port = 3;
     EE_DEVICE_STATUS status = 4;
     SubDevices sub_dev = 5;
-}
-
-message SensorInfo {
-    string name = 1;
-    string manufacture_by = 2;
-    string type = 3;
-    EE_DEVICE_TYPE dev_type = 4;
 }
 
 message CircularBufSetting {
@@ -193,6 +193,22 @@ message UartConfig {
     string dev_name = 3;
 }
 ////////////// PORT-UART //////////////
+
+////////////// PORT-IIC //////////////
+message I2cDevSetting {
+    string i2c_dev = 1;
+    int32 bus = 2;
+    int32 address = 3;
+    int32 i2c_read_freq = 4;
+    int32 i2c_read_timeout = 5;
+}
+
+message I2cConfig {
+    I2cDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-IIC //////////////
 
 ////////////// GPIO //////////////
 enum EE_GPIO_DIR {
@@ -339,18 +355,20 @@ message LidarAssemble {
     uint32 diameter = 1;
     uint32 height = 2;
     float set_angle = 3;
-    float locate = 4;
+    int32 cut_from_10th1_deg = 4;
+    int32 cut_to_10th1_deg = 5;
+    int32 cut_discard_stuff = 6;
 }
 
 message LidarDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof LidarInterface {
-        UartConfig uart_conf = 2;
+        UartConfig uart_conf = 3;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    LidarAssemble lidar_assemble = 3;
-    SensorIndicator sn_ind = 4;
+    LidarAssemble lidar_assemble = 4;
     SwitchDev lidar_switch = 5;
     google.protobuf.UInt32Value pwm_unique_id = 6;
     bool used = 7;
@@ -366,14 +384,15 @@ message ImuAssemble {
 
 message ImuDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof ImuInterface {
-        UartConfig uart_conf = 2;
+        UartConfig uart_conf = 3;
+        I2cConfig i2c_conf = 4;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    ImuAssemble imu_assemble = 3;
-    SensorIndicator sn_ind = 4;
-    bool used = 5;
+    ImuAssemble imu_assemble = 5;
+    bool used = 6;
 }
 ////////////// Imu //////////////
 
@@ -386,13 +405,13 @@ message DtofAssemble {
 
 message DtofDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof DtofInterface {
-        UartConfig uart_conf = 2;
+        UartConfig uart_conf = 3;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    DtofAssemble dtof_assemble = 3;
-    SensorIndicator sn_ind = 4;
+    DtofAssemble dtof_assemble = 4;
     bool used = 5;
 }
 ////////////// Dtof //////////////
@@ -431,8 +450,8 @@ message CamerAssemble {
 
 message CameraDevice {
     SensorInfo si = 1;
-    CamerAssemble ca = 2;
-    SensorIndicator sn_ind = 3;
+    SensorIndicator sn_ind = 2;
+    CamerAssemble ca = 3;
     CameraConfigs camera_conf = 4;
     bool used = 5;
 }
@@ -447,11 +466,11 @@ message McuAssemble {
 
 message McuDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof McuInterface {
-        UartConfig uart_conf = 2;
+        UartConfig uart_conf = 3;
     }
-    McuAssemble mcu_assemble = 3;
-    SensorIndicator sn_ind = 4;
+    McuAssemble mcu_assemble = 4;
     bool used = 5;
 }
 ////////////// MCU //////////////
@@ -470,12 +489,12 @@ message ServoDriverInfo {
 
 message ServoDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof ServoInterface {
-        CanConfig can_conf = 2;
+        CanConfig can_conf = 3;
     }
     ServoDriverInfo servo_info = 4;
-    SensorIndicator sn_ind = 5;
-    bool used = 6;
+    bool used = 5;
 }
 ////////////// Servo //////////////
 
@@ -488,10 +507,10 @@ message WirelessDevice {
 
 message LineLaserDevice {
     SensorInfo si = 1;
+    SensorIndicator sn_ind = 2;
     oneof LidarInterface {
-        UartConfig uart_conf = 2;
+        UartConfig uart_conf = 3;
     }
-    SensorIndicator sn_ind = 3;
     bool used = 4;
 }
 ////////////// Servo //////////////
@@ -523,22 +542,23 @@ message ChassissTopicConfig {
     string chassis_input_channel = 9;
     //reader, for downstream messages
     string input_crtl_topic_name = 10;
+    string input_move_topic_name = 11;
 }
 
 message ChassisConfig {
-    GpioDevices gpio_dev = 1;
-    AdcDevice adc_dev = 2;
-    PwmDevice pwm_dev = 3;
-    LidarDevice lidar_dev = 4;
-    ImuDevice imu_dev = 5;
-    DtofDevice dtof_dev = 6;
-    CameraDevice camera_dev = 7;
-    McuDevice mcu_dev = 8;
-    TtyDevice tty_dev = 9;
-    AudioDevice aud_dev = 10;
-    ServoDevice servo_dev = 11;
-    WirelessDevice wireless_dev = 12;
-    LineLaserDevice linelaser_dev = 13;
+    repeated GpioDevices gpio_dev = 1;
+    repeated AdcDevice adc_dev = 2;
+    repeated PwmDevice pwm_dev = 3;
+    repeated LidarDevice lidar_dev = 4;
+    repeated ImuDevice imu_dev = 5;
+    repeated DtofDevice dtof_dev = 6;
+    repeated CameraDevice camera_dev = 7;
+    repeated McuDevice mcu_dev = 8;
+    repeated TtyDevice tty_dev = 9;
+    repeated AudioDevice aud_dev = 10;
+    repeated ServoDevice servo_dev = 11;
+    repeated WirelessDevice wireless_dev = 12;
+    repeated LineLaserDevice linelaser_dev = 13;
 
     ChassissTopicConfig chs_topic_conf = 14;
 }

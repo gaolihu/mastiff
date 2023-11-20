@@ -34,8 +34,8 @@ namespace chss {
                 AINFO << "start to powerup peripheral devices, for testing";
                 devices_mgr_->DeviceStart();
 #endif
-                AINFO << "peripheral devices manage over, build reader channel";
-                auto reader_ = subscribe_node_->CreateReader<ChassisCtrl>(
+                AINFO << "build chassis peripheral reader channel";
+                auto chs_reader_ = subscribe_node_->CreateReader<ChassisCtrl>(
                         chs_conf_->chs_topic_conf().input_crtl_topic_name(),
                         [&](const std::shared_ptr<ChassisCtrl>& msg)->void {
 #ifdef CHSS_PKG_DBG
@@ -46,14 +46,30 @@ namespace chss {
                             ControlChassis(msg);
                         }
                 );
+
+                AINFO << "build speed control reader channel";
+                auto ctl_reader_ = subscribe_node_->
+                    CreateReader<ventura::common_msgs::geometry_msgs::Twist>(
+                        chs_conf_->chs_topic_conf().input_move_topic_name(),
+                        [&](const std::shared_ptr
+                            <ventura::common_msgs::geometry_msgs::Twist>&
+                            msg)->void {
+                            MsgTransfer::Instance()->
+                            TransferChassisMovement(msg);
+                        }
+                );
+#if 1
+                //for debuging
                 MsgTransfer::Instance()->SetChassisContrlSimItf([&]
                         (const std::shared_ptr<Message>& m)->int {
                             return ControlChassis(std::dynamic_pointer_cast
                                     <ChassisCtrl>(m));
                         });
+#endif
             }
 
             virtual ~ReceiveCtrl() final {
+                devices_mgr_->DeviceClose();
 #ifdef CHSS_PKG_DBG
                 AINFO << "ReceiveCtrl de-construct";
 #endif
@@ -64,8 +80,11 @@ namespace chss {
                     <ChassisCtrl>& ctrl) const {
                 //check if need manage peripheral devices
                 if (ctrl->has_soc_ctrl())
-                    if (ctrl->soc_ctrl().has_dev_maganger())
-                        devices_mgr_->ManageDevices(ctrl->soc_ctrl().dev_maganger());
+                    if (ctrl->soc_ctrl().has_dev_maganger()) {
+                        devices_mgr_->ManageDevices(
+                                ctrl->soc_ctrl().dev_maganger());
+                        return true;
+                    }
 
                 return MsgTransfer::Instance()->
                     TransferChassisControl(ctrl);

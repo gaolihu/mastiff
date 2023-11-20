@@ -10,7 +10,9 @@ namespace device {
 
     class DeviceLidar : public DeviceBaseItf {
         public:
-            DeviceLidar(const ChassisConfig*);
+            DeviceLidar(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceLidar();
 
         private:

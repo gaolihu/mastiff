@@ -17,7 +17,7 @@ using namespace apollo;
 using namespace mstf;
 using namespace chss;
 
-static network::WifiTool tool;
+static network::WiFiTool tool;
 
 static std::unique_ptr<DispatchChs>            g_chas_dispatcher;
 static std::unique_ptr<ReceiveCtrl>            g_ctrl_receiver;

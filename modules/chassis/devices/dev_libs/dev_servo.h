@@ -10,7 +10,9 @@ namespace device {
 
     class DevServo : public DeviceBaseItf {
         public:
-            DevServo(const ChassisConfig*);
+            DevServo(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DevServo();
 
             virtual int Init(void) override;

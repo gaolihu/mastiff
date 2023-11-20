@@ -11,6 +11,8 @@ namespace driver {
         AINFO << "SocData construct";
 #endif
         soc_listner_ = listner;
+
+        wifi_thread_ = std::make_shared<network::WiFiThread>();
     }
 
     SocData::~SocData() {
@@ -34,6 +36,8 @@ namespace driver {
             //TODO
         }
 
+        wifi_thread_->RegistePublisher(soc_listner_);
+
         return 0;
     }
 
@@ -44,6 +48,8 @@ namespace driver {
         // TODO, use proto
         if (si->dev_type() == E_DEVICE_CAMERA) {
             camera_ctrl_.start();
+        } else if(si->dev_type() == E_DEVICE_WIRELESS){
+            wifi_thread_->Start();
         } else {
             //TODO
         }
@@ -57,6 +63,8 @@ namespace driver {
 
         if (si->dev_type() == E_DEVICE_CAMERA) {
             camera_ctrl_.stop();
+        }else if(si->dev_type() == E_DEVICE_WIRELESS){
+            wifi_thread_->Stop();
         }
         return 0;
     }
@@ -64,6 +72,10 @@ namespace driver {
     int SocData::Close(const SensorInfo* si) {
         AINFO << "soc data close\n" <<
             si->DebugString();
+
+        if(si->dev_type() == E_DEVICE_WIRELESS){
+            wifi_thread_->Close();
+        }
 
         return 0;
     }
@@ -99,12 +111,7 @@ namespace driver {
 
         if(data.has_wireless()){
             // call wifi tool
-            auto result = wifi_tool_.WifiOperate(data.wireless());
-            auto response = mstf::chss::proto::WifiResponse();
-            if(soc_listner_ && !result.empty()){
-                response.set_wifi_result(result);
-                soc_listner_(response);
-            }
+            wifi_thread_->SetWiFiCtrl(data.wireless());
         }
 
         return 0;

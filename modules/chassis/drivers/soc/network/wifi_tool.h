@@ -12,6 +12,7 @@
 #include "wifi_ap.h"
 #include "wifi_sta.h"
 
+
 namespace mstf {
 namespace chss {
 namespace network {
@@ -19,10 +20,14 @@ const static std::string WIFI_SCRIPTS = "/userdata/wifi/wifi_tool.sh";
 
 enum class Mode { NONE, AP, STA, SNIFFER };
 
-class WifiTool
+
+class WiFiTool
     : public WifiSta
-    , WifiAp {
+    , WifiAp , std::enable_shared_from_this<WiFiTool> {
 public:
+    WiFiTool();
+    ~WiFiTool();
+    bool Init();
     /**
      * @brief do wifi operate from proto message
      *
@@ -30,6 +35,9 @@ public:
      * @return std::string
      */
     std::string WifiOperate(const proto::WirelessCtrl& wifi_ctrl);
+    inline std::shared_ptr<WiFiTool> ThisShared(){
+        return shared_from_this();
+    }
 
     // clang-format off
     std::string help() const; // -h

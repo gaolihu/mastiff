@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceCamera::DeviceCamera(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->camera_dev().si(),
-                    cc->camera_dev().sn_ind()) {
+    DeviceCamera::DeviceCamera(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceCamera construct" <<
 #if 0
@@ -20,12 +21,10 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
-            <CameraParser>(cc, &cc->camera_dev().si());
+            <CameraParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->camera_dev().si().name(),
-                cc->camera_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

@@ -36,6 +36,7 @@ namespace device {
             int RegisterDevice(const std::string&,
                     const SensorIndicator&, DeviceBaseItf*);
             int RecvChassCtrl(const std::shared_ptr<ChassisCtrl>&);
+            int RecvChassMove(const std::shared_ptr<ventura::common_msgs::geometry_msgs::Twist>&);
             inline void RegisterPublisher(const ProtoMessagePublish& p) {
                 pbmsg_publisher_ = p;
             }

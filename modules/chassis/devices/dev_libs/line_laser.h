@@ -10,7 +10,9 @@ namespace device {
 
     class LineLaser : public DeviceBaseItf {
         public:
-            LineLaser(const ChassisConfig*);
+            LineLaser(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~LineLaser();
 
             virtual int Init(void) override;

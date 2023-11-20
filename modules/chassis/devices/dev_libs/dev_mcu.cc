@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceMcu::DeviceMcu(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->mcu_dev().si(),
-                    cc->mcu_dev().sn_ind()) {
+    DeviceMcu::DeviceMcu(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceMcu construct" <<
 #if 0
@@ -20,12 +21,10 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
-            <McuParser>(cc, &cc->mcu_dev().si());
+            <McuParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->mcu_dev().si().name(),
-                cc->mcu_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

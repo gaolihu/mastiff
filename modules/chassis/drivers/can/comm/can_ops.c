@@ -15,8 +15,8 @@
 #include "modules/chassis/drivers/can/comm/include/linux/can/raw.h"
 
 static int poll_time_out = 2000; //2s
-static int can_socket_ = 0;
-static int fd_epoll_;
+static int can_socket_ = -1;
+static int fd_epoll_ = -1;
 
 static int set_write()
 {
@@ -97,8 +97,8 @@ int can_open()
         .events = EPOLLIN,
     };
 
-    if (epoll_ctl(fd_epoll_, EPOLL_CTL_ADD, s, &event_setup)) {
-        perror("failed to add socket to epoll");
+    if (epoll_ctl(fd_epoll_, EPOLL_CTL_ADD, can_socket_, &event_setup)) {
+        perror("failed to add can socket to epoll");
         return 1;
     }
 
@@ -130,19 +130,24 @@ int can_config(int s, int baud, int timeout)
 
 int can_close(int s)
 {
+    /*
     struct epoll_event event_setup = {
         .events = EPOLLIN,
     };
 
     if (epoll_ctl(fd_epoll_, EPOLL_CTL_DEL, s, &event_setup)) {
-        perror("failed to del socket to epoll");
+        perror("failed to del can socket to epoll");
     }
-    close(fd_epoll_);
+    */
 
+    close(fd_epoll_);
     close(s);
 
     if (system("ip link set can0 down") != 0)
         return -1;
+
+    fd_epoll_ = -1;
+    can_socket_ = -1;
 
     return 0;
 }
@@ -282,9 +287,12 @@ size_t can_recv(int s, const char* dev, char* buf)
     msg.msg_iovlen = 1;
     msg.msg_control = &ctrlmsg;
 
+    if (fd_epoll_ < 0 || can_socket_ < 0)
+        return -1;
+
     int num_events = epoll_wait(fd_epoll_, events_pending, 2, poll_time_out);
     if (num_events == -1) {
-        perror("poll wait");
+        perror("poll wait can");
         return -1;
     }
 

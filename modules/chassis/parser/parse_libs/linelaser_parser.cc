@@ -15,10 +15,11 @@ namespace parser {
     }
 
     int LineLaserParser::Init() {
-        return ParserBaseItf::Init(chs_conf_->
-                linelaser_dev().sn_ind().port(),
-                &chs_conf_->linelaser_dev().
-                uart_conf().buf_setting());
+        return ParserBaseItf::Init(
+                dynamic_cast<const LineLaserDevice&>
+                (GetDevice()).sn_ind().port(),
+                &dynamic_cast<const LineLaserDevice&>
+                (GetDevice()).uart_conf().buf_setting());
     }
 
     int LineLaserParser::WriteMiscMessage(const DownToMiscData& data) {

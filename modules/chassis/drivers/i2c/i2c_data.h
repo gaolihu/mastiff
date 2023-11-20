@@ -7,25 +7,21 @@
 #include "modules/chassis/proto/chassis_config.pb.h"
 #include "modules/chassis/drivers/driver_data_itf.h"
 
-// port serial driver
-#include "modules/chassis/drivers/uart/ChannelDevice.h"
-#include "modules/chassis/drivers/uart/serial.h"
-
 namespace mstf {
 namespace chss {
 namespace driver {
 
     using namespace /*mstf::chss::*/proto;
 
-    using UartDataListener = std::function<void
+    using IIcDataListener = std::function<void
         (const uint8_t*, const size_t)>;
 
-    class SerialData : public DriveDataItf {
+    class IIcData : public DriveDataItf {
         public:
-            SerialData(const DriveDataMonitor&,
-                    const UartConfig*,
+            IIcData(const DriveDataMonitor&,
+                    const I2cConfig*,
                     const SensorInfo*);
-            ~SerialData();
+            ~IIcData();
 
             virtual int Init(const std::string& = "",
                     const int = 0, const
@@ -37,16 +33,12 @@ namespace driver {
             int Close();
 
         private:
-            int serial_fd_ = -1;
-            const UartConfig* uart_conf_ = nullptr;
+            int i2c_fd_ = -1;
+            const I2cConfig* i2c_conf_ = nullptr;
             const SensorInfo* snsr_info_ = nullptr;
 
-            void serial_poll_func();
-            DriveDataMonitor serial_monitor_ = nullptr;
-
-#ifdef SERIAL_PORTING
-            ChannelDevice* comm_ = nullptr;
-#endif
+            void i2c_poll_func();
+            DriveDataMonitor i2c_monitor_ = nullptr;
     };
 
 } //namespace driver

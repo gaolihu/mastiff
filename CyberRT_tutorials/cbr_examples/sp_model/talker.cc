@@ -20,6 +20,8 @@
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 
+#include "modules/chassis/proto/input_output_chs.pb.h"
+
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::cyber::cbr_examples::proto::Chatter;
@@ -28,6 +30,7 @@ int main(int argc, char *argv[]) {
   // init cyber framework
   apollo::cyber::Init(argv[0]);
   // create talker node
+#if 0
   auto talker_node = apollo::cyber::CreateNode("talker");
   // create talker
   auto talker = talker_node->CreateWriter<Chatter>("channel/chatter");
@@ -44,5 +47,28 @@ int main(int argc, char *argv[]) {
     seq++;
     rate.Sleep();
   }
+#else
+  auto talker_node = apollo::cyber::CreateNode("move");
+  // create talker
+
+  auto talker = talker_node->CreateWriter<ventura::common_msgs::geometry_msgs::Twist>("cmd_vel");
+  Rate rate(1.0);
+  uint64_t seq = 0;
+  while (apollo::cyber::OK()) {
+    auto msg = std::make_shared<ventura::common_msgs::geometry_msgs::Twist>();
+
+    if (seq == 5) {
+        msg->mutable_linear()->set_x(0.f);
+    } else {
+        msg->mutable_linear()->set_x(0.03f);
+    }
+
+    talker->Write(msg);
+
+    AINFO << "talker sent a message! No. " << seq;
+    seq++;
+    rate.Sleep();
+  }
+#endif
   return 0;
 }

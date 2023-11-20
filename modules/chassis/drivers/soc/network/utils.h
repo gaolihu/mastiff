@@ -20,6 +20,9 @@
 #include <string>
 #include <vector>
 
+#include "cyber/common/log.h"
+
+
 namespace mstf {
 namespace chss {
 namespace network {

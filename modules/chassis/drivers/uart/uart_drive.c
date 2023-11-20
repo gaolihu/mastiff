@@ -7,7 +7,7 @@
 
 #include "uart_drive.h"
 
-static int fd_epoll_ = 0;
+static int fd_epoll_ = -1;
 static int poll_time_out_ = 0;
 
 static int set_uart_speed(int fd, int speed)
@@ -138,7 +138,7 @@ int open_uart(const char *dev, const int baud, const int data_bits,
         return -2;
     }
 
-    fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY);
+    fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL);
     //fd = open(dev, O_RDWR | O_NOCTTY);
 
     if(fd <= 0) {
@@ -174,7 +174,7 @@ int open_uart(const char *dev, const int baud, const int data_bits,
     }
 
     if (epoll_ctl(fd_epoll_, EPOLL_CTL_ADD, fd, &event_setup)) {
-        perror("failed to add socket to epoll");
+        perror("failed to add uart socket to epoll");
         return 1;
     }
 
@@ -183,16 +183,19 @@ int open_uart(const char *dev, const int baud, const int data_bits,
 
 void close_uart(const int fd)
 {
+    /*
     struct epoll_event event_setup = {
         .events = EPOLLIN,
     };
-
     if (epoll_ctl(fd_epoll_, EPOLL_CTL_DEL, fd, &event_setup)) {
-        perror("failed to del socket to epoll");
+        perror("failed to del uart socket to epoll");
     }
+    */
 
     close(fd_epoll_);
     close(fd);
+
+    fd_epoll_ = -1;
 }
 
 int write_uart(const int fd, const uint8_t *data, const size_t len)
@@ -218,10 +221,13 @@ int read_uart(const int fd, uint8_t *data, const size_t len)
         return -1;
     }
 
+    if (fd_epoll_ < 0)
+        return -1;
+
     struct epoll_event events_pending[2];
     int num_events = epoll_wait(fd_epoll_, events_pending, 2, poll_time_out_);
-    if (num_events == -1) {
-        perror("poll wait");
+    if (num_events < 0) {
+        perror("poll wait uart, fd epoll");
         return -1;
     }
 

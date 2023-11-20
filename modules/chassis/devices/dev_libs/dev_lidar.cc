@@ -1,5 +1,3 @@
-#include "cyber/common/log.h"
-
 #include "modules/chassis/parser/parse_libs/lidar_parser.h"
 #include "modules/chassis/devices/data_transact.h"
 #include "modules/chassis/devices/dev_libs/dev_lidar.h"
@@ -8,9 +6,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceLidar::DeviceLidar(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->lidar_dev().si(),
-                    cc->lidar_dev().sn_ind()) {
+    DeviceLidar::DeviceLidar(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceLidar construct" <<
 #if 0
@@ -21,10 +20,9 @@ namespace device {
 #endif
 #endif
         data_parser_ = std::make_unique
-            <LidarParser>(cc, &cc->lidar_dev().si());
+            <LidarParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->lidar_dev().si().name(),
-                cc->lidar_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

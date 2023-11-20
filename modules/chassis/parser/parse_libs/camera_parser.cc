@@ -15,8 +15,9 @@ namespace parser {
     }
 
     int CameraParser::Init() {
-        return ParserBaseItf::Init(chs_conf_->
-                camera_dev().sn_ind().port());
+        return ParserBaseItf::Init(
+                dynamic_cast<const ImuDevice&>
+                (GetDevice()).sn_ind().port());
     }
 
 } //namespace parser

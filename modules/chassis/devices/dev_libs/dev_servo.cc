@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DevServo::DevServo(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->servo_dev().si(),
-                    cc->servo_dev().sn_ind()) {
+    DevServo::DevServo(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DevServo construct" <<
 #if 0
@@ -20,12 +21,10 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
-            <ServoParser>(cc, &cc->servo_dev().si());
+            <ServoParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->servo_dev().si().name(),
-                cc->servo_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 
@@ -39,7 +38,10 @@ namespace device {
 #ifdef CHSS_PKG_DBG
         AINFO << "DevServo init";
 #endif
-        DeviceBaseItf::Init();
+        if (DeviceBaseItf::Init() != 0) {
+            AERROR << "init servo error!";
+            return -1;
+        }
 
         DownToServoData data;
         data.mutable_config()->set_opt(E_SUBDEV_OPTS_INIT);
@@ -51,7 +53,10 @@ namespace device {
 #ifdef CHSS_PKG_DBG
         AINFO << "DevServo start";
 #endif
-        DeviceBaseItf::Start();
+        if (DeviceBaseItf::Start() != 0) {
+            AERROR << "start servo error!";
+            return -1;
+        }
 
         DownToServoData data;
 
@@ -74,7 +79,10 @@ namespace device {
 #ifdef CHSS_PKG_DBG
         AINFO << "DevServo stop";
 #endif
-        DeviceBaseItf::Stop();
+        if (DeviceBaseItf::Stop()) {
+            AERROR << "stop servo error!";
+            return -1;
+        }
 
         DownToServoData data;
 

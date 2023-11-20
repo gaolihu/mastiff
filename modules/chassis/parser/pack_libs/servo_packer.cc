@@ -30,7 +30,7 @@ namespace parser {
     ServoPacker::PackMotorDiffSpeedDouble(const DownToServoData& sd) {
         std::vector<std::tuple<const int,
             const std::vector<uint8_t>>> tds;
-#if 1
+#if 0
         AINFO << "packing diff speed, " <<
             "linear: " << sd.motor_speed().linear() <<
             "m/s, angular: " << sd.motor_speed().angular() <<
@@ -178,9 +178,9 @@ namespace parser {
                     FillDataContainerCanOpenStartReporting(tds);
                     break;
                 case E_SUBDEV_OPTS_DISABLE:
+                    FillDataContainerCanOpenAxleSpeed(tds, 0, 0);
                     FillDataContainerCanOpenAxleDisable(tds);
                     FillDataContainerCanOpenResetStatus(tds);
-                    FillDataContainerCanOpenAxleSpeed(tds, 0, 0);
                     FillDataContainerCanOpenStopReporting(tds);
                     break;
                 case E_SUBDEV_OPTS_STOP:

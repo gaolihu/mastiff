@@ -7,6 +7,7 @@
 #include "modules/chassis/drivers/can/can_data.h"
 #include "modules/chassis/drivers/soc/soc_data.h"
 #include "modules/chassis/drivers/uart/serial_data.h"
+#include "modules/chassis/drivers/i2c/i2c_data.h"
 
 namespace mstf {
 namespace chss {
@@ -27,6 +28,7 @@ namespace parser {
                     const SensorInfo*);
             int Start(const SensorInfo*);
             int Stop(const SensorInfo*);
+            int Resume(const SensorInfo*);
             int Close(const SensorInfo*);
 
             inline void Finish() {
@@ -35,7 +37,7 @@ namespace parser {
 
             inline void RegisterRawListener(const
                     RawDataListener l, const SensorInfo* si) {
-                serial_raw_handle_[const_cast<SensorInfo*>(si)] = l;
+                dev_handle_map_[const_cast<SensorInfo*>(si)] = l;
             }
 
             inline void RegisterCanListener(const
@@ -68,7 +70,8 @@ namespace parser {
 
             // data come
             void OnRecvCan(const uint8_t*, const size_t);
-            void OnRecvUart(const uint8_t*, const size_t);
+            void OnRecvIIc(const void*, const uint8_t*, const size_t);
+            void OnRecvUart(const void*, const uint8_t*, const size_t);
             void OnRecvSoc(const Message&);
 
         private:
@@ -84,13 +87,22 @@ namespace parser {
                 }
             }
 
-            inline void _UartMessageHandle(const uint8_t* buf,
+            inline void _UartMessageHandle(const void* conf,
+                    const uint8_t* buf,
                     const size_t len) {
-                for (auto c : sis_) {
-                    for (auto x : serial_raw_handle_) {
-                        if (x.first == c) {
-                            x.second(buf, len);
-                        }
+                for (auto x : dev_handle_map_) {
+                    if (x.first == conf) {
+                        x.second(buf, len);
+                    }
+                }
+            }
+
+            inline void _IIcMessageHandle(const void* conf,
+                    const uint8_t* buf,
+                    const size_t len) {
+                for (auto x : dev_handle_map_) {
+                    if (x.first == conf) {
+                        x.second(buf, len);
                     }
                 }
             }
@@ -106,12 +118,24 @@ namespace parser {
             }
 
             inline SerialData* _FindSerialData(const SensorInfo* si) {
-                for (auto s : serial_data_) {
+                for (auto s : dev_serial_map_) {
                     if (s.first == si) {
                         return s.second;
                     }
                 }
                 AERROR << "can't get serial data for\n" <<
+                    si->DebugString();
+
+                return nullptr;
+            }
+
+            inline IIcData* _FindI2cData(const SensorInfo* si) {
+                for (auto s : dev_i2c_map_) {
+                    if (s.first == si) {
+                        return s.second;
+                    }
+                }
+                AERROR << "can't get i2c data for\n" <<
                     si->DebugString();
 
                 return nullptr;
@@ -124,8 +148,10 @@ namespace parser {
             std::map<SensorInfo*, CanDataListener> can_raw_handle_ {};
 
             //serial
-            std::map<const SensorInfo*, SerialData*> serial_data_ {};
-            std::map<SensorInfo*, RawDataListener> serial_raw_handle_ {};
+            std::map<const SensorInfo*, SerialData*> dev_serial_map_ {};
+            std::map<const SensorInfo*, IIcData*> dev_i2c_map_ {};
+            std::map<const SensorInfo*, RawDataListener> dev_handle_map_ {};
+            // =&ParserBaseItf::OnOriginalDataRaw()
 
             std::unique_ptr<SocData> soc_data_ = nullptr;
             std::map<SensorInfo*, SocDataListener> soc_raw_handle_ {};

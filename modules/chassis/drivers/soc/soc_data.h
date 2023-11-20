@@ -5,7 +5,7 @@
 #include "modules/chassis/proto/chassis_config.pb.h"
 #include "modules/chassis/proto/input_output_chs.pb.h"
 
-#include "network/wifi_tool.h"
+#include "network/wifi_thread.h"
 
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
 #include "modules/chassis/drivers/soc/soc_defs.h"
@@ -41,7 +41,8 @@ namespace driver {
             //std::vector<GpioHw*> gpio_hws_;
             SocDataListener soc_listner_ = nullptr;
 
-            chss::network::WifiTool wifi_tool_; // wifi control
+            std::shared_ptr<network::WiFiThread>
+                wifi_thread_; // wifi control
             Demo camera_ctrl_; // camera control
 
             const ChassisConfig* chs_conf_ = nullptr;

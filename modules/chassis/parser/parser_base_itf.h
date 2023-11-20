@@ -34,9 +34,11 @@ namespace parser {
                 chs_conf_ = cc;
                 snsr_info_ = si;
             }
+
             virtual ~ParserBaseItf() {
                 AINFO << "ParserBaseItf de-construction";
             }
+
             ParserBaseItf(const ParserBaseItf&) = delete;
             ParserBaseItf& operator=(const ParserBaseItf&) = delete;
 
@@ -71,6 +73,9 @@ namespace parser {
                             //else if (it->type() == E_DEVICE_LINELASER())
                             else
                                 AINFO << "packer TODO for: " << snsr_info_->name();
+                        } else {
+                            AERROR << "no indicator for the device!";
+                            return -1;
                         }
                         RawManage::Instance()->RegisterRawListener
                             (std::bind(&ParserBaseItf::OnOriginalDataRaw,
@@ -93,7 +98,7 @@ namespace parser {
 #endif
                             packer_ = std::make_unique<ServoPacker>(snsr_info_->name());
                         } else {
-                            AINFO << "no circular buf for can port";
+                            AINFO << "no circular buf for CAN port";
                         }
                         RawManage::Instance()->RegisterCanListener
                             (std::bind(&ParserBaseItf::OnOriginalDataCan,
@@ -114,12 +119,15 @@ namespace parser {
                         AERROR << "type error: " << type;
                         return -1;
                 }
+
                 return RawManage::Instance()->Init(chs_conf_, snsr_info_);
             }
+
             virtual int Init() {
                 AINFO << "ParserBaseItf DFT Init ~ ";
                 return 0;
             }
+
             virtual int Start() {
                 AINFO << "ParserBaseItf DFT Start ~ " <<
                     snsr_info_->name();
@@ -136,12 +144,10 @@ namespace parser {
 #endif
                 return RawManage::Instance()->Start(snsr_info_);
             }
+
             virtual int Stop() {
                 AINFO << "ParserBaseItf DFT Stop ~ " <<
                     snsr_info_->name();
-                if (cbuf_raw_)
-                    cbuf_raw_->Close();
-
 #if USE_PARSER_TIMER
                 if (tim_ != nullptr) {
                     AINFO << "Stop ParserBaseItf timer" <<
@@ -151,6 +157,23 @@ namespace parser {
 #endif
                 return RawManage::Instance()->Stop(snsr_info_);
             }
+
+            virtual int Resume() {
+                AINFO << "ParserBaseItf DFT Resume ~ " <<
+                    snsr_info_->name();
+                if (cbuf_raw_)
+                    cbuf_raw_->Open();
+
+#if USE_PARSER_TIMER
+                if (tim_ != nullptr) {
+                    AINFO << "Resume ParserBaseItf timer" <<
+                        snsr_info_->name();
+                    tim_->Start();
+                }
+#endif
+                return RawManage::Instance()->Resume(snsr_info_);
+            }
+
             virtual int Close() {
                 AINFO << "ParserBaseItf DFT Close ~ " <<
                     snsr_info_->name();
@@ -177,14 +200,17 @@ namespace parser {
                     const size_t) {
                 return 0;
             }
+
             virtual int ParseCanBuffer(const uint8_t*,
                     const size_t) {
                 //ignore
                 return 0;
             }
+
             virtual int ParseSocInfo(const Message&) {
                 return 0;
             }
+
             virtual int ParseSigleFrame(const
                     std::vector<uint8_t>&,
                     const size_t) {
@@ -225,8 +251,13 @@ namespace parser {
                         snsr_info_->name();
                 }
                 //notify the specific raw parser working
-                ParseRawBuffer(buf, size);
+                if (!IsParsingRawBusy()) {
+                    SetParsingRawBusy();
+                    ParseRawBuffer(buf, size);
+                    SetParsingRawFree();
+                }
             }
+
             void OnOriginalDataCan(const uint8_t* buf,
                     const size_t len) {
                 ACHECK(cbuf_can_) <<
@@ -240,67 +271,132 @@ namespace parser {
                 //notify the specific can parser work
                 ParseCanBuffer(buf, len);
             }
+
             void OnOriginalDataSoc(const Message& msg) {
                 //notify the specific soc parser work
                 ParseSocInfo(msg);
             }
 
-            //helper
+            void SetParsingRawFree() {
+                is_parsing_busy_.store(false);
+            }
+
+            void SetParsingRawBusy() {
+                is_parsing_busy_.store(true);
+            }
+
+            bool IsParsingRawBusy() {
+                return is_parsing_busy_.load();
+            }
+
+        protected:
+            //helpers
             const SensorIndicator* GetIndicator() {
-                if (chs_conf_->has_gpio_dev())
-                    if (&chs_conf_->gpio_dev().si() == snsr_info_)
-                        return &chs_conf_->gpio_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->gpio_dev().size(); i++)
+                    if (&chs_conf_->gpio_dev(i).si() == snsr_info_)
+                        return &chs_conf_->gpio_dev(i).sn_ind();
 
-                if (chs_conf_->has_adc_dev())
-                    if (&chs_conf_->adc_dev().si() == snsr_info_)
-                        return &chs_conf_->adc_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->adc_dev().size(); i++)
+                    if (&chs_conf_->adc_dev(i).si() == snsr_info_)
+                        return &chs_conf_->adc_dev(i).sn_ind();
 
-                if (chs_conf_->has_pwm_dev())
-                    if (&chs_conf_->pwm_dev().si() == snsr_info_)
-                        return &chs_conf_->pwm_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->pwm_dev().size(); i++)
+                    if (&chs_conf_->pwm_dev(i).si() == snsr_info_)
+                        return &chs_conf_->pwm_dev(i).sn_ind();
 
-                if (chs_conf_->has_lidar_dev())
-                    if (&chs_conf_->lidar_dev().si() == snsr_info_)
-                        return &chs_conf_->lidar_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->lidar_dev().size(); i++)
+                    if (&chs_conf_->lidar_dev(i).si() == snsr_info_)
+                        return &chs_conf_->lidar_dev(i).sn_ind();
 
-                if (chs_conf_->has_imu_dev())
-                    if (&chs_conf_->imu_dev().si() == snsr_info_)
-                        return &chs_conf_->imu_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->imu_dev().size(); i++)
+                    if (&chs_conf_->imu_dev(i).si() == snsr_info_)
+                        return &chs_conf_->imu_dev(i).sn_ind();
 
-                if (chs_conf_->has_dtof_dev())
-                    if (&chs_conf_->dtof_dev().si() == snsr_info_)
-                        return &chs_conf_->dtof_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->dtof_dev().size(); i++)
+                    if (&chs_conf_->dtof_dev(i).si() == snsr_info_)
+                        return &chs_conf_->dtof_dev(i).sn_ind();
 
-                if (chs_conf_->has_camera_dev())
-                    if (&chs_conf_->camera_dev().si() == snsr_info_)
-                        return &chs_conf_->camera_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->camera_dev().size(); i++)
+                    if (&chs_conf_->camera_dev(i).si() == snsr_info_)
+                        return &chs_conf_->camera_dev(i).sn_ind();
 
-                if (chs_conf_->has_mcu_dev())
-                    if (&chs_conf_->mcu_dev().si() == snsr_info_)
-                        return &chs_conf_->mcu_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->mcu_dev().size(); i++)
+                    if (&chs_conf_->mcu_dev(i).si() == snsr_info_)
+                        return &chs_conf_->mcu_dev(i).sn_ind();
 
-                if (chs_conf_->has_aud_dev())
-                    if (&chs_conf_->aud_dev().si() == snsr_info_)
-                        return &chs_conf_->aud_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->aud_dev().size(); i++)
+                    if (&chs_conf_->aud_dev(i).si() == snsr_info_)
+                        return &chs_conf_->aud_dev(i).sn_ind();
 
-                if (chs_conf_->has_servo_dev())
-                    if (&chs_conf_->servo_dev().si() == snsr_info_)
-                        return &chs_conf_->servo_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->servo_dev().size(); i++)
+                    if (&chs_conf_->servo_dev(i).si() == snsr_info_)
+                        return &chs_conf_->servo_dev(i).sn_ind();
 
-                if (chs_conf_->has_wireless_dev())
-                    if (&chs_conf_->wireless_dev().si() == snsr_info_)
-                        return &chs_conf_->wireless_dev().sn_ind();
+                for (int i = 0; i < chs_conf_->wireless_dev().size(); i++)
+                    if (&chs_conf_->wireless_dev(i).si() == snsr_info_)
+                        return &chs_conf_->wireless_dev(i).sn_ind();
 
-                if (chs_conf_->has_linelaser_dev())
-                    if (&chs_conf_->linelaser_dev().si() == snsr_info_)
-                        return &chs_conf_->linelaser_dev().sn_ind();
-
-                AERROR << "can't get sensor indicator!";
+                AERROR << "can't get sensor indicator for\n" <<
+                    snsr_info_->DebugString();
 
                 return nullptr;
             }
 
-        protected:
+            const Message& GetDevice() {
+                for (int i = 0; i < chs_conf_->gpio_dev().size(); i++)
+                    if (&chs_conf_->gpio_dev(i).si() == snsr_info_)
+                        return chs_conf_->gpio_dev(i);
+
+                for (int i = 0; i < chs_conf_->adc_dev().size(); i++)
+                    if (&chs_conf_->adc_dev(i).si() == snsr_info_)
+                        return chs_conf_->adc_dev(i);
+
+                for (int i = 0; i < chs_conf_->pwm_dev().size(); i++)
+                    if (&chs_conf_->pwm_dev(i).si() == snsr_info_)
+                        return chs_conf_->pwm_dev(i);
+
+                for (int i = 0; i < chs_conf_->lidar_dev().size(); i++)
+                    if (&chs_conf_->lidar_dev(i).si() == snsr_info_)
+                        return chs_conf_->lidar_dev(i);
+
+                for (int i = 0; i < chs_conf_->imu_dev().size(); i++)
+                    if (&chs_conf_->imu_dev(i).si() == snsr_info_)
+                        return chs_conf_->imu_dev(i);
+
+                for (int i = 0; i < chs_conf_->dtof_dev().size(); i++)
+                    if (&chs_conf_->dtof_dev(i).si() == snsr_info_)
+                        return chs_conf_->dtof_dev(i);
+
+                for (int i = 0; i < chs_conf_->camera_dev().size(); i++)
+                    if (&chs_conf_->camera_dev(i).si() == snsr_info_)
+                        return chs_conf_->camera_dev(i);
+
+                for (int i = 0; i < chs_conf_->mcu_dev().size(); i++)
+                    if (&chs_conf_->mcu_dev(i).si() == snsr_info_)
+                        return chs_conf_->mcu_dev(i);
+
+                for (int i = 0; i < chs_conf_->aud_dev().size(); i++)
+                    if (&chs_conf_->aud_dev(i).si() == snsr_info_)
+                        return chs_conf_->aud_dev(i);
+
+                for (int i = 0; i < chs_conf_->servo_dev().size(); i++)
+                    if (&chs_conf_->servo_dev(i).si() == snsr_info_)
+                        return chs_conf_->servo_dev(i);
+
+                for (int i = 0; i < chs_conf_->wireless_dev().size(); i++)
+                    if (&chs_conf_->wireless_dev(i).si() == snsr_info_)
+                        return chs_conf_->wireless_dev(i);
+
+                for (int i = 0; i < chs_conf_->wireless_dev().size(); i++)
+                    if (&chs_conf_->wireless_dev(i).si() == snsr_info_)
+                        return chs_conf_->wireless_dev(i);
+
+                AERROR << "can't get device itself for\n" <<
+                    snsr_info_->DebugString();
+
+                return *snsr_info_;
+            }
+
             std::unique_ptr<CircularBuffer<uint8_t>>
                 cbuf_raw_ = nullptr;
 
@@ -311,14 +407,16 @@ namespace parser {
 #if USE_PARSER_TIMER
             std::unique_ptr<cyber::Timer> tim_ = nullptr;
 #endif
-
             //for data packing and downstream
             std::unique_ptr<PackerBaseItf> packer_ = nullptr;
 
             const SensorInfo* snsr_info_ = nullptr;
             const ChassisConfig* chs_conf_ = nullptr;
 
+            int frame_count_ = 0;
             FrameProcessor frame_processor_ = nullptr;
+
+            std::atomic<bool> is_parsing_busy_ = {false};
     };
 
 } //namespace parser

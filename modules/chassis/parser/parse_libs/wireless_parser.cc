@@ -15,8 +15,8 @@ namespace parser {
     }
 
     int WirelessParser::Init() {
-        return ParserBaseItf::Init(chs_conf_->
-                wireless_dev().sn_ind().port());
+        auto dev = dynamic_cast<const WirelessDevice&>(GetDevice());
+        return ParserBaseItf::Init(dev.sn_ind().port());
     }
 
 } //namespace parser

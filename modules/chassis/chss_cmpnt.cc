@@ -62,16 +62,21 @@ int main(int argc, char **argv) {
         chas_dispatcher_.reset();
         chs_conf_.reset();
 
-        AINFO << "chassis shutdown finish!";
+        AINFO << "chassis shutdown finish " <<
+            (system("stty echo") ? "NG" : "OK");
+
         std::this_thread::sleep_for(std::chrono::
-                milliseconds(10));
+                milliseconds(100));
     };
 
     ::cyber::RegisterUserExitHandle(chassis_exit_hdl);
 
     AINFO << "Cyber Chassis Wait\n...";
+
     //main thread block...
     ::cyber::WaitForShutdown();
+
+    AWARN << "Chassis Terminate\n...";
 
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef _SERIAL_PORT_H_
-#define _SERIAL_PORT_H_
+#ifndef _UART_DRIVE_H
+#define _UART_DRIVE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,4 +14,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif //_UART_DRIVE_H

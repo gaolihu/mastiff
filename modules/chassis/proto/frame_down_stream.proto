@@ -279,7 +279,8 @@ enum EE_DEVICES_MANAGE {
 }
 
 message DevManage {
-    EE_DEVICES_MANAGE val = 1;
+    uint32 index = 1;
+    EE_DEVICES_MANAGE val = 2;
 }
 
 message ChannelSwitch {
@@ -295,24 +296,21 @@ message ChannelSwitch {
 
 message DevicesManager {
     DevManage gpio_m = 1;
-    DevManage mcu0_m = 2;       //default mcu
-    DevManage mcu1_m = 3;
-    DevManage servo_m = 4;
-    DevManage lidar_m = 5;
+    DevManage mcu_m = 2;
+    DevManage servo_m = 3;
+    DevManage lidar_m = 4;
 
-    DevManage camera0_m = 6;    //default camera
-    DevManage camera1_m = 7;
-    DevManage camera2_m = 8;
-    DevManage camera3_m = 9;
-    DevManage camera4_m = 10;
+    DevManage camera_m = 5;     //default camera
 
-    DevManage audio_m = 11;
-    DevManage lcd_m = 12;
-    DevManage wifi_m = 13;
-    DevManage four_g_m = 14; //4G
+    DevManage audio_m = 6;
+    DevManage lcd_m = 7;
+    DevManage wifi_4g_m = 8;
+
+    DevManage linelaser_m = 9;  //linelaser
+    DevManage imu_m = 10;       //IMU
 
     //for data channel flow control
-    ChannelSwitch cs = 15;
+    ChannelSwitch cs = 12;
 }
 
 message DownToSocData {

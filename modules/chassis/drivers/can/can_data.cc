@@ -32,19 +32,20 @@ namespace driver {
         Close();
     }
 
-    int CanData::Init(const int cycle,
+    int CanData::Init(const std::string& name,
+            const int cycle,
             const DriveDataPolling& p) {
         if (p != nullptr) {
             AINFO << "Init can driver with upper poller, cycle ms: " <<
                 (cycle == 0 ? can_conf_->dev_setting().can_read_freq() : cycle);
-            DriveDataItf::Init(cycle == 0 ?
-                    can_conf_->dev_setting().can_read_freq() : cycle, p);
+            DriveDataItf::Init(name.empty() ? can_conf_->dev_setting().dev() : name,
+                    cycle == 0 ?  can_conf_->dev_setting().can_read_freq() : cycle, p);
         } else {
             //default handler for lower data upstream
             AINFO << "Init can driver with default poller, cycle ms: " <<
                 (cycle == 0 ? can_conf_->dev_setting().can_read_freq() : cycle);
-            DriveDataItf::Init(cycle == 0 ?
-                    can_conf_->dev_setting().can_read_freq() : cycle,
+            DriveDataItf::Init(can_conf_->dev_setting().dev(),
+                    cycle == 0 ? can_conf_->dev_setting().can_read_freq() : cycle,
                     std::bind(&CanData:: can_poll_func, this));
         }
 
@@ -89,6 +90,13 @@ namespace driver {
         return DriveDataItf::Stop();
     }
 
+    int CanData::Resume() {
+        AINFO << "Resume CanData: " <<
+            can_conf_->dev_setting().dev();
+
+        return DriveDataItf::Resume();
+    }
+
     int CanData::Close() {
         AINFO << "Close CanData: " <<
             can_conf_->dev_setting().dev();
@@ -98,7 +106,6 @@ namespace driver {
         if (can_socket_fd_ > 0) {
             can_close(can_socket_fd_);
             can_socket_fd_ = -1;
-            return 0;
         } else {
             AWARN << can_conf_->dev_setting().dev() <<
                 " not opened, can't be closed!";

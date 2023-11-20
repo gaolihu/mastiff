@@ -10,7 +10,9 @@ namespace device {
 
     class DeviceGpio : public DeviceBaseItf {
         public:
-            DeviceGpio(const ChassisConfig*);
+            DeviceGpio(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceGpio();
 
         private:

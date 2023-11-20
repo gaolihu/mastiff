@@ -17,6 +17,7 @@ cc_binary(
     deps = [
         "//cyber",
         "//CyberRT_tutorials/cbr_examples/proto:cbr_examples_cc_proto",
+        "//modules/chassis/proto:input_output_chs_cc_proto",
     ],
 )
 

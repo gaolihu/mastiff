@@ -8,7 +8,8 @@ namespace chss {
 namespace driver {
 
     SerialData::SerialData(const DriveDataMonitor& m,
-            const proto::UartConfig* c) {
+            const UartConfig* c,
+            const SensorInfo* si) {
 #ifdef CHSS_PKG_DBG
             AINFO << "SerialData construct!";
 #endif
@@ -16,6 +17,7 @@ namespace driver {
 
         serial_monitor_ = m;
         uart_conf_ = c;
+        snsr_info_ = si;
     }
 
     SerialData::~SerialData() {
@@ -25,7 +27,8 @@ namespace driver {
         Close();
     }
 
-    int SerialData::Init(const int cycle,
+    int SerialData::Init(const std::string& name,
+            const int cycle,
             const DriveDataPolling& p) {
 #ifdef SERIAL_PORTING
         comm_ = new Serial(uart_conf_->dev_setting().uart_dev(),
@@ -48,13 +51,13 @@ namespace driver {
         if (p != nullptr) {
             AINFO << "init serial driver with upper poller, cycle ms: " <<
                 (cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle);
-            DriveDataItf::Init(cycle == 0 ?
-                    uart_conf_->dev_setting().serial_read_freq() : cycle, p);
+            DriveDataItf::Init(name.empty() ? uart_conf_->dev_setting().uart_dev(): name,
+                    cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle, p);
         } else {
             AINFO << "init serial driver with default poller, cycle ms: " <<
                 (cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle);
-            DriveDataItf::Init(cycle == 0 ?
-                    uart_conf_->dev_setting().serial_read_freq() : cycle,
+            DriveDataItf::Init(name.empty() ? uart_conf_->dev_setting().uart_dev(): name,
+                    cycle == 0 ? uart_conf_->dev_setting().serial_read_freq() : cycle,
                     std::bind(&SerialData:: serial_poll_func, this));
         }
 #endif
@@ -160,6 +163,13 @@ namespace driver {
         return DriveDataItf::Stop();
     }
 
+    int SerialData::Resume() {
+        AINFO << "Resume SerialData, dev: " <<
+            uart_conf_->dev_setting().uart_dev();
+
+        return DriveDataItf::Resume();
+    }
+
     int SerialData::Close() {
 #ifdef SERIAL_PORTING
         comm_->flush();
@@ -173,12 +183,12 @@ namespace driver {
         if (serial_fd_ > 0) {
             close_uart(serial_fd_);
             serial_fd_ = -1;
-            return 0;
         } else {
             AWARN << uart_conf_->dev_setting().uart_dev() <<
                 " not opened, can't be closed!";
         }
 #endif
+        DriveDataItf::Stop();
         return DriveDataItf::Close();
     }
 
@@ -203,7 +213,7 @@ namespace driver {
                 os.str() << " <- " << uart_conf_->dev_setting().uart_dev() <<
                 ", [ " << oss.str() << " ]";
 #endif
-            serial_monitor_(buf, len);
+            serial_monitor_((const void*)snsr_info_, buf, len);
         } else {
 #ifdef SERIAL_DBG
             AWARN_EVERY(200) << "read dev: " << uart_conf_->dev_setting().uart_dev() <<

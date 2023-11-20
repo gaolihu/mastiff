@@ -24,6 +24,10 @@ namespace device {
 
         private:
             SimulateProtoHandle upper_handler_ = nullptr;
+
+            void DeviceManageSim(std::shared_ptr<ChassisCtrl>&, const int);
+
+            void WirelessKeySim(std::shared_ptr<ChassisCtrl>&, const int);
     };
 
 

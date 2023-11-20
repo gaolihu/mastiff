@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceWireless::DeviceWireless(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->wireless_dev().si(),
-                    cc->wireless_dev().sn_ind()) {
+    DeviceWireless::DeviceWireless(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceWireless construct" <<
 #if 0
@@ -21,10 +22,9 @@ namespace device {
 #endif
 #endif
         data_parser_ = std::make_unique
-            <WirelessParser>(cc, &cc->wireless_dev().si());
+            <WirelessParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->wireless_dev().si().name(),
-                cc->wireless_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

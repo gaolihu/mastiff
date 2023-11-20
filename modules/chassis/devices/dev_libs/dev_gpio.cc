@@ -8,9 +8,10 @@ namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceGpio::DeviceGpio(const ChassisConfig* cc) :
-            DeviceBaseItf(cc->gpio_dev().si(),
-                    cc->gpio_dev().sn_ind()) {
+    DeviceGpio::DeviceGpio(const ChassisConfig* cc,
+            const SensorInfo& si,
+            const SensorIndicator& idc) :
+            DeviceBaseItf(si, idc) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DeviceGpio construct" <<
 #if 0
@@ -20,12 +21,10 @@ namespace device {
             "";
 #endif
 #endif
-
         data_parser_ = std::make_unique
-            <GpioParser>(cc, &cc->gpio_dev().si());
+            <GpioParser>(cc, &si);
         DataTransact::Instance()->RegisterDevice(
-                cc->gpio_dev().si().name(),
-                cc->gpio_dev().sn_ind(),
+                si.name(), idc,
                 dynamic_cast<DeviceBaseItf*>(this));
     }
 

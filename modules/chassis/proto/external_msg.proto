@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/nav_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/geometry_msgs.proto";
 
 /*
 message Time {

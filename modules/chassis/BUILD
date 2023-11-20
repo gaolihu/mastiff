@@ -622,7 +622,7 @@ cc_library(
         ":raw_packer",
         ":servo_packer",
         ":llaser_packer",
-        ":imu_packer",
+
         ":circular_buffer",
     ]
 )
@@ -696,24 +696,6 @@ cc_library(
 )
 
 cc_library(
-    name = "imu_packer",
-    srcs = [
-        "parser/pack_libs/imu_packer.cc",
-    ],
-    hdrs = [
-        "parser/pack_libs/imu_packer.h",
-        "parser/parse_libs/ydlidar_protocol.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        ":packer_base_itf",
-    ]
-)
-
-cc_library(
     name = "packer_base_itf",
     srcs = [
     ],
@@ -746,6 +728,7 @@ cc_library(
         ":can_data",
         ":soc_data",
         ":serial_data",
+        ":i2c_data",
     ]
 )
 ######## ######## 2 parser ######## ########
@@ -851,11 +834,12 @@ cc_library(
         "drivers/soc/network/*.cc",
     ]),
     hdrs = glob([
+        "drivers/soc/soc_defs.h",
         "drivers/soc/network/*.h",
     ]),
     deps = [
         "//cyber",
-        #"//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:chassis_config_cc_proto",
         "//modules/chassis/proto:input_output_chs_cc_proto",
     ]
 )
@@ -930,6 +914,44 @@ cc_library(
     ]
 )
 ######## serial ########
+
+######## i2c ########
+cc_library(
+    name = "i2c_data",
+    srcs = [
+        "drivers/i2c/i2c_data.cc"
+    ],
+    hdrs = [
+        "drivers/i2c/i2c_data.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+        #'-DSERIAL_PORTING',
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        ":driver_data_itf",
+        #":i2c_drive",
+    ]
+)
+
+cc_library(
+    name = "i2c_drive",
+    srcs = [
+        "drivers/i2c/i2c_drive.c",
+    ],
+    hdrs = [
+        "drivers/i2c/i2c_drive.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+    ]
+)
+######## i2c ########
 ######## ######## 3 drivers ######## ########
 
 cpplint()

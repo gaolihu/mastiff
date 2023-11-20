@@ -21,10 +21,12 @@ namespace driver {
                     const proto::CanConfig* c);
             ~CanData();
 
-            virtual int Init(const int = 0, const
+            virtual int Init(const std::string& = "",
+                    const int = 0, const
                     DriveDataPolling& = nullptr) override;
             virtual int Start() override;
             virtual int Stop() override;
+            virtual int Resume() override;
             virtual int Close() override;
 
             virtual int WritePort(const std::vector<uint8_t>&) override;

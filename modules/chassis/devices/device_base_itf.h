@@ -21,7 +21,7 @@ namespace device {
         public:
             DeviceBaseItf(const SensorInfo& si,
                     const SensorIndicator& ind) {
-                sensor_info_ = (const_cast<SensorInfo*>(&si));
+                sensor_info_ = const_cast<SensorInfo*>(&si);
                 sensor_ind_ = const_cast<SensorIndicator*>(&ind);
 
                 sensor_ind_->set_status(EE_DEVICE_STATUS::
@@ -29,7 +29,7 @@ namespace device {
 #ifdef CHSS_PKG_DBG
                 AWARN << "DeviceBaseItf for <" <<
                     sensor_info_->name() <<
-#if 0
+#if 1
                     " >, sensor_info_ p: " << sensor_info_ <<
                     ", sensor_ind_ p: " << sensor_ind_;
                 AINFO << "sensor_info_:\n" << sensor_info_->DebugString();
@@ -44,7 +44,7 @@ namespace device {
 #ifdef CHSS_PKG_DBG
                 AWARN << "DeviceBaseItf de-construct <" <<
                     sensor_info_->name() <<
-#if 0
+#if 1
                     " >>, sensor_info_ p: " << sensor_info_ <<
                     ", sensor_ind_ p: " << sensor_ind_;
                 AINFO << "sensor_info_:\n" << sensor_info_->DebugString();
@@ -59,16 +59,36 @@ namespace device {
             // control APIs
             // for private use
             virtual int Init() {
-                return data_parser_->Init();
+                if (data_parser_)
+                    return data_parser_->Init();
+                AWARN << "Init: no parser for " << sensor_info_->name();
+                return -1;
             }
+
             virtual int Start(void) {
-                return data_parser_->Start();
+                if (data_parser_)
+                    return data_parser_->Start();
+                AWARN << "Start: no parser for " << sensor_info_->name();
+                return -1;
             }
+
             virtual int Stop(void) {
-                return data_parser_->Stop();
+                if (data_parser_)
+                    return data_parser_->Stop();
+                AWARN << "Stop: no parser for " << sensor_info_->name();
+                return -1;
             }
+
+            virtual int Resume(void) {
+                if (data_parser_)
+                    return data_parser_->Resume();
+                AWARN << "Resume: no parser for " << sensor_info_->name();
+                return -1;
+            }
+
             virtual void Close(void) {
-                data_parser_->Close();
+                if (data_parser_)
+                    data_parser_->Close();
             }
 
             void* GetDeviceParser(void) {
@@ -80,7 +100,9 @@ namespace device {
 
             int InitSensor(SensorIndicator* si) {
                 if (si != sensor_ind_) {
-                    AWARN << "DeviceBase indicator not matched!";
+                    AWARN << "DeviceBase indicator err\n" <<
+                        si->DebugString() <<
+                        " :\n" << sensor_ind_->DebugString();
                     return -1;
                 }
                 int ret = Init();
@@ -128,6 +150,11 @@ namespace device {
                     AWARN << GetSensorName() <<
                         " uninitialized, no stop!";
                     return ret;
+                } else if (GetDeviceStatus() == EE_DEVICE_STATUS::
+                        E_STATUS_IDLE) {
+                    AWARN << GetSensorName() <<
+                        " already stoped, no stop!";
+                    return 0;
                 }
                 ret = Stop();
                 if (ret == 0) {
@@ -140,11 +167,40 @@ namespace device {
                 return ret;
             }
 
+            int ResumeSensor() {
+                int ret = -1;
+                if (GetDeviceStatus() == EE_DEVICE_STATUS::
+                        E_STATUS_UNINITIALIZED) {
+                    AWARN << GetSensorName() <<
+                        " uninitialized, no resume!";
+                    return ret;
+                } else if (GetDeviceStatus() == EE_DEVICE_STATUS::
+                        E_STATUS_WORKING) {
+                    AWARN << GetSensorName() <<
+                        " already working, no resume!";
+                    return 0;
+                }
+                ret = Resume();
+                if (ret == 0) {
+                    sensor_working_ = true;
+                    sensor_stoped_ = false;
+                    SetDeviceStatus(EE_DEVICE_STATUS::
+                            E_STATUS_WORKING);
+                }
+                CtrlSwitch(true);
+                return ret;
+            }
+
             void CloseSensor() {
                 if (GetDeviceStatus() == EE_DEVICE_STATUS::
                         E_STATUS_UNINITIALIZED) {
                     AWARN << GetSensorName() <<
                         " uninitialized, no close!";
+                    return;
+                } else if (GetDeviceStatus() == EE_DEVICE_STATUS::
+                        E_STATUS_SHUTDOWN) {
+                    AWARN << GetSensorName() <<
+                        " already closed, no close!";
                     return;
                 }
                 sensor_working_ = false;
@@ -156,14 +212,14 @@ namespace device {
             }
 
             // status APIs
-            std::string CheckDeviceInfo() {
+            const std::string CheckDeviceInfo() {
                 return std::string("-> DeviceBase info:\n" +
                         sensor_info_->DebugString() +
                         "-> DeviceBase indicator:\n" +
                         sensor_ind_->DebugString());
             }
 
-            std::string CheckDeviceStatus() {
+            const std::string CheckDeviceStatus() {
                 //TODO
                 return std::string("No Error");
             }
@@ -192,15 +248,15 @@ namespace device {
                 return sensor_ind_;
             }
 
-            std::string GetSensorName() {
+            const std::string& GetSensorName() {
                 return sensor_info_->name();
             }
 
-            std::string GetSensorManufacture() {
+            const std::string& GetSensorManufacture() {
                 return sensor_info_->manufacture_by();
             }
 
-            std::string GetSensorType() {
+            const std::string& GetSensorType() {
                 return sensor_info_->type();
             }
 

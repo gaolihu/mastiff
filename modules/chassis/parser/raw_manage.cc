@@ -17,7 +17,11 @@ namespace parser {
 #ifdef CHSS_PKG_DBG
         AINFO << "RawManage sigleton de-construct";
 #endif
-        for (auto x : serial_data_) {
+        for (auto x : dev_serial_map_) {
+            if (x.second)
+                delete x.second;
+        }
+        for (auto x : dev_i2c_map_) {
             if (x.second)
                 delete x.second;
         }
@@ -42,206 +46,313 @@ namespace parser {
         }
 
         //1, servo motor by CAN
-        if (chs_conf_->has_servo_dev() &&
-                &chs_conf_->servo_dev().si() == si) {
-            //judge port type
-            can_data_ = std::make_unique<CanData>
-                (std::bind(&RawManage::OnRecvCan, this,
-                           std::placeholders::_1,
-                           std::placeholders::_2),
-                 &chs_conf_->servo_dev().can_conf());
-            can_data_->Init();
-            sis_.emplace_back(si);
+        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
+            if(&chs_conf_->servo_dev(i).si() == si) {
+                can_data_ = std::make_unique<CanData>
+                    (std::bind(&RawManage::OnRecvCan, this,
+                               std::placeholders::_1,
+                               std::placeholders::_2),
+                     &chs_conf_->servo_dev(i).can_conf());
+                can_data_->Init();
+                sis_.emplace_back(si);
+            }
         }
 
         //2, serial devices line-laser
-        if (chs_conf_->has_linelaser_dev() &&
-                &chs_conf_->linelaser_dev().si() == si) {
-            //judge port type
-            auto s = new SerialData
-                (std::bind(&RawManage::OnRecvUart, this,
-                           std::placeholders::_1,
-                           std::placeholders::_2),
-                 &chs_conf_->linelaser_dev().uart_conf());
-            s->Init();
-            sis_.emplace_back(si);
-            serial_data_[si] = s;
+        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
+            if(&chs_conf_->linelaser_dev(i).si() == si) {
+                auto s = new SerialData
+                    (std::bind(&RawManage::OnRecvUart, this,
+                               std::placeholders::_1,
+                               std::placeholders::_2,
+                               std::placeholders::_3),
+                     &chs_conf_->linelaser_dev(i).uart_conf(),
+                     si);
+                s->Init();
+                sis_.emplace_back(si);
+                dev_serial_map_[si] = s;
+            }
         }
 
         //3, serial devices lidar
-        if (chs_conf_->has_lidar_dev() &&
-                &chs_conf_->lidar_dev().si() == si) {
-            //judge port type
-            auto s = new SerialData
-                (std::bind(&RawManage::OnRecvUart, this,
-                           std::placeholders::_1,
-                           std::placeholders::_2),
-                 &chs_conf_->lidar_dev().uart_conf());
-            s->Init();
-            sis_.emplace_back(si);
-            serial_data_[si] = s;
+        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
+            if(&chs_conf_->lidar_dev(i).si() == si) {
+                auto s = new SerialData
+                    (std::bind(&RawManage::OnRecvUart, this,
+                               std::placeholders::_1,
+                               std::placeholders::_2,
+                               std::placeholders::_3),
+                     &chs_conf_->lidar_dev(i).uart_conf(),
+                     si);
+                s->Init();
+                sis_.emplace_back(si);
+                dev_serial_map_[si] = s;
+            }
         }
-        if (chs_conf_->has_imu_dev() &&
-                &chs_conf_->imu_dev().si() == si){
-            auto s = new SerialData(
-                std::bind(&RawManage::OnRecvUart, this,
-                    std::placeholders::_1, std::placeholders::_2),
-                &chs_conf_->imu_dev().uart_conf());
-            s->Init();
-            sis_.emplace_back(si);
-            serial_data_[si] = s;
+
+        //3, serial/iic devices imu
+        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
+            if(&chs_conf_->imu_dev(i).si() == si) {
+                if (chs_conf_->imu_dev(i).has_uart_conf()) {
+                    auto s = new SerialData(
+                            std::bind(&RawManage::OnRecvUart, this,
+                                std::placeholders::_1,
+                                std::placeholders::_2,
+                                std::placeholders::_3),
+                            &chs_conf_->imu_dev(i).uart_conf(),
+                            si);
+                    s->Init();
+                    sis_.emplace_back(si);
+                    dev_serial_map_[si] = s;
+                } else if (chs_conf_->imu_dev(i).has_i2c_conf()) {
+                    auto s = new IIcData(
+                            std::bind(&RawManage::OnRecvIIc, this,
+                                std::placeholders::_1,
+                                std::placeholders::_2,
+                                std::placeholders::_3),
+                            &chs_conf_->imu_dev(i).i2c_conf(),
+                            si);
+                    s->Init();
+                    sis_.emplace_back(si);
+                    dev_i2c_map_[si] = s;
+                }
+            }
         }
 
         //4-0, soc - set chs config
         soc_data_->Init(0, cc);
 
         //4-1, soc - audio
-        if (chs_conf_->has_aud_dev() &&
-                &chs_conf_->aud_dev().si() == si) {
-            soc_data_->Init(&chs_conf_->aud_dev().si());
+        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
+            if(&chs_conf_->aud_dev(i).si() == si)
+                soc_data_->Init(&chs_conf_->aud_dev(i).si());
         }
 
         //4-2, soc - network
-        if (chs_conf_->has_wireless_dev() &&
-                &chs_conf_->wireless_dev().si() == si) {
-            soc_data_->Init(&chs_conf_->wireless_dev().si());
+        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
+            if(&chs_conf_->wireless_dev(i).si() == si)
+                soc_data_->Init(&chs_conf_->wireless_dev(i).si());
         }
 
         //4-3, soc - camera
-        if (chs_conf_->has_camera_dev() &&
-                &chs_conf_->camera_dev().si() == si) {
-            soc_data_->Init(&chs_conf_->camera_dev().si());
+        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
+            if(&chs_conf_->camera_dev(i).si() == si)
+                soc_data_->Init(&chs_conf_->camera_dev(i).si());
         }
 
-        //3-2, soc - network
-        if(chs_conf_->has_wireless_dev() && &chs_conf_->wireless_dev().si() == si){
-            sis_.emplace_back(si);
+        //4-4, soc - network
+        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
+            if(&chs_conf_->wireless_dev(i).si() == si)
+                sis_.emplace_back(si);
         }
-        //3-3, soc - camera
-        if(chs_conf_->has_camera_dev() && &chs_conf_->camera_dev().si() == si){
-            sis_.emplace_back(si);
+
+        //4-5, soc - camera
+        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
+            if(&chs_conf_->camera_dev(i).si() == si)
+                sis_.emplace_back(si);
         }
+
         return 0;
     }
 
     int RawManage::Start(const SensorInfo* si) {
-        if (chs_conf_->has_servo_dev() &&
-                &chs_conf_->servo_dev().si() == si) {
-            //1, CAN driver start
-            return can_data_->Start();
-        } else if (chs_conf_->has_linelaser_dev() &&
-                &chs_conf_->linelaser_dev().si() == si) {
-            //2, UART-linelaser start
-            if (auto s = _FindSerialData(si)) {
-                return s->Start();
+        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
+            if(&chs_conf_->servo_dev(i).si() == si)
+                //CAN driver start
+                return can_data_->Start();
+        }
+
+        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
+            if(&chs_conf_->linelaser_dev(i).si() == si) {
+                //UART linelaser driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Start();
+                }
+                AERROR << "start UART linelaser error!";
             }
-            AERROR << "start uart linelaser error!";
-        } else if (chs_conf_->has_lidar_dev() &&
-                &chs_conf_->lidar_dev().si() == si) {
-            //3, UART-lidar start
-            if (auto s = _FindSerialData(si)) {
-                return s->Start();
+        }
+
+        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
+            if(&chs_conf_->lidar_dev(i).si() == si) {
+                //UART lidar driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Start();
+                }
+                AERROR << "start UART linelaser error!";
             }
-            AERROR << "find uart lidar start error!";
-        } else if(chs_conf_->has_imu_dev() &&
-                &chs_conf_->imu_dev().si() == si) {
-            if(auto s = _FindSerialData(si)) {
-                return s->Start();
+        }
+
+        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
+            if(&chs_conf_->imu_dev(i).si() == si) {
+                if (chs_conf_->imu_dev(i).has_uart_conf()) {
+                    //UART IMU driver start
+                    if (auto s = _FindSerialData(si)) {
+                        return s->Start();
+                    }
+                } else if (chs_conf_->imu_dev(i).has_i2c_conf()) {
+                    //IIC IMU driver start
+                    if (auto s = _FindI2cData(si)) {
+                        return s->Start();
+                    }
+                }
+                AERROR << "start UART IMU error!";
             }
-            AERROR << "find uart IMU start error!";
-        } else if (chs_conf_->has_wireless_dev() &&
-                &chs_conf_->wireless_dev().si() == si) {
-            //4 - 1, SOC driver - network start
-            //TODO
-            return soc_data_->Start(si);
-        } else if (chs_conf_->has_aud_dev() &&
-                &chs_conf_->aud_dev().si() == si) {
-            //4 - 2, SOC driver - audio start
-            //TODO
-            return soc_data_->Start(si);
-        } else if (chs_conf_->has_camera_dev() &&
-                &chs_conf_->camera_dev().si() == si) {
-            //4 - 3, SOC driver - camera start
-            //TODO
-            return soc_data_->Start(si);
+        }
+
+        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
+            if(&chs_conf_->aud_dev(i).si() == si) {
+                //audio driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Start();
+                }
+                AERROR << "start AUDIO error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
+            if(&chs_conf_->camera_dev(i).si() == si) {
+                //camera driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Start();
+                }
+                AERROR << "start camera error!";
+            }
         }
 
         AWARN << "Start TODO for\n" << si->DebugString();
 
-        return 0;
+        return -1;
     }
 
     int RawManage::Stop(const SensorInfo* si) {
-        if (chs_conf_->has_servo_dev() &&
-                &chs_conf_->servo_dev().si() == si) {
-            //1, CAN driver stop
-            can_data_->Stop();
-        } else if (chs_conf_->has_aud_dev() &&
-                &chs_conf_->aud_dev().si() == si) {
-            //2, SOC driver start
-            // return soc_data_->Stop();
-            //TODO
-        } else if (chs_conf_->has_linelaser_dev() &&
-                &chs_conf_->linelaser_dev().si() == si) {
-            //3, UART-linelaser stop
-            if (auto s = _FindSerialData(si)) {
-                return s->Stop();
+        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
+            if(&chs_conf_->servo_dev(i).si() == si) {
+                AINFO << "stop servo motor CAN";
+                return can_data_->Stop();
             }
-            AERROR << "stop uart linelaser error!";
-        } else if (chs_conf_->has_lidar_dev() &&
-                &chs_conf_->lidar_dev().si() == si) {
-            //3, UART-lidar stop
-            if (auto s = _FindSerialData(si)) {
-                return s->Stop();
-            }
-            AERROR << "find uart lidar stop error!";
-        } else if (chs_conf_->has_imu_dev() &&
-                &chs_conf_->imu_dev().si() == si) {
-            if (auto s = _FindSerialData(si)) {
-                return s->Stop();
-            }
-            AERROR << "find uart IMU stop error!";
         }
 
+        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
+            if(&chs_conf_->linelaser_dev(i).si() == si) {
+                //UART IMU driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Stop();
+                }
+                AERROR << "find UART IMU stop error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
+            if(&chs_conf_->lidar_dev(i).si() == si) {
+                //UART IMU driver start
+                if (auto s = _FindSerialData(si)) {
+                    return s->Stop();
+                }
+                AERROR << "find UART lidar stop error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
+            if(&chs_conf_->aud_dev(i).si() == si) {
+                //audio driver start
+                //return s->Stop();
+            }
+        }
         AWARN << "Stop TODO for\n" << si->DebugString();
 
-        return 0;
+        return -1;
+    }
+
+    int RawManage::Resume(const SensorInfo* si) {
+        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
+            if(&chs_conf_->servo_dev(i).si() == si) {
+                //return s->Resume();
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
+            if(&chs_conf_->linelaser_dev(i).si() == si) {
+                //CAN driver resume
+                if (auto s = _FindSerialData(si)) {
+                    return s->Resume();
+                }
+                AERROR << "find UART linerlaser resume error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
+            if(&chs_conf_->imu_dev(i).si() == si) {
+                //UART IMU driver resume
+                if (auto s = _FindSerialData(si)) {
+                    return s->Resume();
+                }
+                AERROR << "find UART linerlaser resume error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
+            if(&chs_conf_->lidar_dev(i).si() == si) {
+                //UART lidar driver resume
+                if (auto s = _FindSerialData(si)) {
+                    return s->Resume();
+                }
+                AERROR << "find UART lidar resume error!";
+            }
+        }
+
+        AWARN << "Resume TODO for\n" << si->DebugString();
+
+        return -1;
     }
 
     int RawManage::Close(const SensorInfo* si) {
-        if (chs_conf_->has_servo_dev() &&
-                &chs_conf_->servo_dev().si() == si) {
-            //1, CAN driver close
-            can_data_->Close();
-        } else if (chs_conf_->has_aud_dev() &&
-                &chs_conf_->aud_dev().si() == si) {
-            //2, SOC driver close
-            //return soc_data_->Close(si);
-        } else if (chs_conf_->has_linelaser_dev() &&
-                &chs_conf_->linelaser_dev().si() == si) {
-            //3, UART-linelaser close
-            if (auto s = _FindSerialData(si)) {
-                return s->Close();
+        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
+            if(&chs_conf_->servo_dev(i).si() == si) {
+                AINFO << "close servo motor CAN";
+                can_data_->Close();
+                return 0;
             }
-            AERROR << "close uart linelaser error!";
-        } else if (chs_conf_->has_lidar_dev() &&
-                &chs_conf_->lidar_dev().si() == si) {
-            //3, UART-lidar close
-            if (auto s = _FindSerialData(si)) {
-                return s->Close();
+        }
+
+        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
+            if(&chs_conf_->linelaser_dev(i).si() == si) {
+                if (auto s = _FindSerialData(si)) {
+                    s->Close();
+                    return 0;
+                }
+                AERROR << "find UART linelaser close error!";
             }
-            AERROR << "find uart lidar close error!";
-        } else if (chs_conf_->has_imu_dev() &&
-                &chs_conf_->imu_dev().si() == si ) {
-            if (auto s = _FindSerialData(si)) {
-                return s->Close();
+        }
+
+        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
+            if(&chs_conf_->lidar_dev(i).si() == si) {
+                if (auto s = _FindSerialData(si)) {
+                    s->Close();
+                    return 0;
+                }
+                AERROR << "find UART lidar close error!";
             }
-            AERROR << "find uart IMU close error!";
+        }
+
+        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
+            if(&chs_conf_->imu_dev(i).si() == si) {
+                if (auto s = _FindSerialData(si)) {
+                    s->Close();
+                    return 0;
+                }
+                AERROR << "find UART IMU close error!";
+            }
+        }
+
+        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
+            if(&chs_conf_->aud_dev(i).si() == si) {
+                return 0;
+            }
         }
 
         AWARN << "Close TODO for\n" << si->DebugString();
 
-        return 0;
+        return -1;
     }
 
     size_t RawManage::WriteUart(const SensorInfo* si,
@@ -253,7 +364,7 @@ namespace parser {
             oss << std::hex << std::setw(2) << std::setfill('0') <<
                 static_cast<int>(info[i]) << " ";
         }
-        AINFO << "write uart: [ " << oss.str() << " ]";
+        AINFO << "write UART: [ " << oss.str() << " ]";
 #endif
         if (info == nullptr || len == 0) {
             AWARN << "no contents to write for UART!";
@@ -263,7 +374,7 @@ namespace parser {
             return s->Push(info, len);
         }
 
-        AERROR << "write uart error!";
+        AERROR << "write UART error!";
 
         return 0;
     }
@@ -289,9 +400,16 @@ namespace parser {
         _CanMessageHandle(buf, len);
     }
 
-    void RawManage::OnRecvUart(const uint8_t* buf,
+    void RawManage::OnRecvUart(const void* conf,
+            const uint8_t* buf,
             const size_t len) {
-        _UartMessageHandle(buf, len);
+        _UartMessageHandle(conf, buf, len);
+    }
+
+    void RawManage::OnRecvIIc(const void* conf,
+            const uint8_t* buf,
+            const size_t len) {
+        _IIcMessageHandle(conf, buf, len);
     }
 
     void RawManage::OnRecvSoc(const Message& msg) {

@@ -21,25 +21,47 @@ namespace parser {
     }
 
     int ServoParser::Init() {
-        AINFO << "motor parameters: " <<
-            ", wheel diameter: " << chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() <<
-            ", distance: " << chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm() <<
-            ", acc time: " << chs_conf_->servo_dev().servo_info().accelerate_time_ms() <<
-            ", dec time: " << chs_conf_->servo_dev().servo_info().decelerate_time_ms() <<
-            ", speed period: " << chs_conf_->servo_dev().servo_info().speed_report_period_ms() <<
-            ", status period: " << chs_conf_->servo_dev().servo_info().status_report_period_ms() <<
-            ", servo resolution: " << chs_conf_->servo_dev().servo_info().servo_motor_resolution() <<
-            ", reduction: " << chs_conf_->servo_dev().servo_info().servo_motor_reduction();
+        AINFO << "wheel diameter: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_diameter_10th1_mm() <<
+            " 1/10mm | distance: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_distance_10th1_mm() <<
+            " 1/10mm, acc: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().accelerate_time_ms() <<
+            " | dec time: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().decelerate_time_ms();
+        AINFO <<"reporting speed period: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().speed_report_period_ms() <<
+            "ms | status: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().status_report_period_ms() <<
+            ", resolution: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().servo_motor_resolution() <<
+            ", reduction ratio: " <<
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().servo_motor_reduction();
         config_servo_motor_parameters(
-                chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm(),
-                chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm(),
-                chs_conf_->servo_dev().servo_info().accelerate_time_ms(),
-                chs_conf_->servo_dev().servo_info().decelerate_time_ms(),
-                chs_conf_->servo_dev().servo_info().speed_report_period_ms(),
-                chs_conf_->servo_dev().servo_info().status_report_period_ms());
-        return ParserBaseItf::Init(chs_conf_->
-                servo_dev().sn_ind().port(),
-                &chs_conf_->servo_dev().
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().wheel_diameter_10th1_mm(),
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().wheel_distance_10th1_mm(),
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().accelerate_time_ms(),
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().decelerate_time_ms(),
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().speed_report_period_ms(),
+                dynamic_cast<const ServoDevice&>(GetDevice()).
+                servo_info().status_report_period_ms());
+        return ParserBaseItf::Init(
+                dynamic_cast<const ServoDevice&>
+                (GetDevice()).sn_ind().port(),
+                &dynamic_cast<const ServoDevice&>(GetDevice()).
                 can_conf().buf_setting());
     }
 
@@ -93,7 +115,7 @@ namespace parser {
             std::vector<std::tuple<const int,
                 const std::vector<uint8_t>>> packed_datas =
                     packer_->PackMotorMessageArrayRaw(data);
-            AINFO << "send tuple num: " << packed_datas.size();
+            AINFO << "send commands num: " << packed_datas.size();
             for (int i = 0; i < (int)packed_datas.size(); i++) {
                 RawManage::Instance()->
                     WriteCan(std::get<0>(packed_datas[i]),
@@ -127,9 +149,9 @@ namespace parser {
             left_rpm_ = rpm_left;
             left_encoder_ = encoder_left;
 #ifdef SERVO_DBG
-            AINFO << "1, rpm left: " << left_rpm_ <<
-                ", encoder left: " << left_encoder_ <<
-                "    len " << len <<
+            AINFO << "RPM L: " << left_rpm_ <<
+                ", Encoder L: " << left_encoder_ <<
+                "    length " << len <<
                 ", [" <<
                 " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
                 " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
@@ -149,9 +171,9 @@ namespace parser {
             right_encoder_ = -encoder_right;
 
 #ifdef SERVO_DBG
-            AINFO << "2, rpm right: " << right_rpm_ <<
-                ", encoder right: " << right_encoder_ <<
-                "    len " << len <<
+            AINFO << "RPM R: " << right_rpm_ <<
+                ", Encoder R: " << right_encoder_ <<
+                "    length " << len <<
                 ", [" <<
                 " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
                 " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[1]) <<
@@ -174,7 +196,7 @@ namespace parser {
         }
         if (status_left != -1) {
             if (status_left != 0x37) {
-                AINFO << "3, status left: " << status_left <<
+                AWARN << "status L: " << status_left <<
                     "    len " << len <<
                     ", [" <<
                     " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
@@ -193,7 +215,7 @@ namespace parser {
         }
         if (status_right != -1) {
             if (status_right != 0x37) {
-                AINFO << "4, status right: " << status_right <<
+                AWARN << "status R: " << status_right <<
                     "    len " << len <<
                     ", [" <<
                     " " << std::hex << std::setw(2)<< std::setfill('0') << static_cast<int>(buf[0]) <<
@@ -219,29 +241,43 @@ namespace parser {
             const size_t len) {
         ventura::common_msgs::nav_msgs::Odometry odom;
 
+        odom.mutable_header()->set_seq(odom_seq_++);
+#if 1
         timeval tv;
         gettimeofday(&tv, NULL);
 
-        odom.mutable_header()->set_seq(odom_seq_++);
         odom.mutable_header()->mutable_stamp()->set_sec(tv.tv_sec);
         odom.mutable_header()->mutable_stamp()->set_nsec(tv.tv_usec * 1000);
         odom.mutable_header()->set_frame_id("odom");
+#else
+        auto tm = cyber::Time::Now();
 
+        odom.mutable_header()->set_seq(odom_seq_++);
+        odom.mutable_header()->mutable_stamp()->set_sec(tm.ToSecond());
+        odom.mutable_header()->mutable_stamp()->set_nsec(tm.ToNanosecond());
+#endif
         odom.set_child_frame_id("base_link");
 
-        float d_left = M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() *
+        float d_left = M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_diameter_10th1_mm() *
             (left_encoder_ - last_left_encoder_ /*+ left_scale * encoder_scale_val*/) /
-            ((chs_conf_->servo_dev().servo_info().servo_motor_resolution() /**
-            chs_conf_->servo_dev().servo_info().servo_motor_reduction()*/) * 1e4);
+            ((dynamic_cast<const ServoDevice&>(GetDevice()).
+              servo_info().servo_motor_resolution() /**
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().servo_motor_reduction()*/) * 1e4);
 
-        float d_right = M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() *
+        float d_right = M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+        servo_info().wheel_diameter_10th1_mm() *
             (right_encoder_ - last_right_encoder_ /*+ right_scale * encoder_scale_val*/) /
-            ((chs_conf_->servo_dev().servo_info().servo_motor_resolution() /**
-            chs_conf_->servo_dev().servo_info().servo_motor_reduction()*/) * 1e4);
+            ((dynamic_cast<const ServoDevice&>(GetDevice()).
+              servo_info().servo_motor_resolution() /**
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().servo_motor_reduction()*/) * 1e4);
 
         float ds = (d_left + d_right) / 2;
         float dth = (d_right - d_left) * 1e4 /
-            chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm();
+            dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_distance_10th1_mm();
 
         pose_x_ += ds * (cos(pose_theta_ + dth / 2.f));
         pose_y_ += ds * (sin(pose_theta_ + dth / 2.f));
@@ -265,11 +301,14 @@ namespace parser {
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(q.z());
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(q.w());
 
-        float vl = left_rpm_ * M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() / 6e6;
-        float vr = right_rpm_ * M_PI * chs_conf_->servo_dev().servo_info().wheel_diameter_10th1_mm() / 6e6;
+        float vl = left_rpm_ * M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_diameter_10th1_mm() / 6e6;
+        float vr = right_rpm_ * M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_diameter_10th1_mm() / 6e6;
 
         float line = (vl + vr) / 2;
-        float omg = (vr - vl) * 1e4 / chs_conf_->servo_dev().servo_info().wheel_distance_10th1_mm();
+        float omg = (vr - vl) * 1e4 / dynamic_cast<const ServoDevice&>(GetDevice()).
+            servo_info().wheel_distance_10th1_mm();
 
         //speed
         odom.mutable_twist()->mutable_twist()->mutable_linear()->set_x(line);
@@ -304,6 +343,32 @@ namespace parser {
             ", line speed: " << line << "m/s" <<
             ", omg: " << omg << "rad/s";
 #endif
+        //TF
+        /*
+        apollo::transform::TransformStamped tf2_msg;
+
+        auto mutable_head = tf2_msg.mutable_header();
+        mutable_head->set_timestamp_sec(tv.tv_sec + tv.tv_usec / 1e3);
+        mutable_head->set_frame_id("odom");
+
+        tf2_msg.set_child_frame_id("base_link");
+
+        auto mutable_translation = tf2_msg.mutable_transform()->mutable_translation();
+        mutable_translation->set_x(pose_x_);
+        mutable_translation->set_y(pose_y_);
+
+        //mutable_translation->set_z(0);
+        auto mutable_rotation = tf2_msg.mutable_transform()->mutable_rotation();
+        mutable_rotation->set_qx(q.x());
+        mutable_rotation->set_qy(q.y());
+        mutable_rotation->set_qz(q.z());
+        mutable_rotation->set_qw(q.w());
+
+        tf_broadcaster_->SendTransform(tf2_msg);
+
+        tf_broadcaster_.reset(new apollo::transform::TransformBroadcaster(node_cyber_));
+        */
+
         return frame_processor_(&odom, "ventura::common_msgs::nav_msgs::Odometry");
     }
 

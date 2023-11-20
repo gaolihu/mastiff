@@ -16,7 +16,7 @@ namespace chss {
     using namespace /*mstf::chss::*/device;
 
     using ImuPublisherGenerator =
-        std::function<std::shared_ptr<cyber::Writer<IMUdata>>()>;
+        std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::sensor_msgs::Imu>>()>;
     using OdomPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::nav_msgs::Odometry>>()>;
     using LpaPublisherGenerator =
@@ -52,8 +52,9 @@ namespace chss {
                         return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::PointCloud>(
                                 chs_topic_conf_->output_lpa_topic_name());
                         });
-                RegisterImuPublisher([&]()->std::shared_ptr<Writer<::proto::IMUdata>> {
-                        return publish_node_->CreateWriter<::proto::IMUdata>(
+                RegisterImuPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::Imu>> {
+                        AINFO << "create writer for \"ventura::common_msgs::sensor_msgs::Imu\"";
+                        return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::Imu>(
                             chs_topic_conf_->output_imu_topic_name());
                         });
 
@@ -61,8 +62,8 @@ namespace chss {
                 OdomFlowSwitch(true);
                 AINFO << "turn on lidar channel for testing";
                 LpaFlowSwitch(true);
-                ImuFlowSwitch(true);
                 AINFO << "turn on IMU channel for testing";
+                ImuFlowSwitch(true);
 
                 MsgTransfer::Instance()->SetTransferPublishers(
                         imu_publisher_, odom_publisher_,
@@ -168,9 +169,9 @@ namespace chss {
             inline bool ImuFlowSwitch(const bool sw) {
                 bool ret = false;
                 if (sw)
-                    ret = ConstructPublishChannel<IMUdata>();
+                    ret = ConstructPublishChannel<ventura::common_msgs::sensor_msgs::Imu>();
                 else
-                    ret = UnconstructPublishChannel<IMUdata>();
+                    ret = UnconstructPublishChannel<ventura::common_msgs::sensor_msgs::Imu>();
 #ifdef CHSS_PKG_DBG
                 AINFO << "chassis imu publish channel " <<
                     (sw ? "construct" : "deconstruct") <<
@@ -310,7 +311,7 @@ namespace chss {
             (sw ? " construct" : " deconstruct");
 #endif
         if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<IMUdata>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Imu>()) {
             return ImuFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ventura::common_msgs::nav_msgs::Odometry>()) {
@@ -353,7 +354,7 @@ namespace chss {
             cyber::message::GetMessageName<MessageT>();
 #endif
         if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<IMUdata>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Imu>()) {
             if (imu_publisher_) {
                 AERROR << "imu publish channel aready build!";
                 return false;
@@ -477,7 +478,7 @@ namespace chss {
             cyber::message::GetMessageName<MessageT>();
 #endif
         if (cyber::message::GetMessageName<MessageT>() ==
-                cyber::message::GetMessageName<IMUdata>()) {
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::Imu>()) {
             if (imu_publisher_) {
                 imu_publisher_.reset();
                 return true;

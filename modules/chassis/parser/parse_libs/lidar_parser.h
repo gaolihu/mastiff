@@ -46,6 +46,10 @@ namespace parser {
             //whole lidar data
             std::vector<RawData> whole_datas_;
 
+            float cut_from_ = 0.f;
+            float cut_to_ = 0.f;
+            float cut_stuff_ = 1;
+
             double point_cloud_last_ = 0;
     };
 

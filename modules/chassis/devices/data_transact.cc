@@ -139,11 +139,15 @@ namespace device {
                 }
             }
             */
-        } else if (type == "ventura::common_msgs::nav_msgs::Odometry") {
+        } else {
+        //} else if (type == "ventura::common_msgs::nav_msgs::Odometry") {
+        //} else if (type == "ventura::common_msgs::sensor_msgs::Imu"){
+        //} else if (type == "ventura::common_msgs::sensor_msgs::Image"){
+        //} else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
             if (pbmsg_publisher_) {
                 pbmsg_publisher_(msg, type);
             }
-        } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
+
             //lidar data
             /*
             auto l_parser = GetSensorIndicator(E_DEVICE_LIDAR);
@@ -153,10 +157,6 @@ namespace device {
             }
             */
 
-            if (pbmsg_publisher_) {
-                pbmsg_publisher_(msg, type);
-            }
-
             //if (l_parser->ConvertLaserMsg(msg, lsr) == 0) {
                 // lidar_undistortion_->LaserMemory(lsr);
                 //dispatcher_->DataDispatchLaser(std::make_shared<LaserData>(
@@ -164,10 +164,7 @@ namespace device {
             //} else {
                 //AERROR << "convert laser message error!";
             //}
-        } else if (type == "ventura::common_msgs::sensor_msgs::Image"){
-            if(pbmsg_publisher_){
-                pbmsg_publisher_(msg, type);
-            }
+        /*
         } else {
 #ifdef CHSS_PKG_DBG
             if (type == "McuReportSimpleData") {
@@ -268,6 +265,7 @@ namespace device {
                 }
 #endif
             }
+            */
         }
 
         return 0;
@@ -289,7 +287,7 @@ namespace device {
         //1, ctrl wheel
         if (ctrl->has_speed_ctrl())
             if ((ret = CtrlMotor(ctrl->speed_ctrl())) != 0)
-                AWARN << "wheel control problem!";
+                AWARN << "wheel control problem by chss ctrl!";
 
         //2, ctrl LED
         if (ctrl->has_mcu_ctrl())
@@ -300,6 +298,22 @@ namespace device {
         if (ctrl->has_soc_ctrl())
             if ((ret = CtrlSoc(ctrl->soc_ctrl())) != 0)
                 AWARN << "soc control problem!";
+
+        return ret;
+    }
+
+    int DataTransact::RecvChassMove(const std::shared_ptr
+            <ventura::common_msgs::geometry_msgs::Twist>& move) {
+        int ret = -1;
+        SpeedCtrl sc;
+
+        //AINFO << "move:\n" << move->DebugString();
+        sc.set_linear(move->linear().x());
+        sc.set_angular(move->angular().z());
+        sc.set_use_diff_speed(true);
+
+        if ((ret = CtrlMotor(sc) != 0))
+            AWARN << "wheel control problem by move ctrl!";
 
         return ret;
     }

@@ -16,7 +16,17 @@ using namespace chss ;
 using namespace network ;
 
 
+WiFiTool::WiFiTool()
+{
+}
+WiFiTool::~WiFiTool()
+{
 
+}
+bool WiFiTool::Init()
+{
+    return true;
+}
 
 std::string RunScripts(const std::string& args) {
     auto        cmd = WIFI_SCRIPTS + " '" + args + "'";
@@ -24,7 +34,7 @@ std::string RunScripts(const std::string& args) {
     ::Run(cmd, output);
     return output;
 }
-std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
+std::string WiFiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
 {
     AWARN << wifi_ctrl.get_wifi_info();
     std::string result="";
@@ -67,7 +77,6 @@ std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
         break;
         case ::proto::WirelessInfoType::WIFI_GET_RECONNECT:{
             Reconnect();
-            //TODO: 改为异步操作
             result = "OK";
         }
         break;
@@ -77,7 +86,6 @@ std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
         }
         break;
         case ::proto::WirelessInfoType::WIFI_CHECK_CONNECTION:{
-            //TODO: 改为异步操作
             if(CheckConnection()){
                 result = "OK";
             }else{
@@ -86,13 +94,11 @@ std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
         }
         break;
         case ::proto::WirelessInfoType::WIFI_TEST_SPEED:{
-            //TODO: 改为异步操作
             float time_ms = GetAverageTime();
             auto result = std::to_string(time_ms);
         }
         break;
         case ::proto::WirelessInfoType::WIFI_CONNECT:{
-            //TODO: 改为异步操作
             if(wifi_ctrl.wifi_ssid().empty()){
                 result = "ssid incorrect";
             }else{
@@ -102,7 +108,6 @@ std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
         }
         break;
         case ::proto::WirelessInfoType::WIFI_CREATE_AP:{
-            //TODO: 改为异步操作
             if(wifi_ctrl.wifi_ssid().empty()){
                 result = "ssid incorrect";
             }else{
@@ -117,14 +122,14 @@ std::string WifiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
     }
     return result;
 }
-std::string WifiTool::help() const {
+std::string WiFiTool::help() const {
     return RunScripts("-h");
 }
-std::string WifiTool::version() const {
+std::string WiFiTool::version() const {
     return RunScripts("-v");
 }
 
-Mode WifiTool::GetCurrentMode() const {
+Mode WiFiTool::GetCurrentMode() const {
     auto        cmd = WIFI_SCRIPTS + " mode";
     std::string output;
     ::Run(cmd, output);
@@ -146,62 +151,70 @@ Mode WifiTool::GetCurrentMode() const {
     }
     return mode;
 }
-std::string WifiTool::GetStaIp() const {
+std::string WiFiTool::GetStaIp() const {
     return RunScripts("ip");
 }
-std::string WifiTool::GetStaMac() const {
+std::string WiFiTool::GetStaMac() const {
     return RunScripts("mac");
 }
-std::string WifiTool::GetDns() const {
+std::string WiFiTool::GetDns() const {
     return RunScripts("dns");
 }
-void WifiTool::WlanUp() const {
+void WiFiTool::WlanUp() const {
     RunScripts("up");
 }
-void WifiTool::WlanDown() const {
+void WiFiTool::WlanDown() const {
     RunScripts("down");
 }
-std::string WifiTool::GetWpaInfo() const {
+std::string WiFiTool::GetWpaInfo() const {
     return RunScripts("info");
 }
-std::string WifiTool::GetWifiName() const {
+std::string WiFiTool::GetWifiName() const {
     return RunScripts("name");
 }
-std::string WifiTool::GetRouterMac() const {
+std::string WiFiTool::GetRouterMac() const {
     return RunScripts("bssid");
 }
-std::string WifiTool::ConnectWifi(const std::string& ssid, const std::string& pwd) const {
+std::string WiFiTool::ConnectWifi(const std::string& ssid, const std::string& pwd) const {
     auto ssid_copy = ssid;
     auto pwd_copy  = pwd;
     ReplaceString(ssid_copy, "'", "\\'");
     ReplaceString(pwd_copy, "'", "\\'");
 
-    return "连接成功";
+    auto        cmd = WIFI_SCRIPTS + " 'conn' " + ssid_copy +" " + pwd_copy;
+    ADEBUG << "conn cmd: -----------" << cmd;
+    std::string output;
+    ::Run(cmd, output);
+    return output;
 }
-std::string WifiTool::Disconnect() const {
+std::string WiFiTool::Disconnect() const {
     return RunScripts("break");
 }
-std::string WifiTool::CreateAp(const std::string& ssid, const std::string& pwd) const {
+std::string WiFiTool::CreateAp(const std::string& ssid, const std::string& pwd) const {
     auto ssid_copy = ssid;
     auto pwd_copy  = pwd;
     ReplaceString(ssid_copy, "'", "\\'");
     ReplaceString(pwd_copy, "'", "\\'");
-    return "开启成功";
+    auto        cmd = WIFI_SCRIPTS + " 'ap' " + ssid_copy +" " + pwd_copy;
+    ADEBUG << "create ap cmd: -----------" << cmd;
+    std::string output;
+    ::Run(cmd, output);
+    return output;
 }
-std::string WifiTool::Status() const
+std::string WiFiTool::Status() const
 {
     return RunScripts("status_json");
 }
-std::string WifiTool::List() const
+std::string WiFiTool::List() const
 {
     return RunScripts("list");
 }
-void WifiTool::Reconnect() const {  // reconnect
+void WiFiTool::Reconnect() const {  // reconnect
     RunScripts("reconnect");
 }
 
 //------------------------------------------
-bool WifiTool::CheckConnection() const {
+bool WiFiTool::CheckConnection() const {
     auto output = RunScripts("ping");
 
     std::cout << "ping: " << output << std::endl;
@@ -214,7 +227,7 @@ bool WifiTool::CheckConnection() const {
     }
 }
 
-float WifiTool::GetAverageTime() const {
+float WiFiTool::GetAverageTime() const {
     auto        cmd = WIFI_SCRIPTS + " speed";
     std::string output;
     ::Run(cmd, output);
@@ -227,7 +240,7 @@ float WifiTool::GetAverageTime() const {
 
     return time;
 }
-std::string WifiTool::Mode2Str(const Mode& mode){
+std::string WiFiTool::Mode2Str(const Mode& mode){
     std::string m_str;
     switch (mode){
         case Mode::NONE:

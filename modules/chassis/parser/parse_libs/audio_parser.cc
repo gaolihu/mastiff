@@ -15,8 +15,9 @@ namespace parser {
     }
 
     int AudioParser::Init() {
-        return ParserBaseItf::Init(chs_conf_->
-                aud_dev().sn_ind().port());
+        return ParserBaseItf::Init(
+                dynamic_cast<const AudioDevice&>
+                (GetDevice()).sn_ind().port());
     }
 
 } //namespace parser

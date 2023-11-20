@@ -25,10 +25,21 @@ namespace parser {
     }
 
     int LidarParser::Init() {
-        return ParserBaseItf::Init(chs_conf_->
-                lidar_dev().sn_ind().port(),
-                &chs_conf_->lidar_dev().
-                uart_conf().buf_setting());
+        cut_from_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+            lidar_assemble().cut_from_10th1_deg() * M_PI / 1800;
+        cut_to_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+            lidar_assemble().cut_to_10th1_deg() * M_PI / 1800;
+        cut_stuff_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+            lidar_assemble().cut_discard_stuff();
+        AINFO << "lidar cut angle from: " << (float)cut_from_ <<
+            ", to: " << (float)cut_to_ <<
+            ", cut stuff: " << cut_stuff_;
+
+        return ParserBaseItf::Init(
+                dynamic_cast<const LidarDevice&>
+                (GetDevice()).sn_ind().port(),
+                &dynamic_cast<const LidarDevice&>
+                    (GetDevice()).uart_conf().buf_setting());
     }
 
     //lidar protocol related
@@ -163,20 +174,33 @@ namespace parser {
         {
             //int a=1;
 #if 0
-            AINFO << "0, size: " << whole_datas.size() <<
+            AINFO << "0 : " << whole_datas.size() <<
+                ", ca: " << collect_angle <<
+                ", code: " << raw.code <<
                 ", points: " << raw.N <<
-                ", angle: " << raw.angle <<
-                ", span: " << raw.span;
+                ", start: " << raw.angle <<
+                ", span: " << raw.span <<
+                ", b: " << raw.fbase <<
+                ", F: " << raw.first <<
+                ", L: " << raw.last <<
+                ", E: " << raw.fend <<
+                ", flags: " << raw.flags;
 #endif
         }
         else
         {
-            // whole_datas.push_back(raw);
 #if 0
-            AINFO << "1, size: " << whole_datas.size() <<
+            AINFO << "1 : " << whole_datas.size() <<
+                ", ca: " << collect_angle <<
+                ", code: " << raw.code <<
                 ", points: " << raw.N <<
-                ", angle: " << raw.angle <<
-                ", span: " << raw.span;
+                ", start: " << raw.angle <<
+                ", span: " << raw.span <<
+                ", b: " << raw.fbase <<
+                ", F: " << raw.first <<
+                ", L: " << raw.last <<
+                ", E: " << raw.fend <<
+                ", flags: " << raw.flags;
 #endif
             return 0;
         }
@@ -270,7 +294,7 @@ namespace parser {
         UNUSED(with_chk);
         FanSegment_C7* fan_seg = new FanSegment_C7;
         if (!fan_seg) {
-            printf("out of memory\n");
+            AWARN << "out of memory";
             return NULL;
         }
         fan_seg->hdr = hdr;
@@ -303,7 +327,7 @@ namespace parser {
         uint8_t* pchk = pdat + HDR7_SIZE + 5 * hdr.N;
         uint16_t chksum = ((uint16_t)(pchk[1]) << 8) | pchk[0];
         if (chksum != sum) {
-            printf("checksum error\n");
+            AWARN << "checksum error";
             delete fan_seg;
             return NULL;
         }
@@ -316,7 +340,7 @@ namespace parser {
         UNUSED(with_chk);
         FanSegment_AA* fan_seg = new FanSegment_AA;
         if (!fan_seg) {
-            printf("out of memory\n");
+            AINFO << "out of memory\n";
             return NULL;
         }
         fan_seg->hdr = hdr;
@@ -349,7 +373,7 @@ namespace parser {
         uint8_t* pchk = pdat + HDRAA_SIZE + 5 * hdr.N;
         uint16_t chksum = ((uint16_t)(pchk[1]) << 8) | pchk[0];
         if (chksum != sum) {
-            printf("checksum error\n");
+            AINFO << "checksum error";
             delete fan_seg;
             return NULL;
         }
@@ -370,8 +394,7 @@ namespace parser {
 
             if (seg->hdr.timestamp != fan_seg->hdr.timestamp)
             {
-                //printf("drop old fan segments\n");
-                strcpy(result,"drop old fan segments");
+                strcpy(result, "drop old fan segments");
                 while (seg) {
                     (*last_fan_seg) = seg->next;
                     delete seg;
@@ -382,8 +405,7 @@ namespace parser {
             else {
                 while (seg) {
                     if (seg->hdr.ofset == fan_seg->hdr.ofset) {
-                        strcpy(result,"drop duplicated segment");
-                        //printf("drop duplicated segment\n");
+                        strcpy(result, "drop duplicated segment");
                         delete fan_seg;
                         fan_seg = NULL;
                         break;
@@ -410,8 +432,7 @@ namespace parser {
             {
                 if (N > (int)(sizeof(dat.points) / sizeof(dat.points[0])))
                 {
-                    //printf("too many %d points in 1 fan\n", N);
-                    sprintf(result,"too many %d points in 1 fan",N);
+                    sprintf(result, "too many %d points in 1 fan",N);
 
                 }
                 else
@@ -446,7 +467,6 @@ namespace parser {
 
             if ((seg->hdr.second != fan_seg->hdr.second) && (seg->hdr.nano_sec != fan_seg->hdr.nano_sec))
             {
-                //printf("drop old fan segments\n");
                 strcpy(result, "drop old fan segments");
                 while (seg) {
                     (*last_fan_seg) = seg->next;
@@ -459,7 +479,6 @@ namespace parser {
                 while (seg) {
                     if (seg->hdr.ofset == fan_seg->hdr.ofset) {
                         strcpy(result, "drop duplicated segment");
-                        //printf("drop duplicated segment\n");
                         delete fan_seg;
                         fan_seg = NULL;
                         break;
@@ -486,7 +505,6 @@ namespace parser {
             {
                 if (N > sizeof(dat.points) / sizeof(dat.points[0]))
                 {
-                    //printf("too many %d points in 1 fan\n", N);
                     sprintf(result, "too many %d points in 1 fan", N);
 
                 }
@@ -529,7 +547,7 @@ namespace parser {
 
         if (with_chk != 0 && chk != sum)
         {
-            printf("chksum ce error");
+            AWARN << "chksum ce error";
             strcpy(result,"chksum  error");
             return false;
         }
@@ -562,7 +580,7 @@ namespace parser {
 
         if (with_chk != 0 && chk != sum)
         {
-            printf("chksum cf error");
+            AWARN << "chksum cf error";
             strcpy(result,"chksum  error");
             return 0;
         }
@@ -596,7 +614,7 @@ namespace parser {
 
         if (with_chk != 0 && chk != sum)
         {
-            printf("chksum cf error");
+            AWARN << "chksum cf error";
             strcpy(result,"chksum  error");
             return 0;
         }
@@ -637,8 +655,7 @@ namespace parser {
 
         if (with_chk != 0 && chk != sum)
         {
-            //printf("chksum df error");
-            strcpy(result,"chksum  error");
+            strcpy(result,"chksum df error");
             return 0;
         }
 
@@ -764,7 +781,7 @@ namespace parser {
                      buf[idx] == 0xcf || buf[idx] == 0xc7 ||
                      buf[idx] == 0x9d || buf[idx] == 0x99 ||
                      buf[idx] == 0xaa)) {
-                // found frame head
+                // FOUND FRAME HEAD
                 //pack_format = buf[idx];
 #if 0
                 AINFO << "found head, idx: " << idx <<
@@ -791,32 +808,30 @@ namespace parser {
 
             RawDataHdr hdr;
             memcpy(&hdr, buf + idx, HDR_SIZE);
-            /*
             if (buf[idx] == 0x99) {
                 RawDataHdr99 hdr99;
                 memcpy(&hdr99, buf + idx, HDR99_SIZE);
                 if (hdr99.total == 0) {
-                    printf("bad num hdr99 \n");
+                    AWARN << "bad num hdr99";
                     idx += 2;
                     continue;
                 }
                 int hdr99_span = hdr99.N * 3600 / hdr99.total;
                 if (hdr99_span % 90 != 0) {
-                    printf("bad angle %d \n", hdr99_span);
+                    AWARN << "bad angle " << hdr99_span;
                     idx += 2;
                     continue;
                 }
             } else if (buf[idx] != 0xc7 && buf[idx] != 0xaa) {
                 if (hdr.angle % 90 != 0) {
-                    printf("bad angle %d \n", hdr.angle);
+                    AWARN << "bad angle " << hdr.angle;
                     idx += 2;
                     continue;
                 }
             }
-            */
 
             if (hdr.N > MAX_POINTS) {
-                printf("points number %d seem not correct\n", hdr.N);
+                AWARN << "points number seem not correct " << hdr.N;
                 idx += 2;
                 continue;
             }
@@ -888,9 +903,9 @@ namespace parser {
             const size_t len) {
         int cbuf_len = cbuf_raw_->CbufSize();
 
-        if (cbuf_len <= 0)
-            //no data in cbuf
-            return -1;
+        if (cbuf_len <= 100)
+            //no enough data in cbuf
+            return 0;
 
         int cbuf_idx = 0;
         std::vector<uint8_t> raw_data;
@@ -942,7 +957,7 @@ namespace parser {
                         if (state_ >= 0) {
                             start_angle_ = state_;
                             action_ = ONLINE;
-                            AINFO << "Lidar start work, first span angle is " << start_angle_;
+                            AINFO << "Lidar start working, first span angle " << start_angle_;
                         }
                         break;
                     }
@@ -950,8 +965,9 @@ namespace parser {
                     int ret = whole_data_process(dat, start_angle_, whole_datas_, error_);
 
                     if (action_ >= RUN && ret == -1) {
-                        AINFO << "span error code: " << ret <<
-                            ", error info: " << error_;
+                        AWARN << "span error code: " << ret <<
+                            ", error info: " << error_ <<
+                            ", action: " << action_;
                         error_ = "";
                     }
 
@@ -985,7 +1001,7 @@ namespace parser {
                                 error_num_ = 0;
                             if (3 <= error_num_)
                             {
-                                printf("%s %d There are many points with a distance of 0 in the current lidar operation", "/dev/ttyS3", 921600);
+                                AWARN << "There are many points with a distance of 0 in the current lidar operation /dev/ttyS3 ~ 921600";
                                 error_num_ = 0;
                             }
                         }
@@ -1003,7 +1019,6 @@ namespace parser {
 
                     ParseSigleFrame({}, 0);
 
-                    //          
                     //避免累加越界
                     if (userdata_.idx >= MAX_FRAMEIDX)
                         userdata_.idx = 0;
@@ -1060,8 +1075,8 @@ namespace parser {
                     }
                 case 9:
                     {
+                        //AINFO << "head status info";
                         // 串口每圈头发送的状态信息
-                        // uartstate.with_fitter,uartstate.with_smooth
                         break;
                     }
             }
@@ -1070,15 +1085,14 @@ namespace parser {
                 // data is not whole fan,drop it
                 if (!r)
                 {
-                    printf("drop %d bytes: %02x %02x %02x %02x %02x %02x",
-                            consume,
-                            buf[0], buf[1], buf[2],
-                            buf[3], buf[4], buf[5]);
+                    AWARN << "drop " <<
+                        consume <<
+                        ", bytes";
                 }
 
                 cbuf_idx += consume;
                 cbuf_len -= consume;
-                cbuf_raw_->RestoreCbuf(consume);
+                cbuf_raw_->Restore(consume);
             }
 
             // 存在需要操作的指令
@@ -1132,18 +1146,46 @@ namespace parser {
         intensity->set_name("intensity");
 
         for (int i = 0; i <userdata_.data.framedata.N; i++) {
+#if 0
+            if (i < 4) {
+                AINFO << "0 ~ 5 : " << i <<
+                    ", angle: " << userdata_.data.framedata.data[i].angle * 57.3 <<
+                    ", range: " << userdata_.data.framedata.data[i].distance <<
+                    ", x: " << cos(userdata_.data.framedata.data[i].angle) *
+                    userdata_.data.framedata.data[i].distance <<
+                    ", y: " << sin(userdata_.data.framedata.data[i].angle) *
+                    userdata_.data.framedata.data[i].distance;
+            }
+            if (i > userdata_.data.framedata.N - 5 &&
+                    i <= userdata_.data.framedata.N) {
+                AINFO << " ~ N : " << i <<
+                    ", angle: " << userdata_.data.framedata.data[i].angle * 57.3;
+            }
+#endif
             auto p = pcs.add_points();
-            p->set_x(sin(userdata_.data.framedata.data[i].angle) * userdata_.data.framedata.data[i].distance);
-            p->set_y(cos(userdata_.data.framedata.data[i].angle) * userdata_.data.framedata.data[i].distance);
-            p->set_z(0);
+
+            if (userdata_.data.framedata.data[i].angle > cut_from_ &&
+                    userdata_.data.framedata.data[i].angle < cut_to_) {
+                p->set_x(cut_stuff_);
+                p->set_y(cut_stuff_);
+                //p->set_z(cut_stuff_);
+            } else {
+                p->set_x(cos(2 * M_PI - userdata_.data.framedata.data[i].angle) *
+                        userdata_.data.framedata.data[i].distance);
+                p->set_y(sin(2 * M_PI - userdata_.data.framedata.data[i].angle) *
+                        userdata_.data.framedata.data[i].distance);
+                //p->set_z(0);
+            }
 
             intensity->add_values(userdata_.data.framedata.data[i].confidence);
         }
 
-        double this_time = userdata_.data.framedata.ts[0] + userdata_.data.framedata.ts[1] / 1e6;
+        double this_time = userdata_.data.framedata.ts[0] +
+            userdata_.data.framedata.ts[1] / 1e6;
         auto time_increment = pcs.add_channels();
         time_increment->set_name("time_increment");
-        time_increment->add_values((this_time - point_cloud_last_) / (float)(userdata_.data.framedata.N));
+        time_increment->add_values((this_time - point_cloud_last_) /
+                (float)(userdata_.data.framedata.N));
         point_cloud_last_ = this_time;
 
         return frame_processor_(&pcs, "ventura::common_msgs::sensor_msgs::PointCloud");

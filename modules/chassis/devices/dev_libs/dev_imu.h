@@ -1,9 +1,3 @@
-/*
- * @Date: 2023-11-06 14:02:19
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/devices/dev_libs/dev_imu.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
 #pragma once
 
 #include "modules/chassis/proto/chassis_config.pb.h"
@@ -16,7 +10,9 @@ namespace device {
 
     class DeviceIMU : public DeviceBaseItf {
         public:
-            DeviceIMU(const ChassisConfig*);
+            DeviceIMU(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceIMU();
 
         private:

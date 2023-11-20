@@ -10,7 +10,9 @@ namespace device {
 
     class DeviceMcu : public DeviceBaseItf {
         public:
-            DeviceMcu(const ChassisConfig*);
+            DeviceMcu(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~DeviceMcu();
 
         private:

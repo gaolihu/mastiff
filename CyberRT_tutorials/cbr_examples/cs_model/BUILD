@@ -24,7 +24,7 @@ genrule(
     name = "library_x",
     outs = ["x.cc",],
     cmd = "\
-        echo -e \"void x() {return;}\" > $(@) && \
+        echo -e \"void x86() {return;}\" > $(@) && \
         sed -i \'27c name = \"linux_aarch64\",\' external/boost/BUILD.bazel && \
         sed -i \'35c name = \"linux_x86_64\",\' external/boost/BUILD.bazel && \
         sed -i \'324c \"-msse2\",\' external/boost/BUILD.bazel && \
@@ -46,7 +46,7 @@ genrule(
     name = "library_a",
     outs = ["a.cc",],
     cmd = "\
-        echo -e \"void x() {return;}\" > $(@) && \
+        echo -e \"void aarch64() {return;}\" > $(@) && \
         sed -i \'27c name = \"linux_x86_64\",\' external/boost/BUILD.bazel && \
         sed -i \'35c name = \"linux_aarch64\",\' external/boost/BUILD.bazel && \
         sed -i \'324c #\"-msse2\",\' external/boost/BUILD.bazel && \

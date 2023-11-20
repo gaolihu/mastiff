@@ -10,7 +10,9 @@ namespace device {
 
     class AudioPlay : public DeviceBaseItf {
         public:
-            AudioPlay(const ChassisConfig*);
+            AudioPlay(const ChassisConfig*,
+                    const SensorInfo&,
+                    const SensorIndicator&);
             virtual ~AudioPlay();
 
         private:
