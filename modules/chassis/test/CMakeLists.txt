@@ -2,17 +2,17 @@
 
 find_package(OpenCV REQUIRED)
 
-add_executable(gs2_serial_read gs2_serial_read.cc)
-target_link_libraries(gs2_serial_read
-    -L${CMAKE_INSTALL_PREFIX}/lib
-    -L${THIRD_PARTY_SYSROOT}/lib
-    chassis
-    cyber cyber_common
-    uuid fastrtps fastcdr glog gflags gtest protobuf
-    osqp qdldl sqlite3 ceres
-    boost_system boost_filesystem
-    absl::strings absl::numeric
-)
+# add_executable(gs2_serial_read gs2_serial_read.cc)
+# target_link_libraries(gs2_serial_read
+#     -L${CMAKE_INSTALL_PREFIX}/lib
+#     -L${THIRD_PARTY_SYSROOT}/lib
+#     chassis
+#     cyber cyber_common
+#     uuid fastrtps fastcdr glog gflags gtest protobuf
+#     osqp qdldl sqlite3 ceres
+#     boost_system boost_filesystem
+#     absl::strings absl::numeric
+# )
 add_executable(wifi_tool_test wifi_tool_test.cc)
 target_link_libraries(wifi_tool_test
     -L${CMAKE_INSTALL_PREFIX}/lib
@@ -46,9 +46,20 @@ target_link_libraries(angstrong_camera_node
     dtofang_alg AngKondyorArith zmq
     ${OpenCV_LIBS}
 )
+add_executable(audio_play_test audio_play_test.cc)
+target_link_libraries(audio_play_test
+    -L${CMAKE_INSTALL_PREFIX}/lib
+    -L${THIRD_PARTY_SYSROOT}/lib
+    chassis
+    cyber cyber_common
+    uuid fastrtps fastcdr glog gflags gtest protobuf
+    osqp qdldl sqlite3 ceres
+    boost_system boost_filesystem
+    absl::strings absl::numeric  tinyalsa asound
+)
 install(
-    TARGETS gs2_serial_read wifi_tool_test
-    angstrong_camera_node
+    TARGETS  wifi_tool_test
+    angstrong_camera_node audio_play_test
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin

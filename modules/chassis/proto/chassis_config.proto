@@ -249,7 +249,7 @@ message GpioConfigs {
     repeated GpioConfig conf = 2;
 }
 
-message GpioDevices {
+message GpioDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     GpioConfigs gpio_configs = 3;
@@ -286,7 +286,7 @@ message AudioConfig {
     repeated AudioMap a_maps = 3;
 }
 
-message AudioDevice {
+message AudioDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     AudioConfig audio_conf = 3;
@@ -296,7 +296,7 @@ message AudioDevice {
 
 ////////////// ADC //////////////
 //TODO
-message AdcDevice {
+message AdcDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     bool used = 3;
@@ -340,7 +340,7 @@ message PwmConfigs {
     repeated PwmConfig conf = 2;
 }
 
-message PwmDevice {
+message PwmDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
 
@@ -360,7 +360,7 @@ message LidarAssemble {
     int32 cut_discard_stuff = 6;
 }
 
-message LidarDevice {
+message LidarDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof LidarInterface {
@@ -382,7 +382,7 @@ message ImuAssemble {
     float locate = 3;
 }
 
-message ImuDevice {
+message ImuDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof ImuInterface {
@@ -403,7 +403,7 @@ message DtofAssemble {
     float locate = 3;
 }
 
-message DtofDevice {
+message DtofDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof DtofInterface {
@@ -448,7 +448,7 @@ message CamerAssemble {
     uint32 number = 5;
 }
 
-message CameraDevice {
+message CameraDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     CamerAssemble ca = 3;
@@ -464,7 +464,7 @@ message McuAssemble {
     float locate = 3;
 }
 
-message McuDevice {
+message McuDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof McuInterface {
@@ -487,7 +487,7 @@ message ServoDriverInfo {
     uint32 servo_motor_reduction = 8;
 }
 
-message ServoDevice {
+message ServoDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof ServoInterface {
@@ -499,13 +499,13 @@ message ServoDevice {
 ////////////// Servo //////////////
 
 ////////////// Servo //////////////
-message WirelessDevice {
+message WirelessDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     bool used = 4;
 }
 
-message LineLaserDevice {
+message LineLaserDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     oneof LidarInterface {
@@ -516,7 +516,7 @@ message LineLaserDevice {
 ////////////// Servo //////////////
 
 ////////////// TTY //////////////
-message TtyDevice {
+message TtyDevConf {
     SensorInfo si = 1;
     SensorIndicator sn_ind = 2;
     int32 scan_interval = 3;
@@ -533,32 +533,33 @@ message ChassissTopicConfig {
     string output_imu_topic_name = 2;
     string output_odom_topic_name = 3;
     string output_lpa_topic_name = 4;
-    string output_cmd_topic_name = 5;
-    string output_cfd_topic_name = 6;
-    string output_img_topic_name = 7;
-    string output_hcr_topic_name = 8;
+    string output_tpa_topic_name = 5;
+    string output_cmd_topic_name = 6;
+    string output_cfd_topic_name = 7;
+    string output_img_topic_name = 8;
+    string output_hcr_topic_name = 9;
 
     //read channel
-    string chassis_input_channel = 9;
+    string chassis_input_channel = 10;
     //reader, for downstream messages
-    string input_crtl_topic_name = 10;
-    string input_move_topic_name = 11;
+    string input_crtl_topic_name = 11;
+    string input_move_topic_name = 12;
 }
 
 message ChassisConfig {
-    repeated GpioDevices gpio_dev = 1;
-    repeated AdcDevice adc_dev = 2;
-    repeated PwmDevice pwm_dev = 3;
-    repeated LidarDevice lidar_dev = 4;
-    repeated ImuDevice imu_dev = 5;
-    repeated DtofDevice dtof_dev = 6;
-    repeated CameraDevice camera_dev = 7;
-    repeated McuDevice mcu_dev = 8;
-    repeated TtyDevice tty_dev = 9;
-    repeated AudioDevice aud_dev = 10;
-    repeated ServoDevice servo_dev = 11;
-    repeated WirelessDevice wireless_dev = 12;
-    repeated LineLaserDevice linelaser_dev = 13;
+    repeated GpioDevConf gpio_dev = 1;
+    repeated AdcDevConf adc_dev = 2;
+    repeated PwmDevConf pwm_dev = 3;
+    repeated LidarDevConf lidar_dev = 4;
+    repeated ImuDevConf imu_dev = 5;
+    repeated DtofDevConf dtof_dev = 6;
+    repeated CameraDevConf camera_dev = 7;
+    repeated McuDevConf mcu_dev = 8;
+    repeated TtyDevConf tty_dev = 9;
+    repeated AudioDevConf aud_dev = 10;
+    repeated ServoDevConf servo_dev = 11;
+    repeated WirelessDevConf wireless_dev = 12;
+    repeated LineLaserDevConf linelaser_dev = 13;
 
     ChassissTopicConfig chs_topic_conf = 14;
 }

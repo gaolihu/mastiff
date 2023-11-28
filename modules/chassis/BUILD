@@ -825,6 +825,7 @@ cc_library(
         ":driver_data_itf",
         ":network",
         ":camera",
+        ":audio",
     ]
 )
 
@@ -866,6 +867,23 @@ cc_library(
         "@angstrong_camera//:angstrong",
         "//modules/chassis/proto:chassis_config_cc_proto",
         "//modules/chassis/proto:input_output_chs_cc_proto",
+    ]
+)
+
+cc_library(
+    name = "audio",
+    srcs = glob([
+        "drivers/soc/audio/*.cc",
+    ]),
+    hdrs = glob([
+        "drivers/soc/soc_defs.h",
+        "drivers/soc/audio/*.h",
+    ]),
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "@tinyalsa//:tiny_alsa"
     ]
 )
 ######## soc ########

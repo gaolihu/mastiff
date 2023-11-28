@@ -73,6 +73,12 @@ if [ ! -L $TOPDIR/mstf_pack.sh ]; then
     ln -fs $TOPDIR/scripts/mastiff_pack.sh mstf_pack.sh
 fi
 
+if [ ! -d $TOPDIR/conf ]; then
+    mkdir $TOPDIR/conf
+    ln -fs $TOPDIR/modules/cambrian/conf/CambrianConfig.pb.txt $TOPDIR/conf/CambrianConfig.conf
+    ln -fs $TOPDIR/modules/chassis/conf/ChassisConfig.pb.txt $TOPDIR/conf/ChassisConfig.conf
+fi
+
 PKG_R_PATH=$BUILD_DIR/$EXTERNAL_DIR
 export PKG_R_PATH
 

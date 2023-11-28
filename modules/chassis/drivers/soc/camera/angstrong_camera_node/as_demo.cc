@@ -1,13 +1,8 @@
-/**
- * @file      Demo.cpp
- * @brief     angstrong camera service.
- *
- * Copyright (c) 2023 Angstrong Tech.Co.,Ltd
- *
- * @author    Angstrong SDK develop Team
- * @date      2023/02/15
- * @version   1.0
-
+/*
+ * @Date: 2023-11-06 17:30:09
+ * @LastEditors: xianweijing
+ * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.cc
+ * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
  */
 
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
@@ -33,6 +28,11 @@
 #include <X11/Xlib.h>
 #endif
 
+using namespace mstf;
+using namespace chss;
+using namespace camera;
+using namespace driver;
+
 Demo::Demo() {
 #ifdef CFG_X11_ON
     XInitThreads();
@@ -41,20 +41,20 @@ Demo::Demo() {
 
 Demo::~Demo() {}
 
-bool Demo::CameraOperate(const proto::CameraCtrl& ctrl)
-{
-    bool ret = false;
-    if(ctrl.capture()){
-        saveImage();
-        ret = true;
+bool Demo::SetCameraCtrl(const proto::CameraCtrl &ctrl) {
+    bool save_to_file = false;
+    if (ctrl.capture()) {
+        save_to_file = true;
+    }
+    for (auto it = m_camera_map.begin(); it != m_camera_map.end(); it++) {
+        it->second->enableSaveImageToFile(save_to_file);
     }
 
-    if(ctrl.video()){
+    if (ctrl.video()) {
         // this->display();
-        ret = true;
     }
 
-    return ret;
+    return true;
 }
 
 int Demo::start() {
@@ -115,16 +115,18 @@ bool Demo::getLogFps() {
 
 int Demo::onCameraAttached(AS_CAM_PTR pCamera, const AS_SDK_CAM_MODEL_E &cam_type) {
     AINFO << "camera attached" << std::endl;
-    m_camera_map.insert(std::make_pair(pCamera, new Camera(pCamera, cam_type)));
+    auto c = new Camera(pCamera, cam_type);
+    c->SetSocListener(soc_listener_);
+    m_camera_map.insert(std::make_pair(pCamera, c));
 
-    /* nuwa camera whether match usb device.
-       If it is a virtual machine, do not match it. */
-    if ((cam_type == AS_SDK_CAM_MODEL_NUWA_XB40) || (cam_type == AS_SDK_CAM_MODEL_NUWA_X100) || (cam_type == AS_SDK_CAM_MODEL_NUWA_HP60)
-        || (cam_type == AS_SDK_CAM_MODEL_NUWA_HP60V)) {
-        extern int AS_Nuwa_SetUsbDevMatch(bool is_match);
-        AS_Nuwa_SetUsbDevMatch(!virtualMachine());
-        // AS_Nuwa_SetUsbDevMatch(false);
-    }
+    // /* nuwa camera whether match usb device.
+    //    If it is a virtual machine, do not match it. */
+    // if ((cam_type == AS_SDK_CAM_MODEL_NUWA_XB40) || (cam_type == AS_SDK_CAM_MODEL_NUWA_X100) || (cam_type == AS_SDK_CAM_MODEL_NUWA_HP60)
+    //     || (cam_type == AS_SDK_CAM_MODEL_NUWA_HP60V)) {
+    //     extern int AS_Nuwa_SetUsbDevMatch(bool is_match);
+    //     AS_Nuwa_SetUsbDevMatch(!virtualMachine());
+    //     // AS_Nuwa_SetUsbDevMatch(false);
+    // }
     return 0;
 }
 
@@ -190,6 +192,7 @@ void Demo::onCameraNewFrame(AS_CAM_PTR pCamera, const AS_SDK_Data_s *pstData) {
         if (m_logfps) {
             camIt->second->checkFps();
         }
+        camIt->second->enableSaveImage(true);
         camIt->second->getSerialNo(serialno);
         camIt->second->getCameraAttrs(attr);
         camIt->second->saveImage(pstData);

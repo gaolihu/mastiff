@@ -15,7 +15,7 @@ namespace parser {
     }
 
     int WirelessParser::Init() {
-        auto dev = dynamic_cast<const WirelessDevice&>(GetDevice());
+        auto dev = dynamic_cast<const WirelessDevConf&>(GetDevConfig());
         return ParserBaseItf::Init(dev.sn_ind().port());
     }
 

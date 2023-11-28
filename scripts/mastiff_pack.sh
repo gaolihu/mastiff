@@ -92,6 +92,20 @@ else
     warning "copy chassis so lib files NG!"
 fi
 
+# cambrian
+cp modules/cambrian/conf/CambrianConfig.pb.txt out/conf/CambrianConfig.conf -fr
+if [ $? -eq 0 ]; then
+    good "copy CambrianConfig config OK!"
+else
+    warning "copy CambrianConfig config NG!"
+fi
+cp bazel-bin/modules/cambrian/camb_pkg out/bin/ -fr
+if [ $? -eq 0 ]; then
+    good "copy camb_pkg OK!"
+else
+    warning "copy camb_pkg NG!"
+fi
+
 # fastrtps & fast cdr
 cp .cache_build/3rd_party/fastrtps/aarch64/fast-rtps-1.5.0-1/lib/*.so* out/lib/ -fr
 if [ $? -eq 0 ]; then
@@ -140,6 +154,16 @@ fi
 
 # copy opencv libs
 find bazel-mastiff/external/opencv4_8/lib/ -name "*.so*" -exec cp -frd {} out/lib/ \;
+[[ $? -eq 0 ]] &&
+    {
+        good "copy openCV so lib files OK1!";
+    } ||
+    {
+        warning "copy openCV so lib files NG!";
+    }
+
+# copy alsa libs
+find bazel-mastiff/external/tinyalsa/lib/ -name "*.so*" -exec cp -frd {} out/lib/ \;
 [[ $? -eq 0 ]] &&
     {
         good "copy openCV so lib files OK1!";

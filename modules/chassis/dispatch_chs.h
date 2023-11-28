@@ -7,6 +7,7 @@
 #include "modules/chassis/proto/input_output_chs.pb.h"
 
 #include "modules/chassis/devices/msg_transfer.h"
+#include "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.pb.h"
 
 namespace mstf {
 namespace chss {
@@ -31,6 +32,8 @@ namespace chss {
         std::function<std::shared_ptr<cyber::Writer<HfChassisRaw>>()>;
     using WiFiPublisherGenerator =
         std::function<std::shared_ptr<cyber::Writer<WirelessInfoStr>>()>;
+    using TpaPublisherGenerator =
+        std::function<std::shared_ptr<cyber::Writer<ventura::common_msgs::sensor_msgs::PointCloud2>>()>;
 
     class DispatchChs {
         public:
@@ -57,6 +60,16 @@ namespace chss {
                         return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::Imu>(
                             chs_topic_conf_->output_imu_topic_name());
                         });
+                RegisterImgPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::Image>> {
+                        AINFO << "create writer for \"ventura::common_msgs::sensor_msgs::Image\"";
+                        return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::Image>(
+                            chs_topic_conf_->output_img_topic_name());
+                        });
+                RegisterTpaPublisher([&]()->std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud2>> {
+                        AINFO << "create writer for \"ventura::common_msgs::sensor_msgs::PointCloud2\"";
+                        return publish_node_->CreateWriter<ventura::common_msgs::sensor_msgs::PointCloud2>(
+                                chs_topic_conf_->output_tpa_topic_name());
+                        });
 
                 AINFO << "turn on odom channel for testing";
                 OdomFlowSwitch(true);
@@ -64,12 +77,14 @@ namespace chss {
                 LpaFlowSwitch(true);
                 AINFO << "turn on IMU channel for testing";
                 ImuFlowSwitch(true);
+                AINFO << "turn on Image channel for testing";
+                ImgFlowSwitch(true);
 
                 MsgTransfer::Instance()->SetTransferPublishers(
                         imu_publisher_, odom_publisher_,
                         lpa_publisher_, cmd_publisher_,
                         cfd_publisher_, img_publisher_,
-                        hcr_publisher_, wifi_publisher_);
+                        hcr_publisher_, wifi_publisher_, tpa_publisher_);
             }
             virtual ~DispatchChs() final {
 #ifdef CHSS_PKG_DBG
@@ -126,7 +141,12 @@ namespace chss {
 #endif
                 hcr_publisher_generator_ = hcr;
             }
-
+            inline void RegisterTpaPublisher(TpaPublisherGenerator tpa) {
+#ifdef CHSS_PKG_DBG
+                AINFO << "register tpa publisher generator";
+#endif
+                tpa_publisher_generator_ = tpa;
+            }
             void DispachFlowCtrl(const ChannelSwitch& cs) {
 #ifdef CHSS_PKG_DBG
                 AINFO << "chassis data flow ctrl:\n" << cs.DebugString();
@@ -153,6 +173,7 @@ namespace chss {
 
                 if (cs.has_img_sw()) {
                     ImgFlowSwitch(cs.img_sw().value());
+                    TpaFlowSwitch(cs.img_sw().value());
                 }
 
                 if (cs.has_hcr_sw()) {
@@ -247,6 +268,7 @@ namespace chss {
                     (sw ? "construct" : "deconstruct") <<
                     (ret ? " OK" : " NG");
 #endif
+                ret = TpaFlowSwitch(sw);
                 return ret;
             }
 
@@ -272,7 +294,19 @@ namespace chss {
                 }
                 return ret;
             }
-
+            inline bool TpaFlowSwitch(const bool sw) {
+                bool ret = false;
+                if (sw)
+                    ret = ConstructPublishChannel<ventura::common_msgs::sensor_msgs::PointCloud2>();
+                else
+                    ret = UnconstructPublishChannel<ventura::common_msgs::sensor_msgs::PointCloud2>();
+#ifdef CHSS_PKG_DBG
+                AINFO << "chassis tpa publish channel " <<
+                    (sw ? "construct" : "deconstruct") <<
+                    (ret ? " OK" : " NG");
+#endif
+                return ret;
+            }
             template <typename MessageT> bool ConstructPublishChannel();
             template <typename MessageT> bool UnconstructPublishChannel();
 
@@ -285,6 +319,7 @@ namespace chss {
             ImgPublisherGenerator img_publisher_generator_ = nullptr;
             HcrPublisherGenerator hcr_publisher_generator_ = nullptr;
             WiFiPublisherGenerator wifi_publisher_generator_{nullptr};
+            TpaPublisherGenerator tpa_publisher_generator_ = nullptr;
 
             ImuPublisher imu_publisher_ = nullptr;
             OdomPublisher odom_publisher_ = nullptr;
@@ -294,6 +329,7 @@ namespace chss {
             ImgPublisher img_publisher_ = nullptr;
             HcrPublisher hcr_publisher_ = nullptr;
             WiFiPublisher wifi_publisher_{nullptr};
+            TpaPublisher tpa_publisher_ = nullptr;
 
             int32_t hcr_cnt = 0;
 
@@ -320,6 +356,9 @@ namespace chss {
                 cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             return LpaFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud2>()) {
+            return TpaFlowSwitch(sw);
+        } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ChassisMixData>()) {
             return CmdFlowSwitch(sw);
         } else if (cyber::message::GetMessageName<MessageT>() ==
@@ -341,6 +380,7 @@ namespace chss {
             CmdFlowSwitch(sw);
             CfdFlowSwitch(sw);
             ImgFlowSwitch(sw);
+            TpaFlowSwitch(sw);
             return HcrFlowSwitch(sw);
         }
 
@@ -384,7 +424,7 @@ namespace chss {
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             if (lpa_publisher_) {
-                AERROR << "odmo publish channel aready build!";
+                AERROR << "lpa publish channel aready build!";
                 return false;
             }
 
@@ -395,10 +435,24 @@ namespace chss {
                 AERROR << "lpa publish channel generator null!";
                 return false;
             }
+        }  else if (cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud2>()) {
+            if (tpa_publisher_) {
+                AERROR << "tpa publish channel aready build!";
+                return false;
+            }
+
+            if (tpa_publisher_generator_) {
+                tpa_publisher_ = tpa_publisher_generator_();
+                return true;
+            } else {
+                AERROR << "tpa publish channel generator null!";
+                return false;
+            }
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ChassisMixData>()) {
             if (cmd_publisher_) {
-                AERROR << "lpa publish channel aready build!";
+                AERROR << "cmd publish channel aready build!";
                 return false;
             }
 
@@ -412,7 +466,7 @@ namespace chss {
         } else if (cyber::message::GetMessageName<MessageT>() ==
                 cyber::message::GetMessageName<ChassisFacotryData>()) {
             if (cfd_publisher_) {
-                AERROR << "cmd publish channel aready build!";
+                AERROR << "cfd publish channel aready build!";
                 return false;
             }
 
@@ -493,6 +547,12 @@ namespace chss {
                 cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud>()) {
             if (lpa_publisher_) {
                 lpa_publisher_.reset();
+                return true;
+            }
+        } else if (cyber::message::GetMessageName<MessageT>() ==
+                cyber::message::GetMessageName<ventura::common_msgs::sensor_msgs::PointCloud2>()) {
+            if (tpa_publisher_) {
+                tpa_publisher_.reset();
                 return true;
             }
         } else if (cyber::message::GetMessageName<MessageT>() ==

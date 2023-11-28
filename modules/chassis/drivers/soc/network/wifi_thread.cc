@@ -15,6 +15,7 @@ WiFiThread::WiFiThread() {
 }
 
 WiFiThread::~WiFiThread() {
+    can_running_=false;
     if (wifi_th_.joinable())
         wifi_th_.join();
 }

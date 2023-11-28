@@ -25,7 +25,7 @@ namespace parser {
     }
 
     int IMUParser::Init() {
-        auto dev = dynamic_cast<const ImuDevice&>(GetDevice());
+        auto dev = dynamic_cast<const ImuDevConf&>(GetDevConfig());
         if (dev.has_uart_conf()) {
             return ParserBaseItf::Init(dev.sn_ind().port(),
                     &dev.uart_conf().buf_setting());

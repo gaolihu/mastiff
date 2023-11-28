@@ -109,6 +109,9 @@ docs/demo_guide/*.record
 # Directory for binary distribution
 output
 
+# Directory for local config
+conf/
+
 # Flamegraph files
 tools/FlameGraph
 

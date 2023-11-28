@@ -56,6 +56,10 @@ namespace device {
                     DeviceManageSim(chassis_ctrl, val);
                 }
                     break;
+                case 0x00004: {
+                    AudioKeySim(chassis_ctrl, val);
+                }
+                    break;
                     //////////////////////////////DEVICE MANAGE TEST//////////////////////////////////
 
                 case 0x4b49: {
@@ -489,20 +493,61 @@ void KeySimulate::WirelessKeySim(std::shared_ptr<ChassisCtrl>& chassis_ctrl, con
     case 13:
         get_type = proto::WirelessInfoType::WIFI_TEST_SPEED;
         break;
-    case 14:
+    case 14: {
         get_type = proto::WirelessInfoType::WIFI_CONNECT;
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid("AITO");
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd("wjtswjts");
+        auto ssid = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_ssid();
+        if(ssid.empty())
+            ssid = "AITO";
+        auto pswd = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_pswd();
+        if(pswd.empty())
+            pswd = "wjtswjts";
+        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid(ssid);
+        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd(pswd);
+    }
         break;
-    case 15:
+    case 15: {
         get_type = proto::WirelessInfoType::WIFI_CREATE_AP;
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid("aventurier");
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd("12345678");
+        auto ssid = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_ssid();
+        if(ssid.empty())
+            ssid = "aventurier";
+        auto pswd = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_pswd();
+        if(pswd.empty())
+            pswd = "12345678";
+        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid(ssid);
+        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd(pswd);
+    }
         break;
     default:
         break;
     }
     chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_get_wifi_info(get_type);
+}
+void KeySimulate::AudioKeySim(std::shared_ptr<ChassisCtrl>& ctrl, const int val)
+{
+    switch (val)
+    {
+    case 0: // 静音 、打断当前的播放
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(0);
+    break;
+    case 1: // 中文
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("chinese");
+    break;
+    case 2: // 英文
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("english");
+    break;
+    case 3: // 日语(小日本)
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("xiaoriben");
+    break;
+    case 4: // 韩语
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("korean");
+    break;
+    default:
+        break;
+    }
+
+    // case 101:  语音id 1, 以下类推
+    if(val >= 100)
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->set_audio_id(val - 100);
 }
 
 } // namespace device

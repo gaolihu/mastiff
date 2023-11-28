@@ -32,6 +32,7 @@ namespace device {
     using ImgPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::Image>>;
     using HcrPublisher = std::shared_ptr<Writer<HfChassisRaw>>;
     using WiFiPublisher = std::shared_ptr<Writer<WirelessInfoStr>>;
+    using TpaPublisher = std::shared_ptr<Writer<ventura::common_msgs::sensor_msgs::PointCloud2>>;
 
     class MsgTransfer {
         public:
@@ -52,7 +53,8 @@ namespace device {
                     const CfdPublisher& cfd,
                     const ImgPublisher& ccf,
                     const HcrPublisher& hcr,
-                    const WiFiPublisher& wifi) {
+                    const WiFiPublisher& wifi,
+                    const TpaPublisher& tof) {
                 AINFO << "setup upstream channel dispathers";
                 imu_publisher_ = imu;
                 odom_publisher_ = odom;
@@ -62,6 +64,7 @@ namespace device {
                 img_publisher_ = ccf;
                 hcr_publisher_ = hcr;
                 wifi_publisher_ = wifi;
+                tpa_publisher_ = tof;
 
                 DataTransact::Instance()->RegisterPublisher(
                         [&](Message* m, const std::string& type)->int {
@@ -74,6 +77,12 @@ namespace device {
                         } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud") {
                             DataDispatchLaser(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud>(
                                         *dynamic_cast<ventura::common_msgs::sensor_msgs::PointCloud*>(m)));
+                        } else if (type == "ventura::common_msgs::sensor_msgs::PointCloud2") {
+                            DataDispatchImg(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud2>(
+                                        *dynamic_cast<ventura::common_msgs::sensor_msgs::PointCloud2*>(m)));
+                        } else if (type == "ventura::common_msgs::sensor_msgs::Image") {
+                            DataDispatchImg(std::make_shared<ventura::common_msgs::sensor_msgs::Image>(
+                                        *dynamic_cast<ventura::common_msgs::sensor_msgs::Image*>(m)));
                         }
                         return 0;
                         });
@@ -168,6 +177,28 @@ namespace device {
                 return -1;
             }
 
+            int DataDispatchImg(const std::shared_ptr<ventura::common_msgs::sensor_msgs::PointCloud2>& tof) {
+#ifdef RLS_DATA_PEEP
+                AINFO << "release Image:\n"
+#if 0
+                    << tof->DebugString();
+#else
+                ;
+#endif
+#endif
+                if (tpa_publisher_)
+                    return tpa_publisher_->Write(tof);
+
+                AWARN << "release ventura::common_msgs::sensor_msgs::PointCloud2 error:\n" <<
+#if 0
+                    tof->DebugString();
+#else
+                    "";
+#endif
+
+                return -1;
+            }
+
             int DataDispatchMix(const std::shared_ptr<ChassisMixData>& mix) {
 #ifdef RLS_DATA_PEEP
                 AINFO << "release ChassisMixData:\n"
@@ -249,6 +280,7 @@ namespace device {
             ImgPublisher img_publisher_ = nullptr;
             HcrPublisher hcr_publisher_ = nullptr;
             WiFiPublisher wifi_publisher_{nullptr};
+            TpaPublisher tpa_publisher_{nullptr};
 
 #ifdef KEY_SIMULATE
             std::shared_ptr<KeySimulate> key_sim_ = nullptr;

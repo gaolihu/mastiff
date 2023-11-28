@@ -25,6 +25,7 @@ function clean_bazel() {
     rm -fr $TOPDIR/mstf_pack.sh
     rm -fr $TOPDIR/WORKSPACE
     rm -fr out/
+    rm -fr conf/
 
     rm -fr $TOPDIR/3rd_party/ros_ws/workspace.bzl
     rm -fr $TOPDIR/3rd_party/slam/repositories.bzl

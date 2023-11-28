@@ -342,7 +342,7 @@ namespace parser {
                 return nullptr;
             }
 
-            const Message& GetDevice() {
+            const Message& GetDevConfig() {
                 for (int i = 0; i < chs_conf_->gpio_dev().size(); i++)
                     if (&chs_conf_->gpio_dev(i).si() == snsr_info_)
                         return chs_conf_->gpio_dev(i);

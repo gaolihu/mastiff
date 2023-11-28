@@ -25,21 +25,21 @@ namespace parser {
     }
 
     int LidarParser::Init() {
-        cut_from_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+        cut_from_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
             lidar_assemble().cut_from_10th1_deg() * M_PI / 1800;
-        cut_to_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+        cut_to_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
             lidar_assemble().cut_to_10th1_deg() * M_PI / 1800;
-        cut_stuff_ = dynamic_cast<const LidarDevice&>(GetDevice()).
+        cut_stuff_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
             lidar_assemble().cut_discard_stuff();
         AINFO << "lidar cut angle from: " << (float)cut_from_ <<
             ", to: " << (float)cut_to_ <<
             ", cut stuff: " << cut_stuff_;
 
         return ParserBaseItf::Init(
-                dynamic_cast<const LidarDevice&>
-                (GetDevice()).sn_ind().port(),
-                &dynamic_cast<const LidarDevice&>
-                    (GetDevice()).uart_conf().buf_setting());
+                dynamic_cast<const LidarDevConf&>
+                (GetDevConfig()).sn_ind().port(),
+                &dynamic_cast<const LidarDevConf&>
+                    (GetDevConfig()).uart_conf().buf_setting());
     }
 
     //lidar protocol related
@@ -1171,9 +1171,13 @@ namespace parser {
                 //p->set_z(cut_stuff_);
             } else {
                 p->set_x(cos(2 * M_PI - userdata_.data.framedata.data[i].angle) *
-                        userdata_.data.framedata.data[i].distance);
+                        userdata_.data.framedata.data[i].distance == 0 ?
+                        //cut_stuff_ : userdata_.data.framedata.data[i].distance);
+                        200 : userdata_.data.framedata.data[i].distance);
                 p->set_y(sin(2 * M_PI - userdata_.data.framedata.data[i].angle) *
-                        userdata_.data.framedata.data[i].distance);
+                        userdata_.data.framedata.data[i].distance == 0 ?
+                        //cut_stuff_ : userdata_.data.framedata.data[i].distance);
+                        200 : userdata_.data.framedata.data[i].distance);
                 //p->set_z(0);
             }
 

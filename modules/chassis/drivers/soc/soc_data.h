@@ -6,6 +6,7 @@
 #include "modules/chassis/proto/input_output_chs.pb.h"
 
 #include "network/wifi_thread.h"
+#include "audio/audio_ctrl.h"
 
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
 #include "modules/chassis/drivers/soc/soc_defs.h"
@@ -43,7 +44,8 @@ namespace driver {
 
             std::shared_ptr<network::WiFiThread>
                 wifi_thread_; // wifi control
-            Demo camera_ctrl_; // camera control
+            std::shared_ptr<camera::Demo> camera_ctrl_; // camera control
+            std::shared_ptr<audio::AudioCtrl> audio_ctrl_;
 
             const ChassisConfig* chs_conf_ = nullptr;
     };

@@ -44,7 +44,7 @@ int                      main(int argc, char const *argv[]) {
     config.set_dev_name(g_dev_name);
 
     driver::SerialData serial(std::bind(&callback, ::_1, ::_2), &config);
-    serial.Init(0, nullptr);
+    serial.Init("ydlidar_gs2", 0, nullptr);
     serial.Start();
 
     //exit handler

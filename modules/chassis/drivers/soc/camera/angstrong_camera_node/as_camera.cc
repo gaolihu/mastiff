@@ -9,10 +9,12 @@
  * @version   1.0
 
  */
-#include <unistd.h>
-#include "cyber/cyber.h"
-#include "cyber/common/log.h"
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera.h"
+
+#include <unistd.h>
+
+#include "cyber/common/log.h"
+#include "cyber/cyber.h"
 #include "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.pb.h"
 
 using namespace ventura;
@@ -26,7 +28,7 @@ Camera::Camera(AS_CAM_PTR pCamera, const AS_SDK_CAM_MODEL_E &cam_type) {
     m_check_fps = new CheckFps(pCamera);
     ret         = AS_SDK_GetCameraAttrs(m_handle, m_attr);
     if (ret != 0) {
-        AWARN << "get camera attrs failed" ;
+        AWARN << "get camera attrs failed";
     }
     memset(&m_cam_parameter, 0, sizeof(AS_CAM_Parameter_s));
 }
@@ -85,6 +87,10 @@ int Camera::enableSaveImage(bool enable) {
     if (m_cam_type == AS_SDK_CAM_MODEL_KUNLUN_A) {
         m_save_merge_img = enable;
     }
+    return 0;
+}
+int Camera::enableSaveImageToFile(bool enable) {
+    save_to_file_ = true;
     return 0;
 }
 
@@ -154,67 +160,159 @@ void Camera::saveImage(const AS_SDK_Data_s *pstData) {
     if (pstData->depthImg.size > 0) {
         std::string depthimgName(std::string(m_serialno + "_depth_") + std::to_string(pstData->depthImg.width) + "x"
                                  + std::to_string(pstData->depthImg.height) + "_" + std::to_string(m_depthindex++) + ".yuv");
-        if (saveYUVImg(depthimgName.c_str(), pstData->depthImg.data, pstData->depthImg.size) != 0) {
-            AFATAL << "save depth image failed!" << std::endl;
+        if (save_to_file_) {
+            auto ret = saveYUVImg(depthimgName.c_str(), pstData->depthImg.data, pstData->depthImg.size);
+            if (ret != 0) {
+                AFATAL << "save depth image failed!" << std::endl;
+            }
+            else {
+                AINFO << "save depth image success!" << std::endl;
+                AINFO << "location: " << getcwd(nullptr, 0) << "/" << depthimgName << std::endl;
+            }
         }
         else {
-            if(soc_listener_){
+            if (soc_listener_) {
+                ADEBUG << "camera soc get depth image .....";
                 auto response = sensor_msgs::Image();
+                //header
+                std_msgs::Header header;
+                header.set_seq(frame_seq_);
+                header.set_frame_id("map");
+                header.mutable_stamp()->set_sec(cyber::Time::Now().ToSecond());
+                header.mutable_stamp()->set_nsec(cyber::Time::Now().ToNanosecond());
+                response.mutable_header()->CopyFrom(header);
+
+                // data
                 response.set_width(pstData->depthImg.width);
                 response.set_height(pstData->depthImg.height);
                 response.set_encoding("16UC1");
                 response.set_is_bigendian(false);
-                response.set_step(pstData->depthImg.width/2);
+                response.set_step(pstData->depthImg.width * 2);
 
-                std::vector<unsigned char> vcTmp((unsigned char *)(pstData->depthImg.data),
-                        //!!! FIXME Glh 2023/11/7 15:11 !!!
-                                     (unsigned char *)(static_cast<int*>(pstData->depthImg.data) + pstData->depthImg.size));
+                ADEBUG << "Camera depthImg width: " << pstData->depthImg.width;
+                ADEBUG << "Camera depthImg height: " << pstData->depthImg.height;
+                ADEBUG << "Camera depthImg bufferSize: " << pstData->depthImg.bufferSize;
+                ADEBUG << "Camera depthImg size: " << pstData->depthImg.size;
+
+                // image buffer
+                size_t                     len = pstData->depthImg.size;
+                std::vector<unsigned char> vcTmp(len, '\0');
+                memcpy(vcTmp.data(), pstData->depthImg.data, len);
                 response.mutable_data()->assign(vcTmp.begin(), vcTmp.end());
+
+                // send
                 soc_listener_(response);
             }
-            AINFO << "save depth image success!" << std::endl;
-            AINFO << "location: " << getcwd(nullptr, 0) << "/" << depthimgName << std::endl;
         }
     }
 
     if (pstData->rgbImg.size > 0) {
-        std::string rgbName(std::string(m_serialno + "_rgb_") + std::to_string(pstData->rgbImg.width) + "x" + std::to_string(pstData->rgbImg.height)
-                            + "_" + std::to_string(m_rgbindex++) + ".yuv");
-        if (saveYUVImg(rgbName.c_str(), pstData->rgbImg.data, pstData->rgbImg.size) != 0) {
-            AFATAL << "save rgb image failed!" << std::endl;
+        if (save_to_file_) {
+            std::string rgbName(std::string(m_serialno + "_rgb_") + std::to_string(pstData->rgbImg.width) + "x"
+                                + std::to_string(pstData->rgbImg.height) + "_" + std::to_string(m_rgbindex++) + ".yuv");
+            auto        ret = saveYUVImg(rgbName.c_str(), pstData->rgbImg.data, pstData->rgbImg.size);
+            if (ret != 0) {
+                AFATAL << "save rgb image failed!" << std::endl;
+            }
+            else {
+                AINFO << "save rgb image success!" << std::endl;
+                AINFO << "location: " << getcwd(nullptr, 0) << "/" << rgbName << std::endl;
+            }
         }
         else {
-            if(soc_listener_){
+            if (soc_listener_) {
+                ADEBUG << "camera soc get rgb image .....";
                 auto response = sensor_msgs::Image();
+                //header
+                std_msgs::Header header;
+                header.set_seq(frame_seq_);
+                header.set_frame_id("map");
+                header.mutable_stamp()->set_sec(cyber::Time::Now().ToSecond());
+                header.mutable_stamp()->set_nsec(cyber::Time::Now().ToNanosecond());
+                response.mutable_header()->CopyFrom(header);
+
+                // data
                 response.set_width(pstData->rgbImg.width);
                 response.set_height(pstData->rgbImg.height);
-                response.set_encoding("16UC1");
+                response.set_encoding("bgr8");
                 response.set_is_bigendian(false);
-                response.set_step(pstData->rgbImg.width/2);
+                response.set_step(pstData->rgbImg.width * 3);
 
-                        //!!! FIXME Glh 2023/11/7 15:12 !!!
-                std::vector<unsigned char> vcTmp((unsigned char *)(pstData->rgbImg.data),
-                                     (unsigned char *)(static_cast<int*>(pstData->rgbImg.data) + pstData->rgbImg.size));
+                size_t                     len = pstData->rgbImg.size;
+                std::vector<unsigned char> vcTmp(len, '\0');
+                memcpy(vcTmp.data(), pstData->rgbImg.data, len);
                 response.mutable_data()->assign(vcTmp.begin(), vcTmp.end());
+
+                // send
                 soc_listener_(response);
             }
-            AINFO << "save rgb image success!" << std::endl;
-            AINFO << "location: " << getcwd(nullptr, 0) << "/" << rgbName << std::endl;
         }
     }
 
     if (pstData->pointCloud.size > 0) {
-        std::string pointCloudName(std::string(m_serialno + "_PointCloud_" + std::to_string(pstData->pointCloud.width) + "x"
-                                               + std::to_string(pstData->pointCloud.height) + "_" + std::to_string(m_pointCloudIndex++) + ".pcd"));
-        if (savePointCloudWithPcdFormat(pointCloudName.c_str(),
-                                        static_cast<float *>(pstData->pointCloud.data),
-                                        pstData->pointCloud.size / sizeof(float))
-            != 0) {
-            AFATAL << "save point cloud failed!" << std::endl;
-        }
-        else {
-            AINFO << "save point cloud success!" << std::endl;
-            AINFO << "location: " << getcwd(nullptr, 0) << "/" << pointCloudName << std::endl;
+        if (save_to_file_) {
+            std::string pointCloudName(std::string(m_serialno + "_PointCloud_" + std::to_string(pstData->pointCloud.width) + "x"
+                                                   + std::to_string(pstData->pointCloud.height) + "_" + std::to_string(m_pointCloudIndex++)
+                                                   + ".pcd"));
+            if (savePointCloudWithPcdFormat(pointCloudName.c_str(),
+                                            static_cast<float *>(pstData->pointCloud.data),
+                                            pstData->pointCloud.size / sizeof(float))
+                != 0) {
+                AFATAL << "save point cloud failed!" << std::endl;
+            }
+            else {
+                AINFO << "save point cloud success!" << std::endl;
+                AINFO << "location: " << getcwd(nullptr, 0) << "/" << pointCloudName << std::endl;
+            }
+        }else{
+            if (soc_listener_) {
+                auto response = sensor_msgs::PointCloud2();
+                //header
+                std_msgs::Header header;
+                header.set_seq(frame_seq_);
+                header.set_frame_id("map");
+                header.mutable_stamp()->set_sec(cyber::Time::Now().ToSecond());
+                header.mutable_stamp()->set_nsec(cyber::Time::Now().ToNanosecond());
+                response.mutable_header()->CopyFrom(header);
+
+                // meta data
+                response.set_width(pstData->pointCloud.size/sizeof(float)/3);
+                response.set_height(1);
+                response.set_point_step(sizeof(float)*3);
+                response.set_row_step(pstData->pointCloud.size);
+                response.set_is_dense(true);
+                response.set_is_bigendian(false);
+
+                //field
+                auto field1 = response.add_fields();
+                field1->set_name("x");
+                field1->set_offset(0);
+                field1->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
+                field1->set_count(1);
+                auto field2 = response.add_fields();
+                field2->set_name("y");
+                field2->set_offset(4);
+                field2->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
+                field2->set_count(1);
+                auto field3 = response.add_fields();
+                field3->set_name("z");
+                field3->set_offset(8);
+                field3->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
+                field3->set_count(1);
+
+                size_t points = response.width() * response.height();
+                std::vector<float> pc_tmp(points*3, 0.0);
+                for(size_t i=0; i< pc_tmp.size(); i++){
+                    pc_tmp[i] = *((float*)(pstData->pointCloud.data) +i)/1000.0;
+                }
+                //response.mutable_data()->resize(pc_tmp.size() * sizeof(float));
+                memcpy((void*)(response.mutable_data()->data()), pc_tmp.data(),
+                    pc_tmp.size() * sizeof(float));
+
+                // send
+                soc_listener_(response);
+                frame_seq_++;
+            }
         }
     }
 
@@ -254,6 +352,7 @@ void Camera::saveImage(const AS_SDK_Data_s *pstData) {
         }
     }
 
+    save_to_file_ = false;
     return;
 }
 

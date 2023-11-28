@@ -1,6 +1,7 @@
 #include "modules/chassis/drivers/soc/soc_data.h"
 
 #include "modules/chassis/proto/frame_up_stream.pb.h"
+#include "modules/chassis/proto/chassis_config.pb.h"
 
 namespace mstf {
 namespace chss {
@@ -13,6 +14,8 @@ namespace driver {
         soc_listner_ = listner;
 
         wifi_thread_ = std::make_shared<network::WiFiThread>();
+        camera_ctrl_ = std::make_shared<camera::Demo>();
+        audio_ctrl_ = std::make_shared<audio::AudioCtrl>();
     }
 
     SocData::~SocData() {
@@ -23,7 +26,7 @@ namespace driver {
 
     int SocData::Init(const SensorInfo* si,
             const ChassisConfig* cc) {
-        if (chs_conf_ != nullptr) {
+        if (nullptr != cc) {
             AINFO << "soc init config done!";
             chs_conf_ = cc;
         } else {
@@ -36,8 +39,12 @@ namespace driver {
             //TODO
         }
 
+        /*
+         * FIXME, Glh, 2023/11/28 11:52
         wifi_thread_->RegistePublisher(soc_listner_);
-
+        camera_ctrl_->SetSocListener(soc_listner_);
+        audio_ctrl_->SetAudioConfig(chs_conf_->aud_dev());
+        */
         return 0;
     }
 
@@ -47,9 +54,11 @@ namespace driver {
 
         // TODO, use proto
         if (si->dev_type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.start();
+            camera_ctrl_->start();
         } else if(si->dev_type() == E_DEVICE_WIRELESS){
             wifi_thread_->Start();
+        } else if(si->dev_type() == E_DEVICE_AUDIO){
+            audio_ctrl_->Start();
         } else {
             //TODO
         }
@@ -62,9 +71,11 @@ namespace driver {
             si->DebugString();
 
         if (si->dev_type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.stop();
+            camera_ctrl_->stop();
         }else if(si->dev_type() == E_DEVICE_WIRELESS){
             wifi_thread_->Stop();
+        }else if(si->dev_type() == E_DEVICE_AUDIO){
+            audio_ctrl_->Stop();
         }
         return 0;
     }
@@ -75,6 +86,10 @@ namespace driver {
 
         if(si->dev_type() == E_DEVICE_WIRELESS){
             wifi_thread_->Close();
+        }else if(si->dev_type() == E_DEVICE_CAMERA) {
+            camera_ctrl_->stop();
+        }else if(si->dev_type() == E_DEVICE_AUDIO){
+            audio_ctrl_->Close();
         }
 
         return 0;
@@ -99,13 +114,11 @@ namespace driver {
         if (data.has_audio()) {
             //TODO 3,
             //ChassisConfig AudioDevice AudioConfig
+            audio_ctrl_->SetAudioCtrl(data.audio());
         }
 
         if (data.has_camera()) {
-            if(soc_listner_){
-                camera_ctrl_.SetSocListener(soc_listner_);
-            }
-            /*bool ret = */camera_ctrl_.CameraOperate(data.camera());
+            /*bool ret = */camera_ctrl_->SetCameraCtrl(data.camera());
             //TODO: if ret=false, do something?
         }
 

@@ -392,42 +392,94 @@ aud_dev: [
                 {
                     sub_dir: "beep"
                     voice: [
-                        { name: "Q001.mp3" idx: 1 type: 0 note: "" },
-                        { name: "wheel_error.mp3" idx: 97 type: 0 note: "" }
+                        { name: "power_on.wav" idx: 1 type: 0 note: "开机" },
+                        { name: "power_off.wav" idx: 2 type: 0 note: "关机" },
+                        { name: "start_up.wav" idx: 3 type: 0 note: "机器人已启动，可以干活啦" },
+                        { name: "low_power.wav" idx: 4 type: 0 note: "电量过低，即将返回充电" },
+                        { name: "charging.wav" idx: 5 type: 0 note: "正在充电中" },
+                        { name: "continue_clean.wav" idx: 6 type: 0 note: "电量充到80%了，继续清扫" },
+                        { name: "low_power_shutdown.wav" idx: 7 type: 0 note: "电量低，关机" },
+                        { name: "charging_finished.wav" idx: 8 type: 0 note: "充电完成" },
+                        { name: "volume_down.wav" idx: 9 type: 0 note: "音量减小" },
+                        { name: "volume_up.wav" idx: 10 type: 0 note: "音量加大" },
+                        { name: "start_clean.wav" idx: 11 type: 0 note: "开始清扫" },
+                        { name: "pause_clean.wav" idx: 12 type: 0 note: "暂停清扫" },
+                        { name: "standard_mode.wav" idx: 13 type: 0 note: "标准模式" },
+                        { name: "strong_mode.wav" idx: 14 type: 0 note: "强劲模式" },
+                        { name: "kill_mode.wav" idx: 15 type: 0 note: "杀菌模式" },
+                        { name: "start_pump.wav" idx: 16 type: 0 note: "开始抽水" },
+                        { name: "start_drying.wav" idx: 17 type: 0 note: "正在烘干" },
+                        { name: "open_boost.wav" idx: 18 type: 0 note: "开启地毯增压" },
+                        { name: "close_boost.wav" idx: 19 type: 0 note: "关闭地毯增压" },
+                        { name: "go_to_charging.wav" idx: 20 type: 0 note: "清扫已完成，回去充电啦" },
+                        { name: "charging_failed.wav" idx: 21 type: 0 note: "回充失败，找不到回去的路" },
+                        { name: "localization_failed.wav" idx: 22 type: 0 note: "定位失败" },
+                        { name: "lost_localization.wav" idx: 23 type: 0 note: "定位丢失" },
+                        { name: "update_map_finished.wav" idx: 24 type: 0 note: "更新地图成功" },
+                        { name: "rebuild_map.wav" idx: 25 type: 0 note: "检测到新环境，开始重新建图" },
+                        { name: "reset_wifi.wav" idx: 26 type: 0 note: "重置WiFi" },
+                        { name: "configure_wifi.wav" idx: 27 type: 0 note: "开始配网" },
+                        { name: "connecting.wav" idx: 28 type: 0 note: "联网中，请稍候" },
+                        { name: "connect_failed.wav" idx: 29 type: 0 note: "网络连接失败" },
+                        { name: "connect_succeeded.wav" idx: 30 type: 0 note: "网络连接成功" },
+                        { name: "wifi_signal_not_good.wav" idx: 31 type: 0 note: "网络信号质量差，APP功能可能变慢" },
+                        { name: "clean_very_hard.wav" idx: 32 type: 0 note: "扫了老久了，我的老腰啊" },
+                        { name: "trigger_stop_button.wav" idx: 33 type: 0 note: "请拔出急停按钮，再启动清扫" },
+                        { name: "trapped.wav" idx: 34 type: 0 note: "哦哦，我被困住了" },
+                        { name: "stuck.wav" idx: 35 type: 0 note: "我被卡住了，请把我移动到别的地方再继续工作" },
+                        { name: "sensor_error.wav" idx: 36 type: 0 note: "传感器故障，请清理传感器" },
+                        { name: "lidar_error.wav" idx: 37 type: 0 note: "雷达脏污，请擦拭雷达" },
+                        { name: "camera_error.wav" idx: 38 type: 0 note: "摄像头被遮挡，请检查并擦拭摄像头" },
+                        { name: "clash_sensor_error.wav" idx: 39 type: 0 note: "碰撞传感器被卡住，请检查" },
+                        { name: "too_narrow.wav" idx: 40 type: 0 note: "通道太窄，无法通过" },
+                        { name: "flash_full.wav" idx: 41 type: 0 note: "存储空间已满" },
+                        { name: "edge_brush_entangled.wav" idx: 42 type: 0 note: "边刷被缠绕，请检查" },
+                        { name: "dirty_water_full.wav" idx: 43 type: 0 note: "污水箱水满，请清理" },
+                        { name: "clean_water_empty.wav" idx: 44 type: 0 note: "清水箱缺水，请加水" },
+                        { name: "dust_box_full.wav" idx: 45 type: 0 note: "尘盒已满，请及时清理尘盒" },
+                        { name: "cleaning_solution_empty.wav" idx: 46 type: 0 note: "清洁液用完了，请添加清洁液" },
+                        { name: "back.wav" idx: 47 type: 0 note: "请注意倒车" },
+                        { name: "turn_left.wav" idx: 48 type: 0 note: "左转弯，请注意" },
+                        { name: "turn_right.wav" idx: 49 type: 0 note: "右转弯，请注意" },
+                        { name: "not_at_charging.wav" idx: 50 type: 0 note: "不是充电状态，充电时才能升级" },
+                        { name: "start_update.wav" idx: 51 type: 0 note: "开始固件升级" },
+                        { name: "updating.wav" idx: 52 type: 0 note: "升级中" },
+                        { name: "update_finished.wav" idx: 53 type: 0 note: "升级完成" },
+                        { name: "wheel_error.wav" idx: 97 type: 0 note: "" }
                     ]
                 },
                 {
                     sub_dir: "beep_bak"
                     voice: [
-                        { name: "Q001.mp3" idx: 1 type: 0 note: "" },
-                        { name: "Q003.mp3" idx: 2 type: 0 note: "" },
-                        { name: "Q174.mp3" idx: 76 type: 0 note: "" }
+                        { name: "Q001.wav" idx: 1 type: 0 note: "" },
+                        { name: "Q003.wav" idx: 2 type: 0 note: "" },
+                        { name: "Q174.wav" idx: 76 type: 0 note: "" }
                     ]
                 },
                 {
                     sub_dir: "chinese"
                     voice: [
-                        { name: "Q001.mp3" idx: 1 type: 0 note: "" },
-                        { name: "Q002.mp3" idx: 2 type: 0 note: "" }
+                        { name: "Q001.wav" idx: 1 type: 0 note: "" },
+                        { name: "Q002.wav" idx: 2 type: 0 note: "" }
                     ]
                 },
                 {
                     sub_dir: "debug"
                     voice: [
-                        { name: "abnormal_collision.mp3" idx: 1 type: 0 note: "" },
-                        { name: "add_water_abort.mp3" idx: 2 type: 0 note: "" }
+                        { name: "abnormal_collision.wav" idx: 1 type: 0 note: "" },
+                        { name: "add_water_abort.wav" idx: 2 type: 0 note: "" }
                     ]
                 },
                 {
                     sub_dir: "english"
                     voice: [
-                        { name: "abnormal_collision.mp3" idx: 1 type: 0 note: "" }
+                        { name: "abnormal_collision.wav" idx: 1 type: 0 note: "" }
                     ]
                 },
                 {
                     sub_dir: "factory"
                     voice: [
-                        { name: "yilian_success.mp3" idx: 29 type: 0 note: "" }
+                        { name: "yilian_success.wav" idx: 29 type: 0 note: "" }
                     ]
                 }
             ]
@@ -537,6 +589,7 @@ chs_topic_conf {
     output_imu_topic_name: "imu"
     output_odom_topic_name: "odometry"
     output_lpa_topic_name: "point_cloud"
+    output_tpa_topic_name: "point_cloud_tof"
     output_cmd_topic_name: "mastiff/chassis/output/chs_cmd"
     output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
     output_img_topic_name: "mastiff/chassis/output/chs_img"

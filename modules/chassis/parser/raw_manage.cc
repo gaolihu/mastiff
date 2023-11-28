@@ -202,20 +202,19 @@ namespace parser {
         for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
             if(&chs_conf_->aud_dev(i).si() == si) {
                 //audio driver start
-                if (auto s = _FindSerialData(si)) {
-                    return s->Start();
-                }
-                AERROR << "start AUDIO error!";
+                return soc_data_->Start(si);
             }
         }
-
+        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
+            if(&chs_conf_->wireless_dev(i).si() == si) {
+                //audio driver start
+                return soc_data_->Start(si);
+            }
+        }
         for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
             if(&chs_conf_->camera_dev(i).si() == si) {
                 //camera driver start
-                if (auto s = _FindSerialData(si)) {
-                    return s->Start();
-                }
-                AERROR << "start camera error!";
+                return soc_data_->Start(si);
             }
         }
 
@@ -344,9 +343,14 @@ namespace parser {
             }
         }
 
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if(&chs_conf_->aud_dev(i).si() == si) {
-                return 0;
+        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
+            if(&chs_conf_->camera_dev(i).si() == si) {
+                AINFO << "close cameras";
+                if (auto s = _FindSerialData(si)) {
+                    s->Close();
+                    return 0;
+                }
+                AERROR << "find cameras close error!";
             }
         }
 

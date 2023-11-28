@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-10-17 20:15:11
  * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/angstrong_camera_node/angstrong_camera_node.cc
+ * @FilePath: /aventurier_framework/modules/chassis/test/angstrong_camera_node.cc
  * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
  */
 /**
@@ -19,6 +19,10 @@
 #include <signal.h>
 
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
+
+using namespace mstf;
+using namespace chss;
+using namespace camera;
 
 static Demo demo;
 

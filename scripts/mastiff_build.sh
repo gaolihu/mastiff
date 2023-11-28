@@ -91,8 +91,9 @@ function choose_pkg() {
         #warning "base: ${BUILD_PKG_ARRAY[$i]}"
 
         if [[ $sub_del_all ]]; then
+            :
             #delet all of the modules
-            info "ignore all modules in: ${SUB_PKG_PATH_ARRAY[$i]}"
+            #info "ignore all modules in: ${SUB_PKG_PATH_ARRAY[$i]}"
         else
             #partial delete
             if [[ $sub_del_this ]]; then

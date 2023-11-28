@@ -22,46 +22,46 @@ namespace parser {
 
     int ServoParser::Init() {
         AINFO << "wheel diameter: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_diameter_10th1_mm() <<
             " 1/10mm | distance: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_distance_10th1_mm() <<
             " 1/10mm, acc: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().accelerate_time_ms() <<
             " | dec time: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().decelerate_time_ms();
         AINFO <<"reporting speed period: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().speed_report_period_ms() <<
             "ms | status: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().status_report_period_ms() <<
             ", resolution: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().servo_motor_resolution() <<
             ", reduction ratio: " <<
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().servo_motor_reduction();
         config_servo_motor_parameters(
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().wheel_diameter_10th1_mm(),
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().wheel_distance_10th1_mm(),
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().accelerate_time_ms(),
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().decelerate_time_ms(),
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().speed_report_period_ms(),
-                dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 servo_info().status_report_period_ms());
         return ParserBaseItf::Init(
-                dynamic_cast<const ServoDevice&>
-                (GetDevice()).sn_ind().port(),
-                &dynamic_cast<const ServoDevice&>(GetDevice()).
+                dynamic_cast<const ServoDevConf&>
+                (GetDevConfig()).sn_ind().port(),
+                &dynamic_cast<const ServoDevConf&>(GetDevConfig()).
                 can_conf().buf_setting());
     }
 
@@ -258,25 +258,25 @@ namespace parser {
 #endif
         odom.set_child_frame_id("base_link");
 
-        float d_left = M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+        float d_left = M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_diameter_10th1_mm() *
             (left_encoder_ - last_left_encoder_ /*+ left_scale * encoder_scale_val*/) /
-            ((dynamic_cast<const ServoDevice&>(GetDevice()).
+            ((dynamic_cast<const ServoDevConf&>(GetDevConfig()).
               servo_info().servo_motor_resolution() /**
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().servo_motor_reduction()*/) * 1e4);
 
-        float d_right = M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+        float d_right = M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
         servo_info().wheel_diameter_10th1_mm() *
             (right_encoder_ - last_right_encoder_ /*+ right_scale * encoder_scale_val*/) /
-            ((dynamic_cast<const ServoDevice&>(GetDevice()).
+            ((dynamic_cast<const ServoDevConf&>(GetDevConfig()).
               servo_info().servo_motor_resolution() /**
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().servo_motor_reduction()*/) * 1e4);
 
         float ds = (d_left + d_right) / 2;
         float dth = (d_right - d_left) * 1e4 /
-            dynamic_cast<const ServoDevice&>(GetDevice()).
+            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_distance_10th1_mm();
 
         pose_x_ += ds * (cos(pose_theta_ + dth / 2.f));
@@ -301,13 +301,13 @@ namespace parser {
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(q.z());
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(q.w());
 
-        float vl = left_rpm_ * M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+        float vl = left_rpm_ * M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_diameter_10th1_mm() / 6e6;
-        float vr = right_rpm_ * M_PI * dynamic_cast<const ServoDevice&>(GetDevice()).
+        float vr = right_rpm_ * M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_diameter_10th1_mm() / 6e6;
 
         float line = (vl + vr) / 2;
-        float omg = (vr - vl) * 1e4 / dynamic_cast<const ServoDevice&>(GetDevice()).
+        float omg = (vr - vl) * 1e4 / dynamic_cast<const ServoDevConf&>(GetDevConfig()).
             servo_info().wheel_distance_10th1_mm();
 
         //speed

@@ -1,4 +1,4 @@
-add_compile_definitions(CHSS_PKG_DBG)
+# add_compile_definitions(CHSS_PKG_DBG)
 
 add_subdirectory(proto)
 
@@ -20,6 +20,8 @@ file(GLOB_RECURSE parser_srcs
 file(GLOB_RECURSE proto_srcs
     ${PROTOC_GEN_PATH}/modules/*.cc
 )
+
+list(REMOVE_ITEM drivers_srcs "${CMAKE_CURRENT_SOURCE_DIR}/drivers/i2c/i2c_drive.c")
 
 include_directories(
     ${RootPath}
@@ -44,7 +46,7 @@ target_link_libraries(chassis PRIVATE
     atomic
     # angstrong sdk
     AngstrongCameraSdk Filt asusb turbojpeg asuvc
-    dtofang_alg AngKondyorArith zmq
+    dtofang_alg AngKondyorArith zmq tinyalsa
     ${OpenCV_LIBS}
 )
 # 复制库到指定目录
@@ -62,6 +64,7 @@ target_link_libraries(chss_cmpnt
     osqp qdldl sqlite3 ceres
     boost_system boost_filesystem
     absl::strings absl::numeric
+    tinyalsa
 )
 
 add_subdirectory(test)

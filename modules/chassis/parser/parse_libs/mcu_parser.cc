@@ -16,8 +16,8 @@ namespace parser {
 
     int McuParser::Init() {
         return ParserBaseItf::Init(
-                dynamic_cast<const McuDevice&>
-                (GetDevice()).sn_ind().port());
+                dynamic_cast<const McuDevConf&>
+                (GetDevConfig()).sn_ind().port());
     }
 
 } //namespace parser

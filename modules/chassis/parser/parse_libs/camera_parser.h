@@ -1,3 +1,9 @@
+/*
+ * @Date: 2023-11-02 19:51:43
+ * @LastEditors: xianweijing
+ * @FilePath: /aventurier_framework/modules/chassis/parser/parse_libs/camera_parser.h
+ * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
+ */
 #pragma once
 
 #include "cyber/common/log.h"
@@ -19,12 +25,7 @@ namespace parser {
             virtual int Init() override;
 
         private:
-            /*
-            virtual int ParseRawBuffer() override;
-            virtual int ParseSigleFrame(const
-                    std::vector<uint8_t>&,
-                    const size_t) override;
-                    */
+            virtual int ParseSocInfo(const Message&);
     };
 
 } //namespace parser

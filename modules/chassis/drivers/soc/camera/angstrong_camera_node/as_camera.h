@@ -1,17 +1,15 @@
-/**
- * @file      Camera.h
- * @brief     angstrong camera.
- *
- * Copyright (c) 2023 Angstrong Tech.Co.,Ltd
- *
- * @author    Angstrong SDK develop Team
- * @date      2023/05/08
- * @version   1.0
-
+/*
+ * @Date: 2023-11-15 21:00:26
+ * @LastEditors: xianweijing
+ * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera.h
+ * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
  */
+
 #pragma once
 #include <chrono>
 #include <thread>
+#include <sstream>
+#include <cstring>
 
 #include "as_camera_sdk_api.h"
 #include "common.h"
@@ -25,6 +23,7 @@
 using namespace mstf;
 using namespace chss;
 using namespace driver;
+using namespace apollo;
 
 class CheckFps {
 public:
@@ -72,6 +71,7 @@ public:
     void   saveMergeImage(const AS_SDK_MERGE_s *pstData);
     void   displayImage(const std::string &serialno, const std::string &info, const AS_SDK_Data_s *pstData);
     void   displayMergeImage(const std::string &serialno, const std::string &info, const AS_SDK_MERGE_s *pstData);
+    int    enableSaveImageToFile(bool enable);
 
     /**
      * @brief     convert the depth to clolor map for display
@@ -117,5 +117,8 @@ private:
     bool               m_is_thread       = false;
     std::thread        m_backgroundThread;
 
-    SocDataListener soc_listener_ = nullptr;
+    bool save_to_file_{false};
+    size_t frame_seq_{0};
+
+    SocDataListener soc_listener_{nullptr};
 };

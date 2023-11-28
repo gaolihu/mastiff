@@ -4,19 +4,7 @@
  * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h
  * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
  */
-/**
- * @file      Demo.h
- * @brief     angstrong camera service header.
- *
- * Copyright (c) 2023 Angstrong Tech.Co.,Ltd
- *
- * @author    Angstrong SDK develop Team
- * @date      2023/05/12
- * @version   1.0
-
- */
 #pragma once
-#include "cyber/common/log.h"
 
 #include <chrono>
 #include <functional>
@@ -28,16 +16,17 @@
 
 #include "as_camera_sdk_api.h"
 #include "as_camera_sdk_def.h"
+#include "cyber/common/log.h"
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera.h"
 #include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera_srv.h"
+#include "modules/chassis/drivers/soc/soc_defs.h"
 #include "modules/chassis/proto/frame_down_stream.pb.h"
 #include "modules/chassis/proto/frame_up_stream.pb.h"
-#include "modules/chassis/drivers/soc/soc_defs.h"
 
-using namespace mstf;
-using namespace chss;
+namespace mstf {
+namespace chss {
+namespace camera {
 using namespace driver;
-
 class Demo : public ICameraStatus {
 public:
     Demo();
@@ -53,12 +42,12 @@ public:
     bool getLogFps();
     void logCfgParameter();
 
-    bool CameraOperate(const proto::CameraCtrl &ctrl);
-    void SetSocListener(SocDataListener f)
-    {
+    bool SetCameraCtrl(const proto::CameraCtrl &ctrl);
+    void SetSocListener(SocDataListener f) {
         for (auto it = m_camera_map.begin(); it != m_camera_map.end(); it++) {
             it->second->SetSocListener(f);
         }
+        soc_listener_ = f;
     }
 
 private:
@@ -79,5 +68,8 @@ private:
 
     std::unordered_map<AS_CAM_PTR, Camera *> m_camera_map;
 
-    SocDataListener soc_listener_ = nullptr;
+    SocDataListener soc_listener_{nullptr};
 };
+}  // namespace camera
+}  // namespace chss
+}  // namespace mstf

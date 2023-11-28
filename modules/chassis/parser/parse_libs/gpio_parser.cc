@@ -15,7 +15,7 @@ namespace parser {
     }
 
     int GpioParser::Init() {
-        auto dev = dynamic_cast<const GpioDevices&>(GetDevice());
+        auto dev = dynamic_cast<const GpioDevConf&>(GetDevConfig());
         return ParserBaseItf::Init(dev.sn_ind().port());
     }
 
