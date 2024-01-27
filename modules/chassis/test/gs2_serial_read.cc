@@ -22,7 +22,7 @@ const static std::string g_dev_name = "/dev/ttyS0";
 int                      main(int argc, char const *argv[]) {
     AINFO << "chassis start, name: ";
 
-    proto::UartConfig config;
+    proto::UartConfigs config;
     config.set_dev_name(g_dev_name);
 
     proto::UartDevSetting     setting;

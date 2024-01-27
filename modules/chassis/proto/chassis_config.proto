@@ -27,6 +27,8 @@ enum EE_DEVICE_TYPE {
     E_DEVICE_ADC = 11;
     E_DEVICE_WIRELESS = 12;
     E_DEVICE_LINELASER = 13;
+    E_DEVICE_SERVO = 14;
+    E_DEVICE_JOYSTICK = 15;
 }
 
 enum EE_COMM_PORT_TYPE {
@@ -41,7 +43,8 @@ enum EE_COMM_PORT_TYPE {
     E_COMM_PORT_MIPI                = 8; //mipi
     E_COMM_PORT_GPIO                = 9; //gpio
     E_COMM_PORT_I2S                 = 10; //i2s
-    E_COMM_PORT_SDIO                 = 11; //sdio
+    E_COMM_PORT_SDIO                = 11; //sdio
+    E_COMM_PORT_24G                 = 12; //2.4G
 }
 
 enum EE_SUBTYPE_GPIO {
@@ -134,11 +137,10 @@ message SubDevices {
     EE_SUBTYPE_NULL sdev_null = 6;
 }
 
-message SensorInfo {
+message InherentInfo {
     string name = 1;
     string manufacture_by = 2;
     string type = 3;
-    EE_DEVICE_TYPE dev_type = 4;
 }
 
 message SensorIndicator {
@@ -147,6 +149,7 @@ message SensorIndicator {
     EE_COMM_PORT_TYPE port = 3;
     EE_DEVICE_STATUS status = 4;
     SubDevices sub_dev = 5;
+    InherentInfo ihi = 6;
 }
 
 message CircularBufSetting {
@@ -154,61 +157,6 @@ message CircularBufSetting {
     string circle_name = 2;
     int32 circlular_size = 3;
 }
-
-////////////// PORT-CAN //////////////
-message CanDataRaw {
-    int32 id = 1;
-    repeated int32 data = 2;
-}
-
-message CanDevSetting {
-    string dev = 1;
-    int32 baud = 2;
-    int32 can_read_freq = 3;
-    int32 can_read_timeout = 4;
-}
-
-message CanConfig {
-    CanDevSetting dev_setting = 1;
-    CircularBufSetting buf_setting = 2;
-    string dev_name = 3;
-}
-////////////// PORT-CAN //////////////
-
-////////////// PORT-UART //////////////
-message UartDevSetting {
-    string uart_dev = 1;
-    int32 baud = 2;
-    int32 data_bits = 3;
-    int32 stop_bits = 4;
-    int32 parity = 5;
-    int32 once_read_size = 6;
-    int32 serial_read_freq = 7;
-    int32 serial_read_timeout = 8;
-}
-
-message UartConfig {
-    UartDevSetting dev_setting = 1;
-    CircularBufSetting buf_setting = 2;
-    string dev_name = 3;
-}
-////////////// PORT-UART //////////////
-
-////////////// PORT-IIC //////////////
-message I2cDevSetting {
-    string i2c_dev = 1;
-    int32 bus = 2;
-    int32 address = 3;
-    int32 i2c_read_freq = 4;
-    int32 i2c_read_timeout = 5;
-}
-
-message I2cConfig {
-    I2cDevSetting dev_setting = 1;
-    CircularBufSetting buf_setting = 2;
-    string dev_name = 3;
-}
-////////////// PORT-IIC //////////////
 
 ////////////// GPIO //////////////
 enum EE_GPIO_DIR {
@@ -250,10 +198,9 @@ message GpioConfigs {
 }
 
 message GpioDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
-    GpioConfigs gpio_configs = 3;
-    bool used = 4;
+    SensorIndicator sn_ind = 1;
+    GpioConfigs gpio_configs = 2;
+    bool used = 3;
 }
 
 //for GPIO switch
@@ -261,6 +208,76 @@ message SwitchDev {
     string gpio_pin = 1;
 }
 ////////////// GPIO //////////////
+
+////////////// PORT-CAN //////////////
+message CanDataRaw {
+    int32 id = 1;
+    repeated int32 data = 2;
+}
+
+message CanDevSetting {
+    string dev = 1;
+    int32 baud = 2;
+    int32 can_read_freq = 3;
+    int32 can_read_timeout = 4;
+}
+
+message CanConfigs {
+    CanDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-CAN //////////////
+
+////////////// PORT-UART //////////////
+message UartDevSetting {
+    string uart_dev = 1;
+    int32 baud = 2;
+    int32 data_bits = 3;
+    int32 stop_bits = 4;
+    int32 parity = 5;
+    int32 once_read_size = 6;
+    int32 serial_read_freq = 7;
+    int32 serial_read_timeout = 8;
+}
+
+message UartConfigs {
+    UartDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-UART //////////////
+
+////////////// PORT-JOYSTICK //////////////
+message JoyStickDevSetting {
+    string joy_dev = 1;
+    int32 once_read_size = 2;
+    int32 input_read_freq = 3;
+}
+
+message JoyConfigs {
+    JoyStickDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-JOYSTICK //////////////
+
+
+////////////// PORT-IIC //////////////
+message I2cDevSetting {
+    string i2c_dev = 1;
+    int32 bus = 2;
+    int32 address = 3;
+    int32 i2c_read_freq = 4;
+    int32 i2c_read_timeout = 5;
+}
+
+message I2cConfigs {
+    I2cDevSetting dev_setting = 1;
+    CircularBufSetting buf_setting = 2;
+    string dev_name = 3;
+}
+////////////// PORT-IIC //////////////
 
 ////////////// Audio //////////////
 enum EE_AUDIO_TYPE {
@@ -287,18 +304,21 @@ message AudioConfig {
 }
 
 message AudioDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
-    AudioConfig audio_conf = 3;
-    bool used = 4;
+    SensorIndicator sn_ind = 1;
+    AudioConfig audio_conf = 2;
+    bool used = 3;
 }
 ////////////// Audio //////////////
 
 ////////////// ADC //////////////
-//TODO
+message AdcConfigs {
+    //TODO
+    int32 adc_c = 2;
+}
+
 message AdcDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
+    AdcConfigs adc_configs = 2;
     bool used = 3;
 }
 ////////////// ADC //////////////
@@ -341,12 +361,11 @@ message PwmConfigs {
 }
 
 message PwmDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
 
-    PwmConfigs pwm_confs = 3;
+    PwmConfigs pwm_configs = 2;
 
-    bool used = 4;
+    bool used = 3;
 }
 ////////////// PWM //////////////
 
@@ -361,17 +380,16 @@ message LidarAssemble {
 }
 
 message LidarDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof LidarInterface {
-        UartConfig uart_conf = 3;
+        UartConfigs uart_configs = 2;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    LidarAssemble lidar_assemble = 4;
-    SwitchDev lidar_switch = 5;
-    google.protobuf.UInt32Value pwm_unique_id = 6;
-    bool used = 7;
+    LidarAssemble lidar_assemble = 3;
+    SwitchDev switch = 4;
+    google.protobuf.UInt32Value pwm_unique_id = 5;
+    bool used = 6;
 }
 ////////////// Lidar //////////////
 
@@ -383,16 +401,16 @@ message ImuAssemble {
 }
 
 message ImuDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof ImuInterface {
-        UartConfig uart_conf = 3;
-        I2cConfig i2c_conf = 4;
+        UartConfigs uart_configs = 3;
+        I2cConfigs i2c_configs = 4;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    ImuAssemble imu_assemble = 5;
-    bool used = 6;
+    SwitchDev switch = 5;
+    ImuAssemble imu_assemble = 6;
+    bool used = 7;
 }
 ////////////// Imu //////////////
 
@@ -404,15 +422,14 @@ message DtofAssemble {
 }
 
 message DtofDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof DtofInterface {
-        UartConfig uart_conf = 3;
+        UartConfigs uart_configs = 2;
         //may be SPI device, then instantiate other interface
         //TODO
     }
-    DtofAssemble dtof_assemble = 4;
-    bool used = 5;
+    DtofAssemble dtof_assemble = 3;
+    bool used = 4;
 }
 ////////////// Dtof //////////////
 
@@ -449,11 +466,10 @@ message CamerAssemble {
 }
 
 message CameraDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
-    CamerAssemble ca = 3;
-    CameraConfigs camera_conf = 4;
-    bool used = 5;
+    SensorIndicator sn_ind = 1;
+    CamerAssemble ca = 2;
+    CameraConfigs camera_conf = 3;
+    bool used = 4;
 }
 ////////////// Camera //////////////
 
@@ -465,13 +481,12 @@ message McuAssemble {
 }
 
 message McuDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof McuInterface {
-        UartConfig uart_conf = 3;
+        UartConfigs uart_configs = 2;
     }
-    McuAssemble mcu_assemble = 4;
-    bool used = 5;
+    McuAssemble mcu_assemble = 3;
+    bool used = 4;
 }
 ////////////// MCU //////////////
 
@@ -488,39 +503,39 @@ message ServoDriverInfo {
 }
 
 message ServoDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof ServoInterface {
-        CanConfig can_conf = 3;
+        CanConfigs can_configs = 2;
     }
-    ServoDriverInfo servo_info = 4;
-    bool used = 5;
-}
-////////////// Servo //////////////
-
-////////////// Servo //////////////
-message WirelessDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    ServoDriverInfo servo_info = 3;
     bool used = 4;
+}
+
+message WirelessDevConf {
+    SensorIndicator sn_ind = 1;
+    bool used = 2;
 }
 
 message LineLaserDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
+    SensorIndicator sn_ind = 1;
     oneof LidarInterface {
-        UartConfig uart_conf = 3;
+        UartConfigs uart_configs = 2;
     }
-    bool used = 4;
+    bool used = 3;
 }
 ////////////// Servo //////////////
 
+message JoyStickDevConf {
+    SensorIndicator sn_ind = 1;
+    JoyConfigs joy_conf = 2;
+    bool used = 3;
+}
+
 ////////////// TTY //////////////
 message TtyDevConf {
-    SensorInfo si = 1;
-    SensorIndicator sn_ind = 2;
-    int32 scan_interval = 3;
-    bool used = 4;
+    SensorIndicator sn_ind = 1;
+    int32 scan_interval = 2;
+    bool used = 3;
 }
 ////////////// TTY //////////////
 
@@ -528,7 +543,6 @@ message TtyDevConf {
 message ChassissTopicConfig {
     //write channel
     string chassis_output_channel = 1;
-
     //writer, for upstream messages
     string output_imu_topic_name = 2;
     string output_odom_topic_name = 3;
@@ -544,6 +558,13 @@ message ChassissTopicConfig {
     //reader, for downstream messages
     string input_crtl_topic_name = 11;
     string input_move_topic_name = 12;
+
+    /*
+    string output_wifi_topic_name = 13;
+    string output_joy_topic_name = 14;
+    string output_left_line_laser_name = 15;
+    string output_right_line_laser_name = 16;
+    */
 }
 
 message ChassisConfig {
@@ -560,6 +581,7 @@ message ChassisConfig {
     repeated ServoDevConf servo_dev = 11;
     repeated WirelessDevConf wireless_dev = 12;
     repeated LineLaserDevConf linelaser_dev = 13;
+    repeated JoyStickDevConf joystick_dev = 14;
 
-    ChassissTopicConfig chs_topic_conf = 14;
+    ChassissTopicConfig chs_topic_conf = 15;
 }

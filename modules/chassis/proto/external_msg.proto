@@ -1,35 +1,20 @@
 syntax = "proto3";
 
+package mstf.chss.proto;
+
 import "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/nav_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/geometry_msgs.proto";
-
-/*
-message Time {
-  uint32 sec = 1;
-  uint32 nsec = 2;
-}
-
-message Header {
-  uint32 seq = 1;
-  Time stamp = 2;
-  string frame_id = 3;
-}
-
-message Point32 {
-  float x = 1;
-  float y = 2;
-  float z = 3;
-}
-
-message ChannelFloat32 {
-  string name = 1;
-  repeated double values = 2;
-}
-
-message PointCloud {
-  Header header = 1;
-  repeated Point32 points = 2;
-  repeated ChannelFloat32 channels = 3;
-}
-*/
+import "modules/aventurier_common_msgs/proto/ros_msgs/stereo_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/visualization_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/actionlib_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/map_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/shape_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/tf2_geometry_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/control_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/smach_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/tf2_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/diagnostic_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/rosgraph_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/std_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/trajectory_msgs.proto";

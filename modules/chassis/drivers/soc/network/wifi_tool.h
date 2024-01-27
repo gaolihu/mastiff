@@ -1,29 +1,21 @@
-/*
- * @Date: 2023-09-13 11:29:18
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/network/wifi_tool.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 
-#include "modules/chassis/proto/frame_down_stream.pb.h"
-#include "modules/chassis/proto/frame_up_stream.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 #include "wifi_ap.h"
 #include "wifi_sta.h"
 
 
 namespace mstf {
 namespace chss {
-namespace network {
+namespace driver {
 const static std::string WIFI_SCRIPTS = "/userdata/wifi/wifi_tool.sh";
 
 enum class Mode { NONE, AP, STA, SNIFFER };
 
 
 class WiFiTool
-    : public WifiSta
-    , WifiAp , std::enable_shared_from_this<WiFiTool> {
+    : public WiFiSta
+    , WiFiAp , std::enable_shared_from_this<WiFiTool> {
 public:
     WiFiTool();
     ~WiFiTool();
@@ -34,7 +26,7 @@ public:
      * @param wifi_ctrl
      * @return std::string
      */
-    std::string WifiOperate(const proto::WirelessCtrl& wifi_ctrl);
+    std::string WiFiOperate(const proto::WifiSetting& wifi_ctrl);
     inline std::shared_ptr<WiFiTool> ThisShared(){
         return shared_from_this();
     }
@@ -49,9 +41,9 @@ public:
     void        WlanUp() const; // up
     void        WlanDown() const; // down
     std::string GetWpaInfo() const; // info
-    std::string GetWifiName() const; // name
+    std::string GetWiFiName() const; // name
     std::string GetRouterMac() const; // bssid
-    std::string ConnectWifi(const std::string& ssid, const std::string& pwd = "") const; // conn
+    std::string ConnectWiFi(const std::string& ssid, const std::string& pwd = "") const; // conn
     std::string Disconnect() const; // dis
     std::string CreateAp(const std::string& ssid, const std::string& pwd = "") const; // ap
     std::string Status() const; // status
@@ -62,15 +54,16 @@ public:
 
     //----------------------------------------------------------
     //以下程序运行会有延时几秒
-
     // 通过ping 判断是否能连接外网
     bool  CheckConnection() const;  // ping
-    // 获取ping的平均延迟, 单位 ms
+    // 获取ping baidu.com 的平均延迟, 单位 ms
     float GetAverageTime() const;  // speed
 
-private:
+    void GenUpdateMsg(proto::WifiInfo& msg);
     std::string Mode2Str(const Mode& mode);
+
+private:
 };
-}  // namespace network
+}  // namespace driver
 }  // namespace chss
 }  // namespace mstf

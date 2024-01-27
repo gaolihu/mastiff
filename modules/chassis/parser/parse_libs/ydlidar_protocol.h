@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 /// Count the number of elements in a statically allocated array.
 #if !defined(_countof)
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))

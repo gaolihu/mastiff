@@ -5,7 +5,7 @@ namespace chss {
 namespace parser {
 
     GpioParser::GpioParser(const ChassisConfig* cc,
-            const SensorInfo* si) :
+            const SensorIndicator* si) :
         ParserBaseItf(cc, si) {
             AINFO << "GpioParser construct";
         }

@@ -1,11 +1,5 @@
 gpio_dev: [
     {
-        si {
-            name: "RK-Platform-GPIO"
-            manufacture_by: "RK"
-            type: "RK3588"
-            dev_type: E_DEVICE_GPIO
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_GPIO
@@ -13,6 +7,11 @@ gpio_dev: [
             status: E_STATUS_UNINITIALIZED
             sub_dev: {
                 sdev_null: E_SUB_TYPE_NULL
+            }
+            ihi {
+                name: "RK-GPIO"
+                manufacture_by: "RK"
+                type: "RK3588"
             }
         }
         gpio_configs {
@@ -60,12 +59,6 @@ adc_dev: [
 
 pwm_dev: [
     {
-        si {
-            name: "RK-Platform-PWM"
-            manufacture_by: "RK"
-            type: "RK3588"
-            dev_type: E_DEVICE_PWM
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_PWM
@@ -74,8 +67,13 @@ pwm_dev: [
             sub_dev: {
                 sdev_null: E_SUB_TYPE_NULL
             }
+            ihi {
+                name: "RK-Platform-PWM"
+                manufacture_by: "RK"
+                type: "RK3588"
+            }
         }
-        pwm_confs: {
+        pwm_configs: {
             pwm_path: "/sys/class/pwm/pwmchip0/"
             conf: [
                 {
@@ -88,7 +86,7 @@ pwm_dev: [
                     duty_lower_lmt: 46
                     duty_typical_lmt: 50
                     duty_upper_lmt: 54
-                    used: true
+                    used: false
                 },
                 {
                     pwm_id: 12
@@ -100,7 +98,7 @@ pwm_dev: [
                     duty_lower_lmt: 30
                     duty_typical_lmt: 50
                     duty_upper_lmt: 80
-                    used: true
+                    used: false
                 }
             ]
         }
@@ -110,18 +108,17 @@ pwm_dev: [
 
 lidar_dev: [
     {
-        si {
-            name: "LDS-Lidar"
-            manufacture_by: "PeaceCat"
-            type: "LDS-50C-R"
-            dev_type: E_DEVICE_LIDAR
-        }
         sn_ind {
             type: E_DEVICE_LIDAR
             port: E_COMM_PORT_SERIAL
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "LDS-Lidar"
+                manufacture_by: "PeaceCat"
+                type: "LDS-50C-R"
+            }
         }
-        uart_conf {
+        uart_configs {
             dev_setting {
                 uart_dev: "/dev/ttyS3"
                 baud: 921600
@@ -147,30 +144,30 @@ lidar_dev: [
             cut_to_10th1_deg: 2540
             cut_discard_stuff: 1000
         }
-        lidar_switch {
+        switch {
             gpio_pin: "1A6"
         }
         pwm_unique_id: {
             value: 13
         }
-        used: true
+        used: false
     }
 ]
 
 imu_dev: [
     {
-        si {
-            name: "Gyro-IMU-Uart"
-            manufacture_by: "MicroInfinity"
-            type: "CruizCore-R6082V"
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_MCU
             type: E_DEVICE_IMU
             port: E_COMM_PORT_SERIAL
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Gyro-IMU-Uart"
+                manufacture_by: "MicroInfinity"
+                type: "CruizCore-R6082V"
+            }
         }
-        uart_conf {
+        uart_configs {
             dev_setting {
                 uart_dev: "/dev/ttyS1"
                 baud: 115200
@@ -191,18 +188,18 @@ imu_dev: [
         used: false
     },
     {
-        si {
-            name: "Gyro-IMU-IIC"
-            manufacture_by: "MicroInfinity"
-            type: "CruizCore-R6082V"
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_MCU
             type: E_DEVICE_IMU
             port: E_COMM_PORT_I2C
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Gyro-IMU-IIC"
+                manufacture_by: "MicroInfinity"
+                type: "CruizCore-R6082V"
+            }
         }
-        i2c_conf {
+        i2c_configs {
             dev_setting {
                 i2c_dev: "/dev/i2c-1"
                 bus: 1
@@ -217,6 +214,9 @@ imu_dev: [
             }
             dev_name: "Dev-IMU-IIC"
         }
+        switch {
+            gpio_pin: "1A3"
+        }
         used: false
     }
 ]
@@ -229,17 +229,16 @@ dtof_dev: [
 
 camera_dev: [
     {
-        si {
-            name: "Camera"
-            manufacture_by: "Unknown"
-            type: "USB-camera"
-            dev_type: E_DEVICE_CAMERA
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_CAMERA
             port: E_COMM_PORT_USB
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Camera"
+                manufacture_by: "Unknown"
+                type: "USB-camera"
+            }
         }
         ca {
             height: 100
@@ -249,7 +248,6 @@ camera_dev: [
             number: 1
         }
         camera_conf {
-            used: true
             dev_name: "usb-caemra"
             conf: [
                 {
@@ -260,22 +258,17 @@ camera_dev: [
                     width: 1280
                     height: 480
                     fps: 7
-                    used: true
+                    used: false
                 }
             ]
+            used: false
         }
-        used: false
+        used: true
     }
 ]
 
 mcu_dev: [
     {
-        si {
-            name: "GD-MCU-Chs"
-            manufacture_by: "GD"
-            type: "GD32F305VET6"
-            dev_type: E_DEVICE_MCU
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_MCU
             type: E_DEVICE_MCU
@@ -324,8 +317,13 @@ mcu_dev: [
                     E_IMU
                 ]
             }
+            ihi {
+                name: "GD-MCU-Chs"
+                manufacture_by: "GD"
+                type: "GD32F305VET6"
+            }
         }
-        uart_conf {
+        uart_configs {
             dev_setting {
                 uart_dev: "/dev/ttyS0"
                 baud: 460800
@@ -354,17 +352,16 @@ mcu_dev: [
 
 tty_dev: [
     {
-        si {
-            name: "Device manage"
-            manufacture_by: "SilverStar"
-            type: "mastiff"
-            dev_type: E_DEVICE_TTY
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_TTY
             port: E_COMM_PORT_SERIAL
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Device manage"
+                manufacture_by: "SilverStar"
+                type: "mastiff"
+            }
         }
         scan_interval: 20
         used: false
@@ -373,17 +370,16 @@ tty_dev: [
 
 aud_dev: [
     {
-        si {
-            name: "Audio-Play"
-            manufacture_by: "RK3588"
-            type: "RK806"
-            dev_type: E_DEVICE_AUDIO
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_AUDIO
             port: E_COMM_PORT_I2S
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Audio-Play"
+                manufacture_by: "RK3588"
+                type: "RK806"
+            }
         }
         audio_conf {
             audio_path: "/mastiff/audio/voice"
@@ -490,19 +486,18 @@ aud_dev: [
 
 servo_dev: [
     {
-        si {
-            name: "Servo-Motor"
-            manufacture_by: "Syntron"
-            type: "DS20270DA"
-            dev_type: E_DEVICE_MOTOR
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_MOTOR
-            type: E_DEVICE_MOTOR
+            type: E_DEVICE_SERVO
             port: E_COMM_PORT_CAN
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Servo-Motor"
+                manufacture_by: "Syntron"
+                type: "DS20270DA"
+            }
         }
-        can_conf {
+        can_configs {
             dev_setting {
                 dev: "can0"
                 baud: 1000000
@@ -526,59 +521,119 @@ servo_dev: [
             servo_motor_resolution: 131072
             servo_motor_reduction: 1
         }
-        used: true
+        used: false
     }
 ]
 
 wireless_dev: [
     {
-        si {
-            name: "Wifi-Module"
-            manufacture_by: "AMPACK"
-            type: "AP6275P"
-            dev_type: E_DEVICE_WIRELESS
-        }
         sn_ind {
             dev_main: EE_DEV_MAIN_SOC
             type: E_DEVICE_WIRELESS
             port: E_COMM_PORT_SDIO
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Wifi-Module"
+                manufacture_by: "AMPACK"
+                type: "AP6275P"
+            }
         }
-        used: false
+        used: true
     }
 ]
 
 linelaser_dev: [
     {
-        si {
-            name: "Line-Laser"
-            manufacture_by: "AVT-Line-Laser"
-            type: "EAI"
-            dev_type: E_DEVICE_LINELASER
-        }
         sn_ind {
-            dev_main: EE_DEV_MAIN_SOC
+            dev_main: EE_DEV_MAIN_MCU
             type: E_DEVICE_LINELASER
             port: E_COMM_PORT_SERIAL
             status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Line-Laser-Left"
+                manufacture_by: "AVT-Line-Laser"
+                type: "EAI"
+            }
         }
-        uart_conf {
+        uart_configs {
             dev_setting {
-                uart_dev: "/dev/ttyS0"
+                uart_dev: "/dev/left_line_laser"
                 baud: 921600
                 data_bits: 8
                 stop_bits: 1
                 parity: 110
-                once_read_size: 256
-                serial_read_freq: 5
+                once_read_size: 512
+                serial_read_freq: 25
                 serial_read_timeout: 2500
             }
             buf_setting {
                 parser_freq: 4000
-                circle_name: "cbf-line-lidar"
+                circle_name: "cbf-line-lidar-left"
                 circlular_size: 4096
             }
-            dev_name: "dev-line-laser"
+            dev_name: "dev-left-line-laser"
+        }
+        used: false
+    },
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_MCU
+            type: E_DEVICE_LINELASER
+            port: E_COMM_PORT_SERIAL
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Line-Laser-Right"
+                manufacture_by: "AVT-Line-Laser"
+                type: "EAI"
+            }
+        }
+        uart_configs {
+            dev_setting {
+                uart_dev: "/dev/right_line_laser"
+                baud: 921600
+                data_bits: 8
+                stop_bits: 1
+                parity: 110
+                once_read_size: 512
+                serial_read_freq: 25
+                serial_read_timeout: 2500
+            }
+            buf_setting {
+                parser_freq: 4000
+                circle_name: "cbf-line-lidar-right"
+                circlular_size: 4096
+            }
+            dev_name: "dev-right-line-laser"
+        }
+        used: false
+    }
+]
+
+joystick_dev: [
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_SOC
+            type: E_DEVICE_JOYSTICK
+            port: E_COMM_PORT_SERIAL
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Joy-Stick"
+                manufacture_by: "AVT-Joy-Stick"
+                type: "TGZ-706W"
+            }
+        }
+        joy_conf {
+            dev_setting {
+                joy_dev: "/dev/input/js0"
+                once_read_size: 256
+                input_read_freq: 25
+            }
+            buf_setting {
+                parser_freq: 4000
+                circle_name: "cbf-joy-stick"
+                circlular_size: 4096
+            }
+            dev_name: "dev-joy-stick"
         }
         used: false
     }
@@ -594,6 +649,7 @@ chs_topic_conf {
     output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
     output_img_topic_name: "mastiff/chassis/output/chs_img"
     output_hcr_topic_name: "mastiff/chassis/output/chs_hcr"
+
     chassis_input_channel: "robot/subscribe"
     input_crtl_topic_name: "mastiff/chassis/input/chs_ctrl"
     input_move_topic_name: "cmd_vel"

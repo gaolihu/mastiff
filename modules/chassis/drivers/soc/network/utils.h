@@ -1,10 +1,3 @@
-/*
- * @Date: 2023-09-13 19:38:21
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/network/utils.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 
 #include <unistd.h>
@@ -25,7 +18,7 @@
 
 namespace mstf {
 namespace chss {
-namespace network {
+namespace driver {
 std::vector<std::string> GetCurrentKernelModules();
 
 int Run(const std::string& cmd, std::string& output);
@@ -37,6 +30,6 @@ int TermProcess(const std::string& name);
 int TermProcess(const int pid);
 
 void ReplaceString(std::string& str, const std::string& target, const std::string& replace);
-}  // namespace network
+}  // namespace driver
 }  // namespace chss
 }  // namespace mstf

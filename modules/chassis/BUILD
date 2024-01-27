@@ -9,27 +9,6 @@ package(default_visibility = ["//visibility:public"],)
 
 CHSS_COPTS = '-DCHSS_PKG_DBG'
 
-### test ###
-cc_binary(
-    name = "gs2_serial_read",
-    srcs = [
-        "test/gs2_serial_read.cc",
-    ],
-    copts = [
-        '-DCHSS_PKG',
-        '-DPKG_NAME=\\"chss_pkg\\"',
-        CHSS_COPTS,
-    ],
-    deps = [
-        ":chassis",
-        ":serial_data",
-        ":uart_drive",
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-    ]
-)
-
 #### main target ####
 cc_library(
     name = "chassis",
@@ -52,9 +31,9 @@ cc_binary(
     ],
     deps = [
         "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":dispatch_chs",
-        ":receive_ctrl",
+        ":dispatcher",
+        ":receiver",
+        ":device_manager",
     ]
 )
 
@@ -81,119 +60,101 @@ cc_library(
 )
 
 cc_library(
-    name = "dispatch_chs",
+    name = "dispatcher",
     srcs = [
     ],
     hdrs = [
-        "dispatch_chs.h",
+        "dispatcher.h",
     ],
     copts = [
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-        ":msg_transfer",
+        ":msgs_send_tmpl",
     ]
 )
 
 cc_library(
-    name = "receive_ctrl",
+    name = "receiver",
     srcs = [
     ],
     hdrs = [
-        "receive_ctrl.h",
+        "receiver.h",
     ],
     copts = [
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-        ":msg_transfer",
-        ":device_manager",
+        ":msgs_recv_tmpl",
     ]
 )
 
-######## ######## 1 devices ######## ########
+######## ######## 1, devices ######## ########
 cc_library(
-    name = "msg_transfer",
+    name = "msgs_send_tmpl",
     srcs = [
     ],
     hdrs = [
-        "devices/msg_transfer.h",
+        "devices/msgs_send_tmpl.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":transactor",
+        ":msgs_impl_itf",
+    ]
+)
+
+cc_library(
+    name = "msgs_recv_tmpl",
+    srcs = [
+    ],
+    hdrs = [
+        "devices/msgs_recv_tmpl.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":transactor",
+        ":msgs_impl_itf",
+    ]
+)
+
+cc_library(
+    name = "msgs_impl_itf",
+    srcs = [
+    ],
+    hdrs = [
+        "devices/msgs_impl_itf.h",
     ],
     copts = [
         CHSS_COPTS,
     ],
     deps = [
         "//cyber",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-        ":data_transact",
+        "//modules/chassis/proto:chss_io_cc_proto",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+    ]
+)
+
+cc_library(
+    name = "transactor",
+    srcs = [
+        "devices/transactor.cc",
+    ],
+    hdrs = [
+        "devices/transactor.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chss_io_cc_proto",
         ":key_simulate",
-    ]
-)
-
-cc_library(
-    name = "device_manager",
-    srcs = [
-        "devices/device_manager.cc",
-    ],
-    hdrs = [
-        "devices/device_manager.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-
-        ":dev_servo",
-        ":audio_play",
-        ":dev_wireless",
-        ":dev_lidar",
-        ":dev_mcu",
-        ":dev_camera",
-        ":dev_gpio",
-        ":line_laser",
-        ":dev_imu",
-    ]
-)
-
-cc_library(
-    name = "data_transact",
-    srcs = [
-        "devices/data_transact.cc",
-    ],
-    hdrs = [
-        "devices/data_transact.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-        ":device_base_itf",
-        ":parser_base_itf",
-    ]
-)
-
-cc_library(
-    name = "device_base_itf",
-    srcs = [
-    ],
-    hdrs = [
-        "devices/device_base_itf.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
+        ":common_inf",
     ]
 )
 
@@ -210,8 +171,48 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
         ":dev_tty",
+    ]
+)
+
+cc_library(
+    name = "device_manager",
+    srcs = [
+        "devices/device_manager.cc",
+    ],
+    hdrs = [
+        "devices/device_manager.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_servo",
+        ":dev_lidar",
+        ":line_laser",
+        ":dev_imu",
+        ":dev_joystick",
+        ":audio_play",
+        ":dev_wireless",
+        ":dev_camera",
+        #":dev_mcu",
+        #":dev_gpio",
+    ]
+)
+
+cc_library(
+    name = "device_base_itf",
+    srcs = [
+    ],
+    hdrs = [
+        "devices/device_base_itf.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
     ]
 )
 
@@ -244,14 +245,87 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
+        ":dev_parse_link",
 
+        ":servo_packer",
         ":servo_parser",
     ]
 )
+
+cc_library(
+    name = "dev_lidar",
+    srcs = [
+        "devices/dev_libs/dev_lidar.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/dev_lidar.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_parse_link",
+
+        #":lidar_packer",
+        ":lidar_parser",
+    ]
+)
+
+cc_library(
+    name = "line_laser",
+    srcs = [
+        "devices/dev_libs/line_laser.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/line_laser.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_parse_link",
+
+        ":llaser_packer",
+        ":linelaser_parser",
+    ]
+)
+
+cc_library(
+    name = "dev_imu",
+    srcs = [
+        "devices/dev_libs/dev_imu.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/dev_imu.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_parse_link",
+
+        ":imu_parser",
+    ]
+)
+
+cc_library(
+    name = "dev_joystick",
+    srcs = [
+        "devices/dev_libs/dev_joystick.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/dev_joystick.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_parse_link",
+
+        ":joystick_parser",
+    ]
+)
+
 cc_library(
     name = "audio_play",
     srcs = [
@@ -264,10 +338,7 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
+        ":dev_parse_link",
 
         ":audio_parser",
     ]
@@ -285,33 +356,9 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
+        ":dev_parse_link",
 
         ":wireless_parser",
-    ]
-)
-
-cc_library(
-    name = "dev_mcu",
-    srcs = [
-        "devices/dev_libs/dev_mcu.cc",
-    ],
-    hdrs = [
-        "devices/dev_libs/dev_mcu.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
-
-        ":mcu_parser",
     ]
 )
 
@@ -327,12 +374,27 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
+        ":dev_parse_link",
 
         ":camera_parser",
+    ]
+)
+
+cc_library(
+    name = "dev_mcu",
+    srcs = [
+        "devices/dev_libs/dev_mcu.cc",
+    ],
+    hdrs = [
+        "devices/dev_libs/dev_mcu.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":dev_parse_link",
+
+        ":mcu_parser",
     ]
 )
 
@@ -348,75 +410,31 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
+        ":dev_parse_link",
 
         ":gpio_parser",
     ]
 )
 
 cc_library(
-    name = "line_laser",
+    name = "dev_parse_link",
     srcs = [
-        "devices/dev_libs/line_laser.cc",
+        "devices/dev_parse_link.cc",
     ],
     hdrs = [
-        "devices/dev_libs/line_laser.h",
+        "devices/dev_parse_link.h",
     ],
     copts = [
         CHSS_COPTS,
     ],
     deps = [
         "//cyber",
+        "//modules/chassis/proto:chss_io_cc_proto",
         "//modules/chassis/proto:chassis_config_cc_proto",
+        ":transactor",
         ":device_base_itf",
-        ":data_transact",
-
-        ":linelaser_parser",
-    ]
-)
-
-cc_library(
-    name = "dev_imu",
-    srcs = [
-        "devices/dev_libs/dev_imu.cc",
-    ],
-    hdrs = [
-        "devices/dev_libs/dev_imu.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
-
-        ":imu_parser",
-    ]
-)
-
-cc_library(
-    name = "dev_lidar",
-    srcs = [
-        "devices/dev_libs/dev_lidar.cc",
-    ],
-    hdrs = [
-        "devices/dev_libs/dev_lidar.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":device_base_itf",
-        ":data_transact",
-
-        ":lidar_parser",
+        ":parser_base_itf",
+        ":packer_base_itf",
     ]
 )
 ######## dev libs ########
@@ -435,11 +453,10 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
         "@org_tuxfamily_eigen//:eigen",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":parser_base_itf",
         ":ds20270da_driver",
+        ":parse_drv_link",
     ]
 )
 
@@ -459,6 +476,76 @@ cc_library(
 )
 
 cc_library(
+    name = "lidar_parser",
+    srcs = [
+        "parser/parse_libs/lidar_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/lidar_parser.h",
+        "parser/parse_libs/lidar_50cr.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":parser_base_itf",
+        ":parse_drv_link",
+    ]
+)
+
+cc_library(
+    name = "linelaser_parser",
+    srcs = [
+        "parser/parse_libs/linelaser_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/linelaser_parser.h",
+        "parser/parse_libs/ydlidar_protocol.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":parser_base_itf",
+        ":parse_drv_link",
+    ]
+)
+
+cc_library(
+    name = "imu_parser",
+    srcs = [
+        "parser/parse_libs/imu_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/imu_parser.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":parser_base_itf",
+        ":parse_drv_link",
+    ]
+)
+
+cc_library(
+    name = "joystick_parser",
+    srcs = [
+        "parser/parse_libs/joystick_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/joystick_parser.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        ":parser_base_itf",
+        ":parse_drv_link",
+    ]
+)
+
+cc_library(
     name = "audio_parser",
     srcs = [
         "parser/parse_libs/audio_parser.cc",
@@ -470,9 +557,8 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":parser_base_itf",
+        ":parse_drv_link",
     ]
 )
 
@@ -488,47 +574,8 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":parser_base_itf",
-    ]
-)
-
-cc_library(
-    name = "lidar_parser",
-    srcs = [
-        "parser/parse_libs/lidar_parser.cc",
-    ],
-    hdrs = [
-        "parser/parse_libs/lidar_parser.h",
-        "parser/parse_libs/lidar_50cr.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:frame_up_stream_cc_proto",
-        ":parser_base_itf",
-    ]
-)
-
-cc_library(
-    name = "mcu_parser",
-    srcs = [
-        "parser/parse_libs/mcu_parser.cc",
-    ],
-    hdrs = [
-        "parser/parse_libs/mcu_parser.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":parser_base_itf",
+        ":parse_drv_link",
     ]
 )
 
@@ -544,8 +591,23 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
+        ":parser_base_itf",
+        ":parse_drv_link",
+    ]
+)
+
+cc_library(
+    name = "mcu_parser",
+    srcs = [
+        "parser/parse_libs/mcu_parser.cc",
+    ],
+    hdrs = [
+        "parser/parse_libs/mcu_parser.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
         ":parser_base_itf",
     ]
 )
@@ -562,44 +624,6 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":parser_base_itf",
-    ]
-)
-
-cc_library(
-    name = "linelaser_parser",
-    srcs = [
-        "parser/parse_libs/linelaser_parser.cc",
-    ],
-    hdrs = [
-        "parser/parse_libs/linelaser_parser.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        ":parser_base_itf",
-    ]
-)
-
-cc_library(
-    name = "imu_parser",
-    srcs = [
-        "parser/parse_libs/imu_parser.cc",
-    ],
-    hdrs = [
-        "parser/parse_libs/imu_parser.h",
-    ],
-    copts = [
-        CHSS_COPTS,
-    ],
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":parser_base_itf",
     ]
 )
@@ -617,13 +641,27 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:frame_down_stream_cc_proto",
-        ":raw_manage",
-        ":raw_packer",
-        ":servo_packer",
-        ":llaser_packer",
-
+        "//modules/chassis/proto:chss_io_cc_proto",
+        ":common_inf",
         ":circular_buffer",
+    ]
+)
+
+cc_library(
+    name = "common_inf",
+    srcs = [
+        "parser/common_inf.cc",
+    ],
+    hdrs = [
+        "parser/common_inf.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ]
 )
 
@@ -707,17 +745,17 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/chassis/proto:frame_down_stream_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ]
 )
 
 cc_library(
-    name = "raw_manage",
+    name = "parse_drv_link",
     srcs = [
-        "parser/raw_manage.cc"
+        "parser/parse_drv_link.cc"
     ],
     hdrs = [
-        "parser/raw_manage.h",
+        "parser/parse_drv_link.h",
     ],
     copts = [
         CHSS_COPTS,
@@ -725,10 +763,11 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
+        ":common_inf",
         ":can_data",
-        ":soc_data",
         ":serial_data",
         ":i2c_data",
+        ":soc_data",
     ]
 )
 ######## ######## 2 parser ######## ########
@@ -743,10 +782,12 @@ cc_library(
         "drivers/driver_data_itf.h",
     ],
     copts = [
-        '-DUSE_CYBER_TIMER',
+        #'-DUSE_CYBER_TIMER',
     ],
     deps = [
         "//cyber",
+        "//modules/chassis/proto:chss_io_cc_proto",
+        "//modules/chassis/proto:chassis_config_cc_proto",
     ]
 )
 
@@ -762,8 +803,6 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":driver_data_itf",
         ":can_ops",
     ]
@@ -819,16 +858,50 @@ cc_library(
         CHSS_COPTS,
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
         ":driver_data_itf",
+        ":common_inf",
+        ":joystick_data",
+        ":audio",
         ":network",
         ":camera",
-        ":audio",
     ]
 )
 
+cc_library(
+    name = "joystick_data",
+    srcs = [
+        "drivers/soc/js/joystick_data.cc"
+    ],
+    hdrs = [
+        "drivers/soc/js/joystick_data.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+        #'-DSERIAL_PORTING',
+    ],
+    deps = [
+        ":driver_data_itf",
+    ]
+)
+
+cc_library(
+    name = "audio",
+    srcs = glob([
+        "drivers/soc/audio/*.cc",
+    ]),
+    hdrs = glob([
+        "drivers/soc/soc_defs.h",
+        "drivers/soc/audio/*.h",
+    ]),
+    deps = [
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
+        "@tinyalsa//:tinyalsa",
+        #"@ffmpeg_latest//:ffmpg",
+        "@ffmpeg_4_4_aarch//:ffmpg",
+    ]
+)
 cc_library(
     name = "network",
     srcs = glob([
@@ -841,7 +914,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ]
 )
 
@@ -866,26 +939,10 @@ cc_library(
         "@opencv4_8//:opencv4",
         "@angstrong_camera//:angstrong",
         "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ]
 )
 
-cc_library(
-    name = "audio",
-    srcs = glob([
-        "drivers/soc/audio/*.cc",
-    ]),
-    hdrs = glob([
-        "drivers/soc/soc_defs.h",
-        "drivers/soc/audio/*.h",
-    ]),
-    deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
-        "@tinyalsa//:tiny_alsa"
-    ]
-)
 ######## soc ########
 
 ######## serial ########
@@ -902,8 +959,6 @@ cc_library(
         #'-DSERIAL_PORTING',
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":driver_data_itf",
         ":uart_drive",
     ]
@@ -947,8 +1002,6 @@ cc_library(
         #'-DSERIAL_PORTING',
     ],
     deps = [
-        "//cyber",
-        "//modules/chassis/proto:chassis_config_cc_proto",
         ":driver_data_itf",
         #":i2c_drive",
     ]

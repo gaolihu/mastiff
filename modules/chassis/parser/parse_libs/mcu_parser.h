@@ -13,7 +13,7 @@ namespace parser {
     class McuParser : public ParserBaseItf {
         public:
             McuParser(const ChassisConfig*,
-                    const SensorInfo*);
+                    const SensorIndicator*);
             virtual  ~McuParser() final;
 
             virtual int Init() override;

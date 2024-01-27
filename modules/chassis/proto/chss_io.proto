@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "modules/chassis/proto/internal_msg.proto";
+import "modules/chassis/proto/external_msg.proto";
+
+//////////////////// Message Input ////////////////////
+message ImportChassisCtrl {
+    ChsMovementCtrl move_ctrl = 1;
+
+    ChsPeriphAdcCtrl adc_ctrl = 2;
+    ChsPeriphPwmCtrl pwm_ctrl = 3;
+    ChsPeriphGpioCtrl gpio_ctrl = 4;
+    ChsPeriphInfraCtrl infra_ctrl = 5;
+
+    ChsSocMiscCtrl misc_ctrl = 6;
+
+    ChsFirmWareUpdate firmware_update = 7;
+
+    uint32 response_ctrl_id = 8;
+}
+//////////////////// Message Input ////////////////////
+
+//////////////////// Message Output ////////////////////
+message ExportChassisInfo {
+    ChsLiquidLvlInfo liquid_level = 1;
+
+    ChsPeriphAdcInfo periph_adc = 2;
+    ChsPeriphPwmInfo periph_pwm = 3;
+    ChsPeriphGpioInfo periph_gpio = 4;
+    ChsPeriphInfraInfo periph_infra = 5;
+
+    //wireless, audio, camera
+    ChsMiscSocInfo periph_soc = 6;
+
+    //response
+    ChsResponseCtrl response = 7;
+}
+//////////////////// Message Output ////////////////////

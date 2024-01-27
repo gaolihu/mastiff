@@ -1,28 +1,23 @@
-/*
- * @Date: 2023-11-15 21:00:26
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 #include <chrono>
-#include <thread>
-#include <sstream>
 #include <cstring>
+#include <mutex>
+#include <sstream>
+#include <thread>
 
 #include "as_camera_sdk_api.h"
 #include "common.h"
+#include "cyber/common/log.h"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
-#include "cyber/common/log.h"
-#include "modules/chassis/drivers/soc/soc_defs.h"
 
+/*
 using namespace mstf;
 using namespace chss;
 using namespace driver;
+*/
 using namespace apollo;
 
 class CheckFps {
@@ -61,6 +56,9 @@ public:
 
 public:
     int    init();
+    void   Stop();
+    void   Close();
+    void   Restart();
     double checkFps();
     int    enableSaveImage(bool enable);
     int    enableDisplay(bool enable);
@@ -69,8 +67,6 @@ public:
     int    getCameraAttrs(AS_CAM_ATTR_S &attr);
     void   saveImage(const AS_SDK_Data_s *pstData);
     void   saveMergeImage(const AS_SDK_MERGE_s *pstData);
-    void   displayImage(const std::string &serialno, const std::string &info, const AS_SDK_Data_s *pstData);
-    void   displayMergeImage(const std::string &serialno, const std::string &info, const AS_SDK_MERGE_s *pstData);
     int    enableSaveImageToFile(bool enable);
 
     /**
@@ -88,12 +84,21 @@ public:
 
     cv::Mat yuyv2bgr(const cv::Mat &yuyv);
 
-    inline void SetSocListener(SocDataListener f)
-    {
-        soc_listener_ = f;
+    /**
+     * @brief 从 AsCameraCtrl 注册过来的回调函数
+     *
+     * @param f
+     */
+    /*
+    inline void SetMsgPublisher(SocDataListener f) {
+        msg_publisher_ = f;
     }
+    */
+
 private:
-    int backgroundThread();
+    int  backgroundThread();
+    void PublishAnImage(const AS_Frame_s &img_data);
+    void PublishAPointCloud(const AS_Frame_s &pc_data);
 
 private:
     AS_CAM_PTR         m_handle = nullptr;
@@ -116,9 +121,13 @@ private:
     int                m_yuyvindex       = 0;
     bool               m_is_thread       = false;
     std::thread        m_backgroundThread;
+    bool               callback_finished_{true};
 
-    bool save_to_file_{false};
-    size_t frame_seq_{0};
+    bool          save_to_file_{false};
+    size_t        frame_seq_{0};
+    std::string   frame_id_{"map"};
+    std::mutex    pub_mtx_;
+    AS_SDK_Data_s sdk_data_;
 
-    SocDataListener soc_listener_{nullptr};
+    //SocDataListener msg_publisher_{nullptr};
 };

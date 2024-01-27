@@ -1,27 +1,17 @@
 /*
- * @Date: 2023-10-17 20:13:12
+ * @Date: 2023-12-01 20:22:46
  * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/angstrong_camera_node/as_camera_srv.h
+ * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera_srv.h
  * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
  */
-/**
- * @file      CameraSrv.h
- * @brief     angstrong camera service header.
- *
- * Copyright (c) 2023 Angstrong Tech.Co.,Ltd
- *
- * @author    Angstrong SDK develop Team
- * @date      2023/05/12
- * @version   1.0
 
- */
 #pragma once
 
 #include <functional>
 #include <list>
-#include <thread>
 #include <map>
 #include <mutex>
+#include <thread>
 
 #include "as_camera_sdk_api.h"
 
@@ -46,10 +36,37 @@ public:
     CameraSrv &operator=(const CameraSrv &) = delete;
 
 public:
-    int         start();
-    void        stop();
-    int         startMonitor();
-    int         stopMonitor();
+    /**
+     * @brief 打开、读取所有相机
+     *
+     * @return int
+     */
+    int Start();
+
+    /**
+     * @brief 关闭所有相机
+     */
+    void Stop();
+
+    /**
+     * @brief 关闭某个相机
+     *
+     * @param pCamera
+     */
+    void StopOne(AS_CAM_PTR pCamera);
+
+    void Close();
+
+    void Restart();
+
+    /**
+     * @brief 后台线程
+     *
+     * @return int
+     */
+    int StartMonitor();
+    int StopMonitor();
+
     std::mutex &getLock() {
         return m_mutex;
     }
@@ -71,6 +88,7 @@ private:
     int                        m_timeout_count = 0;
     AS_SDK_CAM_MODEL_E         m_cam_type      = AS_SDK_CAM_MODEL_BUTT;
     std::map<AS_CAM_PTR, bool> m_streaming;
+    bool                       have_started_{false};
 
     std::map<AS_CAM_PTR, std::chrono::high_resolution_clock::time_point> m_time;
 };

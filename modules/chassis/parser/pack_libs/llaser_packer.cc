@@ -1,4 +1,4 @@
-#include "modules/chassis/proto/frame_down_stream.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 #include "modules/chassis/parser/pack_libs/llaser_packer.h"
 #include "modules/chassis/parser/parse_libs/ydlidar_protocol.h"
@@ -17,12 +17,12 @@ namespace parser {
     }
 
     const std::vector<uint8_t>
-    LlaserPacker::PackLineLaserMessageRaw(const
-            DownToMiscData& data) {
+    LlaserPacker::PackLlaserRawSetting(const
+            LineLaserSetting& data) {
         uint8_t cmd = 0;
         std::vector<uint8_t> d_pack;
 
-        switch (data.opt()) {
+        switch (data.dev_manage().sub_opts()) {
             case E_SUBDEV_OPTS_START:
                 cmd = GS_LIDAR_CMD_SCAN;
                 break;
@@ -33,10 +33,11 @@ namespace parser {
                 cmd = GS_LIDAR_CMD_STOP;
                 break;
             case E_SUBDEV_OPTS_RAW:
-                cmd = static_cast<uint8_t>(data.raw_data());
+                cmd = static_cast<uint8_t>
+                    (data.dev_manage().cmd());
                 break;
             default:
-                AWARN << "ignore misc data:\n" <<
+                AWARN << "ignore linelaser data:\n" <<
                     data.DebugString();
                 return {};
         }
@@ -47,6 +48,7 @@ namespace parser {
         d_pack.emplace_back(LIDAR_CMD_SYNC_BYTE);
         d_pack.emplace_back(0);     //address
         d_pack.emplace_back(cmd);   //cmd
+        d_pack.emplace_back(0);     //size
         d_pack.emplace_back(0);     //size
         d_pack.emplace_back(cmd);   //checksum
 

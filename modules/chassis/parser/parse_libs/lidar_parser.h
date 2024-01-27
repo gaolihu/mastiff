@@ -1,9 +1,5 @@
 #pragma once
 
-#include "cyber/common/log.h"
-
-#include "modules/chassis/proto/chassis_config.pb.h"
-
 #include "modules/chassis/parser/parser_base_itf.h"
 #include "modules/chassis/parser/parse_libs/lidar_50cr.h"
 
@@ -13,17 +9,19 @@ namespace parser {
 
     class LidarParser : public ParserBaseItf {
         public:
-            LidarParser(const ChassisConfig*,
-                    const SensorInfo*);
+            LidarParser(const SensorIndicator&);
             virtual  ~LidarParser() final;
 
             virtual int Init() override;
+            virtual int Start() override;
+            virtual int Stop() override;
+            virtual int Resume() override;
+            virtual int Close() override;
 
         private:
-            virtual int ParseRawBuffer(const uint8_t*,
-                    const size_t) override;
-            virtual int ParseSigleFrame(const
-                    std::vector<uint8_t>&,
+            virtual int ParseUartBuffer(const SensorIndicator*,
+                    const uint8_t*, const size_t) override;
+            virtual int ParseSigleFrame(const std::vector<uint8_t>&,
                     const size_t) override;
 
             int TryParseRawData(int, unsigned char*,

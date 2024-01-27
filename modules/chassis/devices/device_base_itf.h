@@ -5,6 +5,7 @@
 #include "modules/chassis/proto/chassis_config.pb.h"
 
 #include "modules/chassis/parser/parser_base_itf.h"
+#include "modules/chassis/parser/packer_base_itf.h"
 
 namespace mstf {
 namespace chss {
@@ -19,41 +20,22 @@ namespace device {
 
     class DeviceBaseItf {
         public:
-            DeviceBaseItf(const SensorInfo& si,
-                    const SensorIndicator& ind) {
-                sensor_info_ = const_cast<SensorInfo*>(&si);
+            DeviceBaseItf(const SensorIndicator& ind) {
                 sensor_ind_ = const_cast<SensorIndicator*>(&ind);
 
                 sensor_ind_->set_status(EE_DEVICE_STATUS::
                         E_STATUS_UNINITIALIZED);
 #ifdef CHSS_PKG_DBG
-                AWARN << "DeviceBaseItf for <" <<
-                    sensor_info_->name() <<
-#if 1
-                    " >, sensor_info_ p: " << sensor_info_ <<
-                    ", sensor_ind_ p: " << sensor_ind_;
-                AINFO << "sensor_info_:\n" << sensor_info_->DebugString();
-                AINFO << "sensor_ind_:\n" << sensor_ind_->DebugString();
-#else
-                    ">";
-#endif
+                AINFO << "DeviceBaseItf for <" <<
+                    sensor_ind_->ihi().name() << ">";
 #endif
             }
 
             virtual ~DeviceBaseItf() {
 #ifdef CHSS_PKG_DBG
-                AWARN << "DeviceBaseItf de-construct <" <<
-                    sensor_info_->name() <<
-#if 1
-                    " >>, sensor_info_ p: " << sensor_info_ <<
-                    ", sensor_ind_ p: " << sensor_ind_;
-                AINFO << "sensor_info_:\n" << sensor_info_->DebugString();
-                AINFO << "sensor_ind_:\n" << sensor_ind_->DebugString();
-#else
-                    ">";
+                AINFO << "DeviceBaseItf de-construct <" <<
+                    sensor_ind_->ihi().name() << ">";
 #endif
-#endif
-                data_parser_.reset();
             }
 
             // control APIs
@@ -61,44 +43,55 @@ namespace device {
             virtual int Init() {
                 if (data_parser_)
                     return data_parser_->Init();
-                AWARN << "Init: no parser for " << sensor_info_->name();
+                AWARN << "Init: no parser for " <<
+                    sensor_ind_->ihi().name();
                 return -1;
             }
 
             virtual int Start(void) {
                 if (data_parser_)
                     return data_parser_->Start();
-                AWARN << "Start: no parser for " << sensor_info_->name();
+                AWARN << "Start: no parser for " <<
+                    sensor_ind_->ihi().name();
                 return -1;
             }
 
             virtual int Stop(void) {
                 if (data_parser_)
                     return data_parser_->Stop();
-                AWARN << "Stop: no parser for " << sensor_info_->name();
+                AWARN << "Stop: no parser for " <<
+                    sensor_ind_->ihi().name();
                 return -1;
             }
 
             virtual int Resume(void) {
                 if (data_parser_)
                     return data_parser_->Resume();
-                AWARN << "Resume: no parser for " << sensor_info_->name();
+                AWARN << "Resume: no parser for " <<
+                    sensor_ind_->ihi().name();
                 return -1;
             }
 
-            virtual void Close(void) {
+            virtual int Close(void) {
                 if (data_parser_)
-                    data_parser_->Close();
+                    return data_parser_->Close();
+                AWARN << "Close: no parser for " <<
+                    sensor_ind_->ihi().name();
+                return -1;
             }
 
-            void* GetDeviceParser(void) {
-                if (data_parser_)
-                    return data_parser_.get();
-                else
-                    return nullptr;
+            //helpers
+            std::shared_ptr<PackerBaseItf>
+                GetDevicePacker(void) const {
+                return data_packer_;
             }
 
-            int InitSensor(SensorIndicator* si) {
+            std::shared_ptr<ParserBaseItf>
+                GetDeviceParser(void) const {
+                return data_parser_;
+            }
+
+            int InitSensor(const SensorIndicator* si) {
                 if (si != sensor_ind_) {
                     AWARN << "DeviceBase indicator err\n" <<
                         si->DebugString() <<
@@ -139,7 +132,8 @@ namespace device {
                     sensor_stoped_ = false;
                     SetDeviceStatus(EE_DEVICE_STATUS::
                             E_STATUS_WORKING);
-                }
+                } else
+                    AWARN << "DeviceBase start error!";
                 return ret;
             }
 
@@ -162,7 +156,8 @@ namespace device {
                     sensor_stoped_ = true;
                     SetDeviceStatus(EE_DEVICE_STATUS::
                             E_STATUS_IDLE);
-                }
+                } else
+                    AWARN << "DeviceBase stop error!";
                 CtrlSwitch(false);
                 return ret;
             }
@@ -186,78 +181,80 @@ namespace device {
                     sensor_stoped_ = false;
                     SetDeviceStatus(EE_DEVICE_STATUS::
                             E_STATUS_WORKING);
-                }
+                } else
+                    AWARN << "DeviceBase resume error!";
                 CtrlSwitch(true);
                 return ret;
             }
 
-            void CloseSensor() {
+            int CloseSensor() {
+                int ret = -1;
                 if (GetDeviceStatus() == EE_DEVICE_STATUS::
                         E_STATUS_UNINITIALIZED) {
                     AWARN << GetSensorName() <<
                         " uninitialized, no close!";
-                    return;
+                    return ret;
                 } else if (GetDeviceStatus() == EE_DEVICE_STATUS::
                         E_STATUS_SHUTDOWN) {
                     AWARN << GetSensorName() <<
                         " already closed, no close!";
-                    return;
+                    return ret;
                 }
-                sensor_working_ = false;
-                sensor_stoped_ = true;
-                SetDeviceStatus(EE_DEVICE_STATUS::
-                        E_STATUS_SHUTDOWN);
+                ret = Close();
+                if (ret == 0) {
+                    sensor_working_ = false;
+                    sensor_stoped_ = true;
+                    SetDeviceStatus(EE_DEVICE_STATUS::
+                            E_STATUS_SHUTDOWN);
+                } else
+                    AWARN << "DeviceBase close error!";
                 CtrlSwitch(false);
-                Close();
+                return ret;
             }
 
             // status APIs
-            const std::string CheckDeviceInfo() {
+            const std::string CheckDeviceInfo() const {
                 return std::string("-> DeviceBase info:\n" +
-                        sensor_info_->DebugString() +
+                        sensor_ind_->ihi().DebugString() +
                         "-> DeviceBase indicator:\n" +
                         sensor_ind_->DebugString());
             }
 
-            const std::string CheckDeviceStatus() {
+            const std::string CheckDeviceStatus() const {
                 //TODO
                 return std::string("No Error");
             }
 
-            EE_DEVICE_STATUS GetDeviceStatus() {
+            EE_DEVICE_STATUS GetDeviceStatus() const {
                 return sensor_ind_->status();
             };
 
-            bool IsDeviceInited(SensorIndicator*) {
+            bool IsDeviceInited(const SensorIndicator*) const {
                 return sensor_inited_;
             }
 
-            bool IsDeviceWorking(SensorIndicator*) {
+            bool IsDeviceWorking(const SensorIndicator*) const {
                 return sensor_working_;
             }
 
-            bool IsDeviceStoped(SensorIndicator*) {
+            bool IsDeviceStoped(const SensorIndicator*) const {
                 return sensor_stoped_;
             }
 
-            SensorInfo* GetSensorInfo() {
-                return sensor_info_;
-            }
-
-            SensorIndicator* GetSensorIndicator() {
+            SensorIndicator* GetSensorIndicator() const {
                 return sensor_ind_;
             }
 
-            const std::string& GetSensorName() {
-                return sensor_info_->name();
+            const std::string& GetSensorName() const {
+                return sensor_ind_->ihi().name();
             }
 
-            const std::string& GetSensorManufacture() {
-                return sensor_info_->manufacture_by();
+            const std::string& GetSensorManufacture() const {
+                return sensor_ind_->ihi().manufacture_by();
             }
 
-            const std::string& GetSensorType() {
-                return sensor_info_->type();
+            const std::string& GetSensorType() const {
+                return sensor_ind_->ihi().type();
             }
 
             void RegisterGpioSwitch(SensorGpioSwitch sw) {
@@ -278,6 +275,42 @@ namespace device {
                 return -1;
             }
 
+            //data channel
+            virtual int SetSpeed(const ChsMovementCtrl&) {
+                AERROR << "shall override speed in derives!!!";
+                return -1;
+            }
+
+            virtual int SetAdc(const ChsPeriphAdcCtrl&) {
+                AERROR << "shall override adc in derives!!!";
+                return -1;
+            }
+
+            virtual int SetPwm(const ChsPeriphPwmCtrl&) {
+                AERROR << "shall override pwm in derives!!!";
+                return -1;
+            }
+
+            virtual int SetGpio(const ChsPeriphGpioCtrl&) {
+                AERROR << "shall override gpio in derives!!!";
+                return -1;
+            }
+
+            virtual int SetInfra(const ChsPeriphInfraCtrl&) {
+                AERROR << "shall override infra in derives!!!";
+                return -1;
+            }
+
+            virtual int SetMisc(const ChsSocMiscCtrl&) {
+                AERROR << "shall override misc in derives!!!";
+                return -1;
+            }
+
+            virtual int SetUpdate(const ChsFirmWareUpdate&) {
+                AERROR << "shall override update in derives!!!";
+                return -1;
+            }
+
         private:
             void SetDeviceStatus(EE_DEVICE_STATUS ds) {
                 sensor_ind_->set_status(ds);
@@ -291,7 +324,8 @@ namespace device {
             }
 
         protected:
-            std::shared_ptr<ParserBaseItf> data_parser_ = nullptr;
+            std::shared_ptr<PackerBaseItf> data_packer_ {};
+            std::shared_ptr<ParserBaseItf> data_parser_ {};
 
         private:
             DeviceBaseItf(const DeviceBaseItf&) = delete;
@@ -301,7 +335,6 @@ namespace device {
             bool sensor_stoped_ = true;
             bool sensor_fault_ = false;
 
-            SensorInfo* sensor_info_;
             SensorIndicator* sensor_ind_;
 
             SensorGpioSwitch sensor_sw_ = nullptr;

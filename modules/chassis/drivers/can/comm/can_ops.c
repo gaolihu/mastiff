@@ -118,7 +118,7 @@ int can_config(int s, int baud, int timeout)
     if (system("ip link set can0 up") != 0)
         return -1;
 
-    if (system("echo 600 > /sys/class/net/can0/tx_queue_len") != 0)
+    if (system("echo 2048 > /sys/class/net/can0/tx_queue_len") != 0)
         return -1;
 
     poll_time_out = timeout;

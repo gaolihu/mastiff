@@ -42,7 +42,6 @@ enum EE_MCU_FRAME_INFO {
     E_MCU_FRAME_CRC_HEAD_OFF_2 = 0x1101;
 }
 
-        
 enum EE_MCU_COMM_PORT_TYPE {
     E_MCU_COMM_PORT_SENTINEL            = 0; //sentinel
     E_MCU_COMM_PORT_SERIAL              = 1; //serial

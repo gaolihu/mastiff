@@ -1,6 +1,6 @@
 #include "cyber/cyber.h"
 
-#include "modules/chassis/proto/input_output_chs.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 #include "modules/chassis/devices/key_simulate.h"
 
@@ -29,12 +29,13 @@ namespace device {
                     std::hex << cmd <<
                     ", value: " << val;
 
-                std::shared_ptr<ChassisCtrl> chassis_ctrl = std::make_shared<ChassisCtrl>();
+                std::shared_ptr<ImportChassisCtrl> chassis_ctrl = std::make_shared<ImportChassisCtrl>();
 
                 switch (cmd) {
                     //////////////////////////////AUDIO TEST//////////////////////////////////
                 case 0x0001: {
                     //play keyboard choosed music
+#if 0
                     chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->set_audio_id(val);
                     chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->mutable_pack()->set_value("Chinese");
                     chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->mutable_play_cnt()->set_value(val);
@@ -44,6 +45,7 @@ namespace device {
                     chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->mutable_mute_sw()->set_value(false);
 
                     chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("ver1.9");
+#endif
                 }
                     break;
                 case 0x00002: {
@@ -60,25 +62,19 @@ namespace device {
                     AudioKeySim(chassis_ctrl, val);
                 }
                     break;
+                case 0x00005: {
+                    CameraKeySim(chassis_ctrl, val);
+                }
+                    break;
                     //////////////////////////////DEVICE MANAGE TEST//////////////////////////////////
 
                 case 0x4b49: {
-                    // i, get ip
-                    proto::WirelessInfoType get_type=proto::WirelessInfoType::WIFI_GET_IP;
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_get_wifi_info(get_type);
-                    // f, reconnect wifi
-                    // proto::WirelessInfoType get_type = proto::WirelessInfoType::WIFI_GET_RECONNECT;
-                    // chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_get_wifi_info(get_type);
                 }
                     break;
                 case 0x4b51: {
-                    // p, capture image picture
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_camera()->set_capture(true);
                 }
                     break;
                 case 0x4b55: {
-                    // v, image video
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_camera()->set_video(true);
                 }
                     break;
 
@@ -89,99 +85,88 @@ namespace device {
                     static float angular_speed = 0.25;   // rad/s
                 case 0x5b41:
                     //↑
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(line_speed);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(line_speed);
                     break;
                 case 0x4b41:
                     //w, enable
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.05);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(line_speed / 2);
                     break;
 
                 case 0x5b44:
                     //← wheel speed
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(angular_speed);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(angular_speed);
                     break;
                 case 0x4b44:
                     //a, left, use diff speed
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0.01);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(0.2);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(line_speed / 2);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(angular_speed / 2);
                     break;
 
                 case 0x5b43:
                     //→ wheel speed
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(-angular_speed);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(-angular_speed);
                     break;
                 case 0x4b43:
                     //d, right
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-0.01);
-                    chassis_ctrl->mutable_speed_ctrl()->set_angular(-0.2);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(-line_speed / 2);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(-angular_speed / 2);
                     break;
 
                 case 0x5b42:
                     //↓, wheel speed
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-line_speed);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(-line_speed);
                     break;
                 case 0x4b42:
                     //s, backward
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(-0.04);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(-line_speed / 2);
                     break;
 
                 case 0x4b45:
                     //e, speed 0 stop
-                    chassis_ctrl->mutable_speed_ctrl()->set_linear(0);
-                    chassis_ctrl->mutable_speed_ctrl()->set_use_diff_speed(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(0);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(0);
                     break;
                 case 0x4b46:
                     //t, stop, and stop release data
-                    chassis_ctrl->mutable_speed_ctrl()->mutable_release_wheels()->set_value(false);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_wheel_release()->set_value(false);
                     break;
                 case 0x4b60:
                     //f, enable
-                    chassis_ctrl->mutable_speed_ctrl()->mutable_release_wheels()->set_value(true);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_wheel_release()->set_value(true);
                     break;
-                case 0x4b58:
-                    //g, reverse wheels 1
-                    //chassis_ctrl->mutable_speed_ctrl()->mutable_wheel_reverse()->set_value(true);
-                    //
-                    //g, decelerate
-                    //chassis_ctrl->mutable_speed_ctrl()->set_acc_dec(-0.01);
-                    //
-                    //g, decrease linear speed by 0.01
-                    line_speed -= 0.01;
-                    if (line_speed < 0)
-                        line_speed = 0;
-
-                    AINFO << "decrease linear speed, current speed: " << line_speed;
-                    break;
-                case 0x4b61:
-                    //h, reverse wheels 0
-                    //chassis_ctrl->mutable_speed_ctrl()->mutable_wheel_reverse()->set_value(false);
-                    //
-                    //h, accelerate
-                    //chassis_ctrl->mutable_speed_ctrl()->set_acc_dec(0.01);
-                    //
-                    //h, decrease linear speed by 0.01
+                case 0x2b:
+                    //+
                     line_speed += 0.01;
                     if (line_speed > 0.5) {
                         line_speed = 0.1;
                         AWARN << "set speed too fast!!";
                     }
                     AINFO << "increase linear speed, current speed: " << line_speed;
-                    //////////////////////////////SPEED CONTROL//////////////////////////////////
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(line_speed);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(angular_speed);
                     break;
+                case 0x2d:
+                    //-
+                    line_speed -= 0.01;
+                    if (line_speed < 0)
+                        line_speed = 0;
+                    AINFO << "decrease linear speed, current speed: " << line_speed;
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_linear(line_speed);
+                    chassis_ctrl->mutable_move_ctrl()->mutable_diff_spd()->set_angular(angular_speed);
+                    break;
+                case 0x4b58:
+                    //g, reverse wheels 1
+                    chassis_ctrl->mutable_move_ctrl()->mutable_wheel_reverse()->set_value(true);
+                    break;
+                    //////////////////////////////SPEED CONTROL//////////////////////////////////
 
+                    //////////////////////////////QUIT PROGRAM//////////////////////////////////
                 case 0x71:
                     //q, quit the program
                     //recycle action TBF
                     exit(0);
                     break;
+                    //////////////////////////////QUIT PROGRAM//////////////////////////////////
 
                 default:
                     AWARN << "Nothing to do!";
@@ -206,8 +191,9 @@ namespace device {
         tty_register_handle("Key Control <<< Downstream", fc, 50);
     }
 
-    void KeySimulate::DeviceManageSim(std::shared_ptr<ChassisCtrl>&
+    void KeySimulate::DeviceManageSim(std::shared_ptr<ImportChassisCtrl>&
             chassis_ctrl, const int val) {
+#if 0
         switch (val) {
                 // --------- GPIO --------- //
             case 11:
@@ -447,10 +433,12 @@ namespace device {
                 AWARN << "unspported device manage command!";
                 break;
         }
+#endif
     }
 
-void KeySimulate::WirelessKeySim(std::shared_ptr<ChassisCtrl>& chassis_ctrl, const int val)
+void KeySimulate::WirelessKeySim(std::shared_ptr<ImportChassisCtrl>& chassis_ctrl, const int val)
 {
+#if 0
     proto::WirelessInfoType get_type=proto::WirelessInfoType::WIFI_GET_IP;
     switch (val)
     {
@@ -517,28 +505,48 @@ void KeySimulate::WirelessKeySim(std::shared_ptr<ChassisCtrl>& chassis_ctrl, con
         chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd(pswd);
     }
         break;
+    case 16:
+        get_type = proto::WirelessInfoType::WIFI_CLOSE; // 关闭 wifi功能
+        break;
+    case 17:
+        get_type = proto::WirelessInfoType::WIFI_START; // 开启 wifi 功能
+        break;
     default:
         break;
     }
     chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_get_wifi_info(get_type);
+#endif
 }
-void KeySimulate::AudioKeySim(std::shared_ptr<ChassisCtrl>& ctrl, const int val)
+void KeySimulate::AudioKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val)
 {
+#if 0
     switch (val)
     {
-    case 0: // 静音 、打断当前的播放
+    case 0: { // 静音 、打断当前的播放
+        google::protobuf::BoolValue sw;
+        sw.set_value(true);
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->mutable_mute_sw()->CopyFrom(sw);
+    }
+    break;
+    case 1:
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(0);
     break;
-    case 1: // 中文
+    case 2: // 音量 50%
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(50);
+    break;
+    case 3: // 音量 100%
+        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(100);
+    break;
+    case 11: // 中文
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("chinese");
     break;
-    case 2: // 英文
+    case 12: // 英文
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("english");
     break;
-    case 3: // 日语(小日本)
+    case 13: // 日语(小日本)
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("xiaoriben");
     break;
-    case 4: // 韩语
+    case 14: // 韩语
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("korean");
     break;
     default:
@@ -548,6 +556,33 @@ void KeySimulate::AudioKeySim(std::shared_ptr<ChassisCtrl>& ctrl, const int val)
     // case 101:  语音id 1, 以下类推
     if(val >= 100)
         ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->set_audio_id(val - 100);
+#endif
+}
+void KeySimulate::CameraKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val)
+{
+#if 0
+    switch (val)
+    {
+    case 0:
+        // capture a frame save to file
+        ctrl->mutable_soc_ctrl()->mutable_camera()->set_capture(true);
+    break;
+    case 1:
+        //TODO: record images as a video
+        // chassis_ctrl->mutable_soc_ctrl()->mutable_camera()->set_video(true);
+    break;
+    case 2:
+        // close all cameras
+        ctrl->mutable_soc_ctrl()->mutable_camera()->set_close(true);
+    break;
+    case 3:
+        // restart all cameras
+        ctrl->mutable_soc_ctrl()->mutable_camera()->set_restart(true);
+    break;
+    default:
+        break;
+    }
+#endif
 }
 
 } // namespace device

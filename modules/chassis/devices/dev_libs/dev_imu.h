@@ -1,7 +1,5 @@
 #pragma once
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-
 #include "modules/chassis/devices/device_base_itf.h"
 
 namespace mstf {
@@ -10,9 +8,7 @@ namespace device {
 
     class DeviceIMU : public DeviceBaseItf {
         public:
-            DeviceIMU(const ChassisConfig*,
-                    const SensorInfo&,
-                    const SensorIndicator&);
+            DeviceIMU(const SensorIndicator&);
             virtual ~DeviceIMU();
 
         private:

@@ -1,31 +1,22 @@
-#include "cyber/common/log.h"
-
 #include "modules/chassis/parser/parse_libs/camera_parser.h"
-#include "modules/chassis/devices/data_transact.h"
+#include "modules/chassis/devices/dev_parse_link.h"
 #include "modules/chassis/devices/dev_libs/dev_camera.h"
 
 namespace mstf {
 namespace chss {
 namespace device {
 
-    DeviceCamera::DeviceCamera(const ChassisConfig* cc,
-            const SensorInfo& si,
-            const SensorIndicator& idc) :
-            DeviceBaseItf(si, idc) {
+    DeviceCamera::DeviceCamera(const
+            SensorIndicator& idc) :
+            DeviceBaseItf(idc) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "DeviceCamera construct" <<
-#if 0
-            ":\n{\n" <<
-            cc->camera_dev().DebugString() << "}";
-#else
-            "";
-#endif
+        AINFO << "DeviceCamera construct";
 #endif
         data_parser_ = std::make_unique
-            <CameraParser>(cc, &si);
-        DataTransact::Instance()->RegisterDevice(
-                si.name(), idc,
-                dynamic_cast<DeviceBaseItf*>(this));
+            <CameraParser>(idc);
+
+        DevParseLink::Instance()->RegisterDevice(
+                idc, dynamic_cast<DeviceBaseItf*>(this));
     }
 
     DeviceCamera::~DeviceCamera() {

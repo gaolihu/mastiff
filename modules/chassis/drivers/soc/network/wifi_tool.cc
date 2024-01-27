@@ -1,20 +1,13 @@
-/*
- * @Date: 2023-09-13 11:29:26
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/network/wifi_tool.cc
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #include "wifi_tool.h"
 #include "cyber/cyber.h"
 
 #include "utils.h"
 
-using namespace apollo;
-using namespace mstf ;
-using namespace chss ;
-using namespace network ;
+namespace mstf {
+namespace chss {
+namespace driver {
 
+    using namespace /*mstf::chss::*/proto;
 
 WiFiTool::WiFiTool()
 {
@@ -31,61 +24,60 @@ bool WiFiTool::Init()
 std::string RunScripts(const std::string& args) {
     auto        cmd = WIFI_SCRIPTS + " '" + args + "'";
     std::string output;
-    ::Run(cmd, output);
+    Run(cmd, output);
     return output;
 }
-std::string WiFiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
+std::string WiFiTool::WiFiOperate(const proto::WifiSetting& wifi_ctrl)
 {
-    AWARN << wifi_ctrl.get_wifi_info();
     std::string result="";
-    switch( wifi_ctrl.get_wifi_info()){
-        case ::proto::WirelessInfoType::WIFI_GET_MODE: {
+    switch( wifi_ctrl.wifi_func()){
+        case E_WIFI_GET_MODE: {
             result = Mode2Str(GetCurrentMode());
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_IP:{
+        case E_WIFI_GET_IP:{
             result = GetStaIp();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_MAC:{
+        case E_WIFI_GET_MAC:{
             result = GetStaMac();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_DNS:{
+        case E_WIFI_GET_DNS:{
             result = GetDns();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_WPA_INFO:{
+        case E_WIFI_GET_WPA_INFO:{
             result = GetWpaInfo();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_NAME:{
-            result = GetWifiName();
+        case E_WIFI_GET_NAME:{
+            result = GetWiFiName();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_ROUTER_MAC:{
+        case E_WIFI_GET_ROUTER_MAC:{
             result = GetRouterMac();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_STATUS:{
+        case E_WIFI_GET_STATUS:{
             result = Status();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_SCAN_LIST:{
+        case E_WIFI_GET_SCAN_LIST:{
             result = List();
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_GET_RECONNECT:{
+        case E_WIFI_GET_RECONNECT:{
             Reconnect();
             result = "OK";
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_DISCONNECT:{
+        case E_WIFI_DISCONNECT:{
             Disconnect();
             result = "OK";
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_CHECK_CONNECTION:{
+        case E_WIFI_CHECK_CONNECTION:{
             if(CheckConnection()){
                 result = "OK";
             }else{
@@ -93,25 +85,27 @@ std::string WiFiTool::WifiOperate(const proto::WirelessCtrl& wifi_ctrl)
             }
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_TEST_SPEED:{
+        case E_WIFI_TEST_SPEED:{
             float time_ms = GetAverageTime();
             auto result = std::to_string(time_ms);
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_CONNECT:{
-            if(wifi_ctrl.wifi_ssid().empty()){
+        case E_WIFI_CONNECT:{
+            if(wifi_ctrl.auth_info().has_ssid()){
                 result = "ssid incorrect";
             }else{
-                ConnectWifi(wifi_ctrl.wifi_ssid(), wifi_ctrl.wifi_pswd());
+                ConnectWiFi(wifi_ctrl.auth_info().ssid().value(),
+                        wifi_ctrl.auth_info().pswd().value());
                 result = "OK";
             }
         }
         break;
-        case ::proto::WirelessInfoType::WIFI_CREATE_AP:{
-            if(wifi_ctrl.wifi_ssid().empty()){
+        case E_WIFI_CREATE_AP:{
+            if(wifi_ctrl.auth_info().has_ssid()){
                 result = "ssid incorrect";
             }else{
-                CreateAp(wifi_ctrl.wifi_ssid(), wifi_ctrl.wifi_pswd());
+                CreateAp(wifi_ctrl.auth_info().ssid().value(),
+                        wifi_ctrl.auth_info().pswd().value());
                 result = "OK";
             }
         }
@@ -128,11 +122,35 @@ std::string WiFiTool::help() const {
 std::string WiFiTool::version() const {
     return RunScripts("-v");
 }
+void WiFiTool::GenUpdateMsg(proto::WifiInfo& msg)
+{
+    auto mode = GetCurrentMode();
+    msg.set_mode(Mode2Str(mode));
+
+    if(mode != Mode::STA){
+        return;
+    }
+
+    msg.set_ip(GetStaIp());
+    msg.set_mac(GetStaMac());
+    msg.set_dns(GetDns());
+    msg.set_info(GetWpaInfo());
+    msg.set_name(GetWiFiName());
+    msg.set_bssid(GetRouterMac());
+    // status
+    msg.set_status(Status());
+    // wifi list
+    msg.set_scan_list(List());
+
+    //TODO:
+    // is oneline
+    // ping speed
+}
 
 Mode WiFiTool::GetCurrentMode() const {
     auto        cmd = WIFI_SCRIPTS + " mode";
     std::string output;
-    ::Run(cmd, output);
+    Run(cmd, output);
     Mode mode = Mode::NONE;
     if (output == "managed") {
         mode = Mode::STA;
@@ -169,13 +187,13 @@ void WiFiTool::WlanDown() const {
 std::string WiFiTool::GetWpaInfo() const {
     return RunScripts("info");
 }
-std::string WiFiTool::GetWifiName() const {
+std::string WiFiTool::GetWiFiName() const {
     return RunScripts("name");
 }
 std::string WiFiTool::GetRouterMac() const {
     return RunScripts("bssid");
 }
-std::string WiFiTool::ConnectWifi(const std::string& ssid, const std::string& pwd) const {
+std::string WiFiTool::ConnectWiFi(const std::string& ssid, const std::string& pwd) const {
     auto ssid_copy = ssid;
     auto pwd_copy  = pwd;
     ReplaceString(ssid_copy, "'", "\\'");
@@ -184,7 +202,7 @@ std::string WiFiTool::ConnectWifi(const std::string& ssid, const std::string& pw
     auto        cmd = WIFI_SCRIPTS + " 'conn' " + ssid_copy +" " + pwd_copy;
     ADEBUG << "conn cmd: -----------" << cmd;
     std::string output;
-    ::Run(cmd, output);
+    Run(cmd, output);
     return output;
 }
 std::string WiFiTool::Disconnect() const {
@@ -196,14 +214,14 @@ std::string WiFiTool::CreateAp(const std::string& ssid, const std::string& pwd) 
     ReplaceString(ssid_copy, "'", "\\'");
     ReplaceString(pwd_copy, "'", "\\'");
     auto        cmd = WIFI_SCRIPTS + " 'ap' " + ssid_copy +" " + pwd_copy;
-    ADEBUG << "create ap cmd: -----------" << cmd;
+    AINFO << "create ap cmd: -----------" << cmd;
     std::string output;
-    ::Run(cmd, output);
+    Run(cmd, output);
     return output;
 }
 std::string WiFiTool::Status() const
 {
-    return RunScripts("status_json");
+    return RunScripts("status");
 }
 std::string WiFiTool::List() const
 {
@@ -230,7 +248,7 @@ bool WiFiTool::CheckConnection() const {
 float WiFiTool::GetAverageTime() const {
     auto        cmd = WIFI_SCRIPTS + " speed";
     std::string output;
-    ::Run(cmd, output);
+    Run(cmd, output);
 
     float time = 0.0f;
     if (!output.empty()) {
@@ -262,3 +280,7 @@ std::string WiFiTool::Mode2Str(const Mode& mode){
 
     return m_str;
 }
+
+}  // namespace driver
+}  // namespace chss
+}  // namespace mstf

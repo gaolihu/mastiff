@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package mstf.camb.proto;
+
+import "google/protobuf/wrappers.proto";
+import "modules/cambrian/proto/cambrian_data.proto";
+
+enum EE_MODULE_TYPE {
+    E_MODULE_MQQT = 0;
+    E_MODULE_HTTP = 1;
+    E_MODULE_WBSKT = 2;
+    E_MODULE_GRPC = 3;
+    E_MODULE_SQL = 4;
+    E_MODULE_FAC = 5;
+}
+
+//???
+message FakeRobOptions {
+    bool used = 1;
+    string msg_save_path = 2;
+    string msg_review_path = 3;
+    bool fake_rob_pop_once = 4;
+    int32 fake_rob_pop_freq = 5;
+
+    //fake robot
+    bool cmb_simulate_chassis = 6;
+    //exclusive
+    bool cmb_record_chassis = 7;
+}
+
+message MqqtOptions {
+    bool used = 1;
+}
+
+message HttpOptions {
+    bool used = 1;
+}
+
+message WbsktOptions {
+    bool used = 1;
+    string local_ip = 2;
+    int32 local_port = 3;
+    string ngx_path = 4;
+    string ngx_name = 5;
+    string ngx_bin_path = 6;
+    string ngx_log_path = 7;
+    string ngx_html_pc_path = 8;
+    string ngx_html_cp_path = 9;
+    string ngx_conf_path = 10;
+    string ngx_lib_path = 11;
+}
+
+message GrpcOptions {
+    bool used = 1;
+}
+
+//factory??
+message LocalOpts {
+    bool used = 1;
+}
+
+//database
+enum EE_CHK_DB_TYPE {
+    E_CHK_TYPE_SENTINEL = 0;
+    E_CHK_TYPE_INT = 1;
+    E_CHK_TYPE_ULONG = 2;
+    E_CHK_TYPE_FLOAT = 3;
+    E_CHK_TYPE_STRING = 4;
+}
+
+enum EE_CHK_DB_SEQ {
+    E_CHK_SENTINEL = 0;
+    E_CHK_DESCEND = 1;
+    E_CHK_ASCEND = 2;
+}
+
+message DataBaseOpts {
+    bool used = 1;
+    string db_path = 2;
+    string sys_path = 3;
+    int32 loop_cnt = 4;
+}
+
+message RemoteOpts {
+    MqqtOptions mqqt_conf = 1;
+    HttpOptions http_conf = 2;
+    WbsktOptions wbskt_conf = 3;
+    GrpcOptions grpc_conf = 4;
+
+    int32 sync_remote_ms = 5;
+}
+
+message VisualizeOpts {
+    RemoteOpts remote_ops = 1;
+    LocalOpts l_ops = 2;
+}
+
+message BizLogicOpts {
+    bool used = 1;
+    string scheduler_xml = 2;
+    int32 loop_cnt = 3;
+}
+
+message CambrianModuleConfig {
+    //1, visualization
+    VisualizeOpts visual_ops = 1;
+
+    //2, database
+    DataBaseOpts db_ops = 2;
+
+    //3, bizlogic
+    BizLogicOpts impl_ops = 3;
+
+    bool modeule_entry_once = 4;
+    int32 modeule_entry_freq = 5;
+}
+
+///////////////
+
+message CambrianTopicConfig {
+    string writer_node_name = 1;
+    google.protobuf.StringValue output_cmb_topic_name = 2; //to obsolete
+    google.protobuf.StringValue output_chs_topic_name = 3;
+    google.protobuf.StringValue output_speed_ctl_name = 17;
+    //for msg client
+    google.protobuf.StringValue output_slam_ctrl_svc_name = 4;
+    //for navi module
+    google.protobuf.StringValue output_drv_navi_svc_name = 5;
+
+    string reader_node_name = 6;
+    //chassis raw
+    google.protobuf.StringValue input_chs_imu_name = 7;
+    google.protobuf.StringValue input_chs_odome_name = 8;
+    google.protobuf.StringValue input_chs_lpa_name = 9;
+    google.protobuf.StringValue input_chs_cmd_name = 10;
+    google.protobuf.StringValue input_chs_cfd_name = 11;
+    google.protobuf.StringValue input_chs_img_name = 12;
+    google.protobuf.StringValue input_chs_hcr_name = 13;
+    //slam
+    google.protobuf.StringValue input_slam_grid_name = 14;
+    google.protobuf.StringValue input_slam_path_name = 15;
+    //mapping
+    google.protobuf.StringValue input_mapping_data_name = 16;
+}
+
+message CambrianConfig {
+    CambrianModuleConfig cmb_module_conf = 1;
+    CambrianTopicConfig cmb_topic_conf = 2;
+}

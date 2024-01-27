@@ -3,7 +3,6 @@
 #include "cyber/common/log.h"
 
 #include "modules/chassis/parser/packer_base_itf.h"
-//#include "modules/chassis/parser/parse_libs/ds20270da_driver.h"
 
 namespace mstf {
 namespace chss {
@@ -15,7 +14,8 @@ namespace parser {
             virtual ~LlaserPacker();
 
             const std::vector<uint8_t>
-            PackLineLaserMessageRaw(const DownToMiscData&) override;
+            PackLlaserRawSetting(const
+                    LineLaserSetting&) override;
 
         private:
     };

@@ -1,0 +1,1766 @@
+syntax = "proto3";
+
+package mstf.camb.proto;
+
+import "google/protobuf/wrappers.proto";
+
+import "modules/aventurier_common_msgs/proto/ros_msgs/nav_msgs.proto";
+import "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.proto";
+
+import "modules/chassis/proto/input_output_chs.proto";
+
+////////////////////////Common////////////////////////////////
+/*
+ * Basic control types
+ */
+enum EE_CONTROL_TYPE {
+    E_CTRL_TYPE_SENTINEL = 0;
+    E_CTRL_TYPE_START = 1;  //start
+    E_CTRL_TYPE_PROCESS = 2;//process
+    E_CTRL_TYPE_PAUSE  = 3; //pause
+    E_CTRL_TYPE_RESUME = 4; //continue
+    E_CTRL_TYPE_RESTART = 5;//restart
+    E_CTRL_TYPE_QUERY = 6;  //restart
+    E_CTRL_TYPE_FINISH = 7; //terminate
+    E_CTRL_TYPE_NONE = 8;   //
+}
+
+/*
+ * Basic control results
+ */
+enum EE_CONTROL_RESULT {
+    E_CTRL_RST_SENTINEL = 0;
+    E_CTRL_RST_OK = 1;      //success
+    E_CTRL_RST_NG = 2;      //failed
+    E_CTRL_RST_BUSY = 3;    //busy
+    E_CTRL_RST_RESPOSE = 4; //response
+}
+
+/*
+ * Basic module status
+ */
+enum EE_MODULE_STATUS {
+    E_MODULE_STATUS_SENTINEL = 0;
+    E_MODULE_STATUS_RUNNING = 1;//running
+    E_MODULE_STATUS_SUCCESS = 2;//success
+    E_MODULE_STATUS_PAUSING = 3;//pausing
+    E_MODULE_STATUS_FAIL = 4;   //fail
+    E_MODULE_STATUS_IDLE = 5;   //nowork
+}
+
+/*
+ * job handle times
+ */
+enum EE_HANDLE_TIME {
+    E_HDL_SENTINEL = 0;
+    E_HDL_ONCE = 1;         //handle once, default
+    E_HDL_TWICE = 2;        //handle twice(deep clean 1)
+    E_HDL_TRIPLE = 3;       //handle twice(deep clean 2)
+}
+
+/*
+ * job attibutes
+ */
+enum EE_JOB_ATTRIBUTE {
+    E_JOB_ATTR_SENTINEL = 0;
+    E_JOB_ATTR_MOP = 1;     //mop only
+    E_JOB_ATTR_SWEEP = 2;   //sweep only
+    E_JOB_ATTR_ABSORB = 3;  //absorb only
+    E_JOB_ATTR_MS = 4;      //mop & sweep
+    E_JOB_ATTR_MA = 5;      //mop & absorb
+    E_JOB_ATTR_SA = 6;      //sweep & absorb
+    E_JOB_ATTR_MSA = 7;     //mop & sweep & absorb
+}
+
+/*
+ * DP 181
+ * area types
+ */
+enum EE_AREA_TYPES {
+    E_AREA_SENTINEL = 0;
+    E_AREA_ZONE = 1;        //1, clean area
+    E_AREA_KEEPOUT = 2;     //2, keep out area
+    E_AREA_ROOM = 3;        //3, auto divided areas
+    E_AREA_VIRWALL = 4;     //4, virtual wall
+    E_AREA_POINT = 5;       //5, location to clean
+    E_AREA_UNMOP = 6;       //6, unmop area
+    E_AREA_UNSWEEP = 7;     //7, unsweep area
+    E_AREA_USER = 8;        //8, user defined area
+    E_AREA_LOCAL = 9;       //9, part area clean
+    E_AREA_FURNITURE = 10;  //10, furniture
+    E_AREA_TRACK = 12;      //11, track
+    E_AREA_TYPE_ALL = 13;   //12, all ??
+}
+
+/*
+ * remote control types
+ * TODO
+ */
+enum EE_RC_TYPE {
+    E_RC_TYPE_SENTINEL = 0;
+    E_RC_TYPE_DIR = 1;      //move
+    E_RC_TYPE_PUMP = 2;     //pump
+    E_RC_TYPE_FAN = 3;      //fan
+    E_RC_TYPE_MBRUSH = 4;   //main brush
+    E_RC_TYPE_SBRUSH = 5;   //side brush
+    E_RC_TYPE_LPALLET = 6;  //left pallet
+    E_RC_TYPE_RPALLET = 7;  //right pallet
+    E_RC_TYPE_LIDAR = 8;    //lidar
+}
+
+/*
+ * DP 4
+ * remote control directions
+ */
+enum EE_RC_DIRECTION {
+    E_RC_DIR_SENTINEL = 0;
+    E_RC_DIR_STOP = 1;      //stop
+    E_RC_DIR_FORWARD = 2;   //forward
+    E_RC_DIR_BACKWARD = 3;  //backward
+    E_RC_DIR_LEFT = 4;      //left
+    E_RC_DIR_RIGHT = 5;     //right
+}
+
+/*
+ * remote control level
+ */
+enum EE_RC_LEVEL {
+    E_RC_LVL_SENTINEL = 0;
+    E_RC_LVL_0 = 1;
+    E_RC_LVL_1 = 2;
+    E_RC_LVL_2 = 3;
+    E_RC_LVL_3 = 4;
+    E_RC_LVL_4 = 5;
+    E_RC_LVL_5 = 6;
+}
+
+/*
+ * command from who
+ */
+enum EE_CMD_FROM_WHO {
+    E_CMD_FROM_SENTINEL = 0;
+    E_CMD_FROM_IOT = 1;     //iot cmd
+    E_CMD_FROM_RSV = 2;     //appointment cmd
+    E_CMD_FROM_KEY = 3;     //key presse
+    E_CMD_FROM_H5 = 4;      //h5 web end
+    E_CMD_FROM_LOGIC = 5;   //robot logic
+    E_CMD_FROM_NULL = 6;    //null
+}
+
+/*
+ * Simulate key actions
+ */
+enum EE_ACT_KEY_TYPE {
+    E_KEY_SENTINEL = 0;
+    E_KEY_POWER = 1;
+    E_KEY_DOCK = 4;
+    E_KEY_ACT_NULL = 8;
+};
+
+message KeepRemoteAlivePost {
+    int32 keep_seq = 1;
+}
+message KeepRemoteAliveAck {
+    int32 keep_ack_cnt = 1;
+    int32 keep_ack_seq = 2;
+}
+
+/*
+ * drive module clean
+ */
+enum EE_CLEAN_MODE {
+    E_CLEAN_SENTINEL = 0;
+    E_CLEAN_GLOBAL = 1;     //auto clean
+    E_CLEAN_AREA = 2;       //area clean
+    E_CLEAN_ROOM = 3;       //smart clean
+    E_CLEAN_POINT = 4;      //point clean
+    E_CLEAN_REMOTE = 5;     //remote clean
+    E_CLEAN_LOCAL = 6;      //local clean
+    E_CLEAN_TRACK = 7;      //track clean
+    E_CLEAN_EDGEWISE = 8;   //edgewise clean
+};
+
+/*
+ * DP 162
+ * robot status
+ */
+enum EE_ROBOT_STATUS {
+    E_STATUS_SENTINEL = 0;
+    E_STATUS_NOWORK = 1;    //idle
+    E_STATUS_PAUSING = 2;   //pausing
+    E_STATUS_WORKING = 3;   //working
+    E_STATUS_STOPWORK = 4;  //stoping
+
+    E_STATUS_NULL = 5;
+}
+
+/*
+ * DP 3
+ * robot current work modes
+ */
+enum EE_ROBOT_MODE {
+    E_MODE_SENTINEL = 0;
+    E_MODE_AUTO_CLEAN = 1;  //auto
+    E_MODE_AREA_CLEAN = 2;  //area mode
+    E_MODE_ROOM_CLEAN = 3;  //room mode
+    E_MODE_POINT_CLEAN = 4; //point mode
+    E_MODE_REMOTE_CLEAN = 5;//remote mode
+    E_MODE_LOCAL_CLEAN = 6; //local
+    E_MODE_TRACK_CLEAN = 7; //local
+
+    E_MODE_STAND_BY = 8;    //standby
+    E_MODE_DOCKING = 9;     //find the dock
+    E_MODE_CHARGING = 10;    //charging
+    E_MODE_CHARGE_END = 11; //finish charge
+    E_MODE_IN_FAULT = 12;   //error happened
+    E_MODE_DORMANT = 13;    //dormant
+    E_MODE_ALONG_WALL = 14; //along wall
+    E_MODE_SWIFT_MAP = 15;  //swift mapping
+    E_MODE_RELOCATION = 16; //relocation
+
+    E_MODE_NULL = 17;
+}
+
+/*
+ * Zone clean type
+ */
+enum EE_ZONE_CLEAN_TYPE {
+    E_ZCLEAN_SENTINEL = 0;
+    E_ZCLEAN_ARAE = 1;      //area clean
+    E_ZCLEAN_ROOM = 2;      //smart clean
+}
+
+/*
+ * Error types
+ * TODO
+ */
+enum EE_ERROR_TYPES {
+    E_ERR_SENTINEL = 0;
+    E_ERR_LWHEEL_OPEN = 1;  //left wheel open circute
+    E_ERR_LWHEEL_SHORT = 2; //left wheel short circute
+    E_ERR_RWHEEL_OPEN = 3;  //right wheel open circute
+    E_ERR_RWHEEL_SHORT = 4; //right wheel short circute
+    E_ERR_LPALLET_OPEN = 5; //left pallet open circute
+    E_ERR_LPALLET_SHORT = 6;//left pallet short circute
+    E_ERR_RPALLET_OPEN = 7; //right wheel open circute
+    E_ERR_RPALLET_SHORT = 8;//right wheel short circute
+    E_ERR_MBRUSH_OPEN = 9;  //main brush open circute
+    E_ERR_MBRUSH_SHORT = 10;//main brush short circute
+    E_ERR_SBRUSH_OPEN = 11; //side brush open circute
+    E_ERR_SBRUSH_SHORT = 12;//side brush short circute
+    E_ERR_FAN_FAULT = 13;   //fan
+    E_ERR_PUMP_OPEN = 14;   //pump open circute
+    E_ERR_PUMP_SHORT = 15;  //pump short circute
+    E_ERR_DROP_SENSOR = 16; //drop
+    E_ERR_FRONT_BUMP = 17;  //front bump
+    E_ERR_LIDAR_BUMP = 18;  //lidar bump
+    E_ERR_SUPER_SONIC = 19; //super sonic
+
+    E_ERR_NONE = 30;        //OK
+}
+
+/*
+ * Operate additional info on a map
+ */
+enum EE_MAP_EXTRA_CHANGE_TYPE {
+    EE_MAP_EXTRA_SENTINEL = 0;
+    EE_MAP_EXTRA_DIVIDE = 1;
+    EE_MAP_EXTRA_MERGE = 2;
+    EE_MAP_EXTRA_DELETE = 3;
+}
+
+/*
+ * Location types
+ */
+enum EE_POSE_TYPE {
+    E_POSE_SENTINEL = 0;
+
+    E_POSE_CLEAN = 1;
+
+    E_POSE_TRANSIT = 2; //transition pose
+
+    E_POSE_DOCKING = 3;
+    E_POSE_MOPPING = 4;
+    E_POSE_RELOCATE = 5;
+
+    E_POSE_PLANING = 6;//tracing planning
+    E_POSE_TRACING = 7;//tracing pose
+}
+
+/*
+ * Robot location
+ */
+message Location {
+    float loc_x = 1;
+    float loc_y = 2;
+    float theta = 3;
+    EE_POSE_TYPE type = 4;
+}
+
+/*
+ * Location 3D
+ */
+message Location3D {
+    Location loc_2d = 1;
+    float reserved = 2;
+}
+
+/*
+ * Dock position
+ */
+message DockPosition {
+    uint64 stamp = 1;
+    Location3D dock = 2;
+    repeated Location pose = 3;
+}
+
+/*
+ * Week day from Monday to Sunday
+ */
+enum EE_WEEKDAY {
+    E_WEEKDAY_SENTINEL = 0;
+    E_WEEKDAY_MON = 1;
+    E_WEEKDAY_TUE = 2;
+    E_WEEKDAY_WED = 3;
+    E_WEEKDAY_THU = 4;
+    E_WEEKDAY_FRI = 5;
+    E_WEEKDAY_SAT = 6;
+    E_WEEKDAY_SUN = 7;
+}
+
+/*
+ * Navi operation types
+ */
+enum EE_NAV_MODE {
+    E_NAV_MD_SENTINEL = 0;
+    E_NAV_MD_PLANING = 1;   //planing
+    E_NAV_MD_TRACING = 2;   //tracing
+    E_NAV_MD_NAVING = 3;    //navigating
+}
+
+enum EE_NAV_BUSINESS_TYPE {
+    E_NAV_BS_SENTINEL = 0;
+
+    //core function
+    E_NAV_BS_TRACING_POSE = 1;
+
+    //move types, TODO
+    E_NAV_BS_STRAIGHT_MOVE = 2;
+    E_NAV_BS_ARCUTE_MOVE = 3;
+    E_NAV_BS_ROTATE_MOVE = 4;
+
+    //query
+    E_NAV_BS_QUERY = 5;
+
+    //reset
+    E_NAV_BS_RESET = 6;
+
+    //random events
+    E_NAV_BS_RANDOM_EVENT = 7;
+
+    //obstacle
+    E_NAV_BS_OBSTACLE = 8;
+
+    //rrt discovery
+    E_NAV_BS_RRT_EXPLORE = 9;
+
+    //path plan
+    E_NAV_BS_PATH_PLAN = 10;
+
+    //path plan
+    E_NAV_BS_PATH_TRACING = 11;
+
+    //grid map update
+    E_NAV_BS_GRID_MAP = 12;
+
+    //tests, TODO
+    E_NAV_BS_TEST_BOW = 13;
+
+    //end
+    E_NAV_BS_TERMINATE = 14;
+
+    //edgewise
+    E_NAV_BS_ALONG_WALL = 15;
+
+    //none
+    E_NAV_BS_NONE = 20;
+}
+
+/*
+ * Slam operation types
+ */
+enum EE_SLAM_CTRL_TYPE {
+    E_SLAM_CTRL_SENTINEL = 0;
+    E_SLAM_CTRL_SWITCH = 1;     //slam switch
+    E_SLAM_CTRL_RELOC = 2;      //relocation
+    E_SLAM_CTRL_LOAD_MAP = 3;   //load map
+    E_SLAM_CTRL_SAVE_MAP = 4;   //save map
+    E_SLAM_CTRL_TRAJECT = 5;    //trajectory
+}
+
+/*
+ * Motiono ctrl types
+ */
+enum EE_MOTION_CTRL_TYPE {
+    E_MC_SENTINEL = 0;
+    E_MC_ROTATE_SPOT = 1;       //spot rotate
+    E_MC_ROTATE_ARC = 2;        //arc rotate
+    E_MC_STRAIGHT_F = 3;        //forward straight line
+    E_MC_STRAIGHT_B = 4;        //backward straight line
+    E_MC_TERMINATE = 5;         //stop
+}
+
+/*
+ * Motion control direction
+ */
+enum EE_MOTION_CTRL_DIR {
+    E_MC_DIR_SENTINEL = 0;
+    E_MC_DIR_LEFT = 1;
+    E_MC_DIR_RIGHT = 2;
+}
+
+enum EE_RANDOM_EVENTS_TRIGER {
+    E_EVT_SENTINEL = 0;
+    E_EVT_TOGGLE_BUTTON = 1;
+    E_EVT_SHORT_PWR = 2;
+    E_EVT_LONG_PWR = 3;
+    E_EVT_SHORT_HOME = 4;
+    E_EVT_LONG_HOME = 5;
+    E_EVT_NO_WATER = 6;
+    E_EVT_FULL_WATER = 7;
+    E_EVT_DUST_BOX = 8;
+    E_EVT_WATER_TANK = 9;
+    E_EVT_LEFT_PALLETE = 10;
+    E_EVT_RIGHT_PALLETE = 11;
+    E_EVT_LEFT_BUMP = 12;
+    E_EVT_RIGHT_BUMP = 13;
+    E_EVT_LLEFT_BUMP = 14;
+    E_EVT_LRIGHT_BUMP = 15;
+    E_EVT_LFRONT_BUMP = 16;
+    E_EVT_LTOP_BUMP = 17;
+    E_EVT_LWHL_LIFT = 18;
+    E_EVT_RWHL_LIFT = 19;
+    E_EVT_ALONG_WALL = 20;
+    E_EVT_LEFT_DROP = 21;
+    E_EVT_MLEFT_DROP = 22;
+    E_EVT_MRIGHT_DROP = 23;
+    E_EVT_RIGHT_DROP = 24;
+    E_EVT_LEFT_REAR_DROP = 25;
+    E_EVT_RIGHT_REAR_DROP = 26;
+    E_EVT_TOUCH_DOCK = 27;
+    E_EVT_CHARGE_ON_DOCK = 28;
+    E_EVT_FINISH_CHARGE = 29;
+
+    E_EVT_COUNT = 30;
+}
+
+message RandomEvents {
+    google.protobuf.BoolValue tog = 1;
+    google.protobuf.BoolValue spwr = 2;
+    google.protobuf.BoolValue lpwr = 3;
+    google.protobuf.BoolValue shome = 4;
+    google.protobuf.BoolValue lhome = 5;
+    google.protobuf.BoolValue no_wt = 6;
+    google.protobuf.BoolValue fl_wt = 7;
+    google.protobuf.BoolValue dbox = 8;
+    google.protobuf.BoolValue tank = 9;
+    google.protobuf.BoolValue lplt = 10;
+    google.protobuf.BoolValue rplt = 11;
+    google.protobuf.BoolValue lbump = 12;
+    google.protobuf.BoolValue rbump = 13;
+    google.protobuf.BoolValue ld_lb = 14;
+    google.protobuf.BoolValue ld_rb = 15;
+    google.protobuf.BoolValue ld_fb = 16;
+    google.protobuf.BoolValue ld_tb = 17;
+    google.protobuf.BoolValue llift = 18;
+    google.protobuf.BoolValue rlift = 19;
+    google.protobuf.BoolValue awall = 20;
+    google.protobuf.BoolValue ldrop = 21;
+    google.protobuf.BoolValue mldrop = 22;
+    google.protobuf.BoolValue mrdrop = 23;
+    google.protobuf.BoolValue rdrop = 24;
+    google.protobuf.BoolValue lrdrop = 25;
+    google.protobuf.BoolValue rrdrop = 26;
+    google.protobuf.BoolValue tch_dk = 27;
+    google.protobuf.BoolValue charge = 28;
+    google.protobuf.BoolValue chrg_ok = 29;
+}
+
+message AsblEvents {
+    LocationArray loc_ars = 1;
+}
+
+////////////////////////Common////////////////////////////////
+
+//=========================Bussiness============================//
+
+///////////////1, Status & Mode////////////////////
+message QueryModeStatus {
+}
+
+message SwitchWorkFlow {
+    bool task_finished = 1;
+    bool ctl_work_flow = 2;
+    EE_CONTROL_TYPE ctrl = 3;
+};
+
+message RobotModeStatus {
+    //indicating basic robot info
+    EE_ROBOT_STATUS status = 1;
+    EE_ROBOT_MODE mode = 2;
+    EE_ERROR_TYPES error = 3;
+
+    //indicating brief sensor status
+    int32 battery = 4;
+
+    //fan param
+    bool boost = 5;
+    int32 fan = 6;
+
+    //mop floor param
+    int32 flow = 7;
+    int32 l_pallet = 8;
+    int32 r_pallet = 9;
+
+    /////////for private use//////////
+    //sign for indicating whether it's a new job
+    bool mission_new = 10;
+    //sign for inner exec a task
+    bool exec = 11;
+
+    SwitchWorkFlow task_shift = 12;
+}
+///////////////1, Status & Mode////////////////////
+
+///////////////2, Robot Mission////////////////////
+/*
+ * basic mission setting
+ */
+message MissionSetting {
+    //job exec time
+    EE_HANDLE_TIME cnt = 2;
+
+    //job attribute
+    EE_JOB_ATTRIBUTE attr = 3;
+
+    //fan
+    int32 fan_strength = 4;
+
+    //water
+    int32 water_flow = 5;
+
+    //pallete
+    int32 left_pallet = 6;
+    int32 right_pallet = 7;
+
+    //main brush
+    int32 m_brush = 8;
+
+    //side brush
+    int32 s_brush = 9;
+
+    //mission unique ID
+    int32 unique_id = 10;
+}
+
+/*
+ * A single zone / room / keepout / point / area ...???
+ */
+message SingleZoneParam {
+    //zone idx, default: 8000
+    int32 index = 1;
+
+    //zone name: default: "global"
+    string name = 2;
+
+    //zone type, default: E_AREA_TYPE_ALL
+    EE_AREA_TYPES area_typs = 3;
+
+    //setting
+    MissionSetting clean_parm = 4;
+
+    //area / plane / point
+    //optional
+    repeated Location plane_shape = 5;
+}
+
+
+//get the zones & smart rooms
+message QueryZones {
+}
+
+message MultiZonesParam {
+    //multi zones, keepout area, virtual wall...
+    repeated SingleZoneParam szp = 1;
+}
+/*
+ * Clean mission
+ * drive the robot to do the mission
+ */
+message MissionCommand {
+    //command
+    EE_CONTROL_TYPE cmd = 1;
+
+    //simulate key event
+    EE_ACT_KEY_TYPE key = 2;
+
+    //from who, IOT/KEY/H5/LOGIC??
+    EE_CMD_FROM_WHO user = 3;
+
+    //mission mode
+    EE_CLEAN_MODE mode = 4;
+
+    //mission parameters
+    MultiZonesParam mzp = 5;
+}
+
+/*
+ * Clean mission status
+ * publish during the course of a mission
+ */
+message MissionStatus {
+    //realtime mode & status
+    RobotModeStatus mode_stat = 1;
+
+    //clean arem in m^2
+    float area_m2 = 2;
+
+    //clean time in second
+    int32 time_s = 3;
+
+    //docker position
+    DockPosition dp = 4;
+}
+
+/*
+ * Clean mission record
+ */
+message CleanFinishInfo {
+    //start time
+    uint64 start_stamp = 1;
+    //end time
+    uint64 end_stamp = 2;
+
+    //clean mode
+    EE_CLEAN_MODE mode = 3;
+
+    //who start
+    EE_CMD_FROM_WHO start_by = 4;
+    //who end
+    EE_CMD_FROM_WHO end_by = 5;
+
+    //clean time & area
+    int32 time_s = 6;
+    float area_m2 = 7;
+
+    //normal terminal
+    bool is_normal = 9;
+
+    //charge time during the task
+    int32 charge_time = 10;
+
+    //map
+    GlobalGridMap ggm = 11;
+
+    //path
+    CleanCoverTrack ccp = 12;
+
+    //dock position
+    DockPosition dp = 13;
+
+    //zones... parameters
+    MultiZonesParam mzp = 14;
+}
+
+/*
+ * Single appointment
+ */
+message SingleAppointment {
+    //hour / minute / second
+    uint32 hour = 1;
+    uint32 minute = 2;
+    uint32 second = 3;
+
+    //if exec only once
+    bool is_only_once = 4;
+
+    //exec weekday
+    repeated EE_WEEKDAY wday = 5;
+}
+
+/*
+ * Qeury appointment task
+ */
+message QueryAppointment{
+}
+
+/*
+ * Appointment task
+ */
+message AppointmentTask {
+    uint64 id = 1;
+    uint64 map_id = 2;
+    bool enable = 3;
+    repeated SingleAppointment sa = 4;
+    MissionCommand clean = 5;
+}
+///////////////2, Robot Mission////////////////////
+
+///////////////3, Control other modules////////////////////
+/*
+ * slam drive
+ */
+message DriveSlam {
+    //slam business type
+    EE_SLAM_CTRL_TYPE slam_bs = 1;
+
+    //actions type
+    EE_CONTROL_TYPE ctrl = 2;
+
+    //map id
+    uint64 map_id = 3;
+
+    //if start from dock
+    bool is_from_dock = 4;
+}
+
+/*
+ * slam ack
+ */
+message SlamDriveAck {
+    //slam business type
+    EE_SLAM_CTRL_TYPE slam_bs = 1;
+
+    //actions type
+    EE_CONTROL_RESULT res = 2;
+
+    //map id
+    uint64 map_id = 3;
+
+    //main direction
+    float main_dir = 4;
+}
+
+/*
+ * Motion Control message
+ */
+message MotionCtrl {
+    EE_MOTION_CTRL_TYPE type = 1;
+    EE_MOTION_CTRL_DIR direction = 2;
+
+    float speed_left = 3;           //left wheel speed
+    float speed_right = 4;          //right wheel speed
+
+    float distance_m = 6;           //move distance, m
+
+    float delta_theta = 7;          //rotate angle
+    float target_theta = 8;         //targe angle
+
+    bool is_need_ack = 9;           //if need ack this control message
+}
+
+/*
+ * Motion Control ack
+ */
+message MotionCtrlAck {
+    EE_MOTION_CTRL_TYPE type = 1;
+    EE_MOTION_CTRL_DIR direction = 2;
+    EE_CONTROL_RESULT result = 3;
+}
+
+/*
+ * Navigation drive
+ */
+enum EE_PROTO_TYPE {
+    E_TASK2NAVI_NULL = 0;
+
+    E_TASK2NAVI_REQ = 1;
+    E_NAVI2TASK_RES = 2;
+    E_NAVI2TASK_REQ = 3;
+    E_TASK2NAVI_RES = 4;
+
+    E_TASK2SLAM_REQ = 21;
+    E_SLAM2TASK_RES = 22;
+    E_SLAM2TASK_REQ = 23;
+    E_TASK2SLAM_RES = 24;
+}
+
+enum EE_NAV_FAIL_REASON {
+    E_NAV_FAIL_SENTINEL = 0;
+    E_NAV_FAIL_GLOBAL_PLAN = 1;
+    E_NAV_FAIL_LOCAL_PLAN = 2;
+    E_NAV_FAIL_LOCATE = 3;
+    E_NAV_FAIL_BUSY = 4;
+    E_NAV_FAIL_RRT_EXPLORE = 5;
+    E_NAV_FAIL_NO_MAP = 6;
+    E_NAV_FAIL_NONE = 7;
+}
+
+message Point2d {
+    float x = 1;
+    float y = 2;
+}
+
+message Pose2d {
+    float x = 1; // unit: m
+    float y = 2; // unit: m
+    float theta = 3; // unit: rad (-pi, pi]
+}
+
+message AlongWall {
+    repeated Point2d points = 1;
+}
+
+message AreaClean {
+    repeated Point2d points = 1;
+}
+
+message SpotClean {
+    float side_length = 1; // square side length
+    Point2d center = 2;
+}
+
+message StopFrontFollow {
+    float distance = 1;
+    Pose2d pose = 2;
+}
+
+message PlanPose {
+    int32 seq = 1;
+    Location pose = 2;
+};
+
+message MultiPose {
+    repeated Location pose = 2;
+};
+
+message LineMove {
+}
+
+message RotateMove {
+}
+
+message ArcMove {
+}
+
+message DriveNavigation {
+    //time stamp
+    uint64 sec = 1;
+    uint64 nsec = 2;
+
+    // task ID
+    int32 task_id = 3;
+
+    //indentifier
+    //EE_PROTO_TYPE proto_type = 4;   //??
+    EE_NAV_BUSINESS_TYPE navi_bs = 5;
+    EE_CONTROL_TYPE nav_ctrl = 6;
+
+    //business info
+    AlongWall along_wall = 7;
+    AreaClean area_clean = 8;
+    SpotClean spot_clean = 9;
+    StopFrontFollow stopfront_follow = 10;
+
+    //tracing to pose
+    repeated PlanPose tracing = 11;
+
+    LineMove line_move = 12;
+    RotateMove rotate_move = 13;
+    ArcMove arc_move = 14;
+
+    RandomEvents random = 15;
+
+    //rrt destination
+    Location rrt_pose = 16;
+
+    //slam map
+    //venus.slam.carto_rt.proto.OccupancyGrid grid = 20;
+}
+
+message NavAckDetail {
+    EE_NAV_BUSINESS_TYPE nav_bs = 1;
+    EE_MODULE_STATUS nav_stat = 2;
+    EE_NAV_FAIL_REASON reason = 3;
+
+    EE_NAV_MODE nav_mode = 4;
+
+    //grid map seq
+    int32 grid_seq = 5;
+
+    //current rrt info
+    Location rrt_dest_pose = 6;
+
+    //tracing info
+    Location tracing_dest_pose = 7;
+    string seg_type = 8;
+    int32 seg_seq = 9;
+    int32 seg_ctrl_cnt = 10;
+    int32 seg_pose_arrived = 11;
+    int32 seg_pose_next = 12;
+
+    //current pose
+    Location robot_current_pose = 13;
+
+    //if reach the dest
+    google.protobuf.BoolValue reached = 14;
+
+    repeated PlanPose path_plan = 15;
+}
+
+message NavigationAck {
+    uint64 sec = 1;
+    uint64 nsec = 2;
+
+    int32 task_id = 3;
+    bool task_assigned = 4;
+
+    NavAckDetail nav_detail = 5;
+}
+///////////////3, Control other modules////////////////////
+
+///////////////3, Mapping, Map & Path////////////////////
+/*
+ * query pose
+ */
+message QueryGridMap {
+    int64 map_id = 1;
+}
+
+/*
+ * Grid map
+ */
+message GlobalGridMap {
+    //map id
+    uint64 m_id = 1;
+
+    //stamp
+    uint64 stamp = 2;
+
+    //
+    Location pose = 3;
+
+    //map width & height
+    uint32 width = 4;
+    uint32 height = 5;
+
+    //map resolution
+    float resolution = 6;
+
+    //if optimized map
+    bool is_optimized_map = 7;
+
+    //map data
+    bytes grid_map = 8;
+}
+
+/*
+ * query track
+ */
+message QueryCoverTrack {
+    int64 p_id = 1;
+    int32 head = 2;
+    int32 tail = 3;
+}
+
+/*
+ * report robot track
+ */
+message CleanCoverTrack {
+    int32 pose_seq = 1;
+    int32 pose_cnt = 2;
+    repeated Location pose = 3;
+}
+
+/*
+ * query robot location
+ */
+message QueryLocArray {
+}
+
+/*
+ * report robot location
+ */
+message LocationArray {
+    repeated PlanPose rrt = 1;
+    repeated PlanPose plan = 2; //planed all path
+    repeated MultiPose navi = 3; //navi path
+    repeated MultiPose work = 4; //work path
+}
+
+/*
+ * Zone / room operation
+        
+ //TODO
+ */
+message ZonesOperation {
+    //grid map
+    GlobalGridMap ggm = 1;
+
+    //actions for this areas
+    EE_MAP_EXTRA_CHANGE_TYPE type = 2;
+
+    //areas info
+    MultiZonesParam mzp = 3;
+}
+
+/*
+ * Query stored maps in robot
+ */
+message QueryMapStorage {
+}
+
+/*
+ * Map stored on a robot
+ */
+message MapStorage {
+    //id
+    uint64 map_id = 1;
+
+    //grid map
+    GlobalGridMap ggm = 2;
+
+    //docker info
+    DockPosition dp = 3;
+
+    //zones info
+    MultiZonesParam mzp = 4;
+}
+
+/*
+ * get current map id
+ */
+message QueryMapID {
+}
+
+/*
+ * Mapping id unit
+ */
+message UniqueMappingId {
+    uint64 raw_grid_id = 1;
+    uint64 proc_map_id = 2;
+    uint64 path_id = 3;
+}
+
+/*
+ * Get the newest path id
+ */
+message UniqueId {
+    //current using ids
+    UniqueMappingId umid = 1;
+
+    //history used ids
+    repeated uint64 hmap_id = 4;
+    repeated uint64 hpath_id = 5;
+}
+///////////////3, Mapping, Map & Path////////////////////
+
+///////////////4, System Setting////////////////////
+/*
+ * Play audio
+ */
+message AudioPlay {
+    int32 audio_id = 1;
+}
+
+/*
+ * Change audio pack
+ */
+message LanguageChange {
+    int32 audio_pack = 1;
+}
+
+/*
+ * Led setting
+ */
+message LedCustomize {
+    //TODO
+    int32 mode = 1;
+}
+
+//场景类型，需要重新定义场景
+enum UserSenseType{
+    SENSE_SENTINEL = 0;
+    SENSE_POWER_ON = 1;
+    SENSE_POWER_OFF = 2;
+    SENSE_LOW_POWER = 3;
+    SENSE_ENERGY_SAVE = 4;
+    SENSE_START_AUTOCLEAN = 5;
+}
+
+//播放指定场景的语音及灯显
+message UiDisplay{
+    UserSenseType sense = 1;
+    int32 int_sense = 2;    //调式使用，当sense场景没有列举完全的情况下，可以使用该字段传输自定义sense.
+}
+
+
+//设置语音音量
+message UiSetVolume{
+    int32    valume = 1;
+}
+
+
+//更新语音包
+message UiSetAudioBag{
+    int32 select_index = 1;
+    string select_name = 2;
+}
+
+//Led灯控制类型
+enum UiLedType{
+    WHITE_LIGHT_SENTINEL = 0;
+    WHITE_LIGHT = 1;
+    WHITE_WENT_OUT = 2;
+    WHITE_FLICK = 3;
+    WHITE_BREATHE = 4;
+    RED_LIGHT = 5;
+    RED_WENT_OUT = 6;
+    RED_FLICK = 7;
+    RED_BREATHE = 8;
+}
+
+
+//Led灯显示方式
+message UiLedControl{
+    UiLedType type = 1;                         //常亮状态或者起始状态
+    int32 flick_time = 2;  //闪烁时间
+    int32 flick_freq = 3;  //闪烁频率
+    UiLedType last_type = 4;                    //最终状态
+}
+
+//设置不同的灯不同的显示效果
+message UiSetLed{
+    UiLedControl clean_led = 1;   //清扫灯
+    UiLedControl dock_led  = 2;   //回充灯
+    UiLedControl wifi_led  = 3;   //wifi灯
+}
+
+message SceneSet{
+    int32 scene = 1;
+}
+
+//空气净化器开关类型
+enum UiPurifierSwichType {
+    BASE_LIGHT_SENTINEL = 0;
+    BASE_LIGHT_SWICH = 1; //基站灯开关
+    PURIFIER_SWICH = 2;  //空气净化器-开关
+}
+//净化器开关设置，包括灯、空气净化器开关
+message UiPurifierSetSwich{
+    UiPurifierSwichType purifer_swich_type = 1;
+    bool swich = 2;
+}
+//灯-模式
+enum UiBaseLightMode {
+    WHITE_L= 0;  //白光
+    COLOUR = 1; //彩光
+}
+//灯光信息
+message UiPurifierLightInfo{
+    bool swich = 1; //灯光开关
+    UiBaseLightMode light_mode = 2; //灯光mode
+    oneof LightValue{
+        int32 bright_value = 3; //白光亮度
+        string colour_data = 4; //彩光值
+    }
+}
+//灯光模式
+message UiBLightMode{
+    UiBaseLightMode bl_mode = 1;
+}
+//白光值
+message UiBrightValue{
+    int32 br_value = 1;
+}
+//彩光值
+message UiColourData{
+    string bc_data = 1;
+}
+//空气净化器类型
+enum UiPurifierFilterType
+{
+    STANDARD = 0;
+    HCHO = 1;
+}
+//空气质量等级
+enum UiAirQuality
+{
+    GOOD = 0;
+    MILD = 1;
+    SEVERE = 2;
+}
+//空气净化器信息
+message UiPurifierInfo{
+    UiPurifierFilterType type = 1; //滤芯类型
+    UiAirQuality air_quality = 2; //空气质量
+    int32 PM2_5 = 3; //PM2.5
+    int32 filter_usage = 4; //滤芯使用率
+}
+//查询空气净化器信息
+message QueryPurifierInfoAck {
+    UiPurifierInfo info = 1;
+}
+//查询空气净化器灯光信息
+message QueryPurifierLightInfoAck {
+    UiPurifierLightInfo lightInfo = 1;
+}
+//空气净化器档位
+message UiAirPurifierGear {
+    int32 purifier_fan = 1;
+}
+//滤芯复位
+message UiPurifierFilterReset{
+    UiPurifierFilterType type = 1;
+    bool is_reset = 2;
+}
+//净化器故障码
+message PurifierFalut{
+    int32 falut =1;
+}
+////////////////////////Scene////////////////////////////////
+
+
+////////////////////////IOT////////////////////////////////
+/*
+ * iot suppliers, to be extended
+ */
+enum EE_IOT_SUPPLIER {
+    E_IOT_SENTINEL = 0;
+    E_IOT_TUYA = 1;
+    E_IOT_YUGONG = 2;
+    E_IOT_BISSELL = 3;
+    E_IOT_ALI = 4;
+}
+
+/*
+ * ui status iot need to be shown
+ */
+enum EE_UI_PLAY {
+    E_SOC_UI_SENTINEL = 0;
+    E_SOC_UI_IN_CONFIG = 1;
+    E_SOC_UI_RESTART_CONFIG = 2;
+    E_SOC_UI_CONNECT_OK = 3;
+    E_SOC_UI_START_UPGRADE = 4;
+    E_SOC_UI_UPGRADING = 5;
+    E_SOC_UI_UPGRAD_FAIL = 6;
+    E_SOC_UI_UPGRAD_OK = 7;
+    E_SOC_UI_CONFIG_NET = 8;
+}
+
+/*
+ * iot connecting status
+ */
+enum EE_CONNECT_STATUS {
+    E_SOC_CONNECT_STATUS_SENTINEL = 0;
+    E_SOC_CONNECT_STATUS_RESET = 1;
+    E_SOC_CONNECT_STATUS_DISCONN = 2;
+    E_SOC_CONNECT_STATUS_UPDATE = 3;
+    E_SOC_CONNECT_STATUS_CONNECTED = 4;
+    E_SOC_CONNECT_STATUS_CONNECTING = 5;
+    E_SOC_CONNECT_STATUS_OK = 6;
+}
+
+/*
+ * OTA upgrade status
+ */
+enum EE_IOT_UPGRADE_STATUS {
+    E_IOT_UPGRADE_STATUS_SENTINEL = 0;
+    E_IOT_UPGRADE_STATUS_DOING = 1;
+    E_IOT_UPGRADE_STATUS_SUCCESS = 2;
+    E_IOT_UPGRADE_STATUS_FAIL = 3;
+    E_IOT_UPGRADE_STATUS_NORMAL = 4;
+}
+
+/*
+ * IOT procedure
+ */
+enum EE_IOT_PROCEDURE {
+    E_IOT_PROCEDURE_SENTINEL = 0;
+    E_IOT_PROCEDURE_INIT = 1;
+    E_IOT_PROCEDURE_EVNT = 2;
+    E_IOT_PROCEDURE_WAIT = 3;
+}
+
+/*
+ * network events
+ */
+enum EE_IOT_RECEIVE_EVENT {
+    E_IOTR_EVENT_SENTINEL = 0 ;
+    E_IOTR_EVENT_SET_AP = 1;
+    E_IOTR_EVENT_CONFIG_NET = 2;
+    E_IOTR_EVENT_RECONFIG_NET = 3;
+    E_IOTR_EVENT_REPORT_NETSTAT = 4;
+}
+
+/*
+ * local management of cloud status
+ */
+enum EE_IOT_EVENT {
+    E_IOT_EVENT_SENTINEL = 0;
+    E_IOT_EVENT_REGISTER_CLOUD = 1;
+    E_IOT_EVENT_CONNECTED_CLOUD = 2;
+    E_IOT_EVENT_DROP_CLOUD = 3;
+    E_IOT_EVENT_END = 4;
+}
+
+/*
+ * wifi status
+ */
+enum EE_WIFI_WORK_MODE {
+    E_WIFI_MODE_SENTINEL = 0;
+    E_WIFI_MODE_STATION = 1;
+    E_WIFI_CONNECTING = 2;
+    E_WIFI_CONNECT_FAIL = 3;
+    E_WIFI_WRONG_KEY = 4;
+    E_WIFI_CONNECTED = 5;
+    E_WIFI_DISCONNECTED = 6;
+    E_WIFI_UNKNOWN_MODE = 7;
+    E_WIFI_MODE_AP = 8;
+}
+
+/*
+ * life query
+ */
+enum EE_CONSUMPTION_CONTROL {
+    E_CONSUMPTION_SENTINEL = 0;
+    E_CONSUMPTION_WHOLE_QUERY = 1;
+    E_CONSUMPTION_WHOLE_RESET = 2;
+    E_CONSUMPTION_MBRUSH_RESET = 3;
+    E_CONSUMPTION_SBRUSH_RESET = 4;
+    E_CONSUMPTION_STRAINER_RESET = 5;
+    E_CONSUMPTION_SENSOR_RESET = 6;
+    E_CONSUMPTION_FAN_RESET = 7;
+    E_CONSUMPTION_LEFT_SBRUSH_RESET = 8;
+    E_CONSUMPTION_LEFT_WHEEL_RESET = 9;
+    E_CONSUMPTION_RIGHT_WHEEL_RESET = 10;
+    E_CONSUMPTION_DISTANCE_RESET = 11;
+}
+
+enum EE_IOT_SS_FUCTION_DP {
+    E_SSDP_BOOL_SENTINEL = 0;
+    E_SSDP_BOOL_TY = 1;
+    E_SSDP_BOOL_TY_SWITCH_GO = 2;
+    E_SSDP_ENUM_TY_WORK_MODE = 3;
+    E_SSDP_ENUM_TY_DIRECTION_CONTROL = 4;
+    E_SSDP_INT_TY_RESIDUAL_ELECTRICITY = 6;
+
+    E_SSDP_STRING_TY_WAKE_UP = 156;//唤醒
+    E_SSDP_BOOL_TY_BREAK_POINT = 157;
+    E_SSDP_RAW_TY_DIFF_SPEED = 158;
+    E_SSDP_ENUM_TY_CDR_SWITCH = 159;
+    E_SSDP_RAW_TY_AWL_SWITCH = 160;
+    E_SSDP_RAW_TY_CHECK_BOT_STATUS = 161;
+    E_SSDP_RAW_TY_UPDATE_BOT_STATUS = 162;
+    E_SSDP_RAW_TY_UPDATE_BOT_INFO = 163;//down for query bot info;up for report device version info.
+    E_SSDP_INT_TY_SUCTION_STRENGTH = 164;
+    E_SSDP_INT_TY_VOLUME_SETTING = 165;
+    E_SSDP_STRING_TY_VOICE_BAG = 166;
+    E_SSDP_BOOL_TY_FIND_BOT = 167;
+    E_SSDP_ENUM_TY_COMSUMPTION_OPERATION = 168;
+    E_SSDP_RAW_TY_UPDATE_COMSUMPTION = 169;
+    E_SSDP_RAW_TY_ONCE_CLEAN_RECORD = 170;
+    E_SSDP_RAW_TY_CLEAN_STATISTIC = 171;
+    E_SSDP_RAW_TY_QUERY_ROUTE = 172;
+
+    //default incremental
+    E_SSDP_RAW_TY_UPDATE_ROUTE = 173;
+    E_SSDP_RAW_TY_RSV_OPERATION = 174;
+    E_SSDP_BOOL_TY_QUERY_RSV = 175;
+    E_SSDP_STRING_TY_RESET_RSV = 176;
+    E_SSDP_INT_TY_SET_SCHEDULE = 1760;
+
+    //map
+    E_SSDP_STRING_TY_RESET_MAP = 177;
+    E_SSDP_STRING_TY_SWITCH_MAP = 178;
+    E_SSDP_STRING_TY_SAVE_MAP = 179;
+    E_SSDP_RAW_TY_UPDATE_MAP_DATA = 180;
+
+    //area
+    E_SSDP_RAW_TY_UPDATE_AREA_DATA = 181;        //云端更新区域信息
+
+    E_SSDP_STRING_TY_ERROR_CODE = 182;
+    E_SSDP_BOOL_TY_IS_MOP_SET = 183;
+    E_SSDP_STRING_TY_SIGNAL_STRENGTH = 184;
+    E_SSDP_BOOL_TY_IS_BOOST_MODE = 185;
+    E_SSDP_STRING_TY_WATER_FLOW_SPEED = 186;
+    E_SSDP_STRING_TY_UPDATE_FIRMWARA = 187;
+    E_SSDP_INT_TY_UPGRADE_PROCESS = 188;
+    E_SSDP_BOOL_TY_GET_LOG = 189;
+    E_SSDP_RAW_TY_BRUSH_MOTOR_SPEED = 190;
+    E_SSDP_BOOL_TY_COLLECT_DUST_SWITCH = 191;
+    E_SSDP_INT_TY_COLLECT_DUST_COUNT = 192;
+    E_SSDP_BOOL_TY_FINE_MOP_MODE = 193;
+    E_SSDP_INT_TY_MAIN_BRUSH = 194;
+    E_SSDP_STRING_TY_DELETE_MULTI_MAP = 195;
+    E_SSDP_STRING_TY_ROOM_SPLIT = 196;
+    E_SSDP_STRING_TY_ROOM_MERGE = 197;
+    E_SSDP_STRING_TY_ROOM_RENAME = 198;
+    E_SSDP_INT_TY_SIDE_BRUSH = 201;
+    E_SSDP_INT_TY_PAD_BRUSH = 202;
+    E_SSDP_INT_TY_FAN_STRENGTH = 203;
+    E_SSDP_INT_TY_DUST_BOX_STAT = 204;
+    E_SSDP_INT_TY_WATER_TANK_STAT = 205;
+
+    // ss private protocol
+    E_SSDP_RAW_LOCAL_RESET_NETWORK = 5;
+    E_SSDP_RAW_LOCAL_QUERY_BOT_INFO = 7;
+    E_SSDP_RAW_LOCAL_UPDATE_MAC_IP = 8;
+    E_SSDP_RAW_LOCAL_UI_VOICE_PLAY = 9;
+    E_SSDP_RAW_LOCAL_CLOUD_CONF_STAT = 10;
+    E_SSDP_RAW_LOCAL_UPDATE_SSID_PSWD = 11;
+    E_SSDP_RAW_LOCAL_UPDATE_MCU_VER = 12;
+    E_SSDP_RAW_LOCAL_UPDATE_MAP_ID = 13;
+    E_SSDP_RAW_LOCAL_UPDATE_PATH_ID = 14;
+    E_SSDP_INT_LOCAL_VOLUME_SETTING = 1650;
+    E_SSDP_STRING_LOCAL_VOICE_BAG = 1660;
+    E_SSDP_BOOL_LOCAL_MUTE_EN = 1661;
+    E_SSDP_INT_LOCAL_SOUND_PLAY = 1662;
+    E_SSDP_INT_LOCAL_LANGUAGE_CHOICE = 1663;
+    E_SSDP_INT_LOCAL_VOICE_BAG = 1664;
+    E_SSDP_INT_LOCAL_QUERY_LANGUAGE = 1665;
+    E_SSDP_INT_LOCAL_PARING = 1666;
+    E_SSDP_INT_LOCAL_FACTORY_RESET = 1667;
+    E_SSDP_INT_LOCAL_MFG = 1668;
+    E_SSDP_RAW_LOCAL_QUERY_BOT_MODE_STAT = 1669;
+    E_SSDP_RAW_LOCAL_UPDATE_WHOLE_ROUTE = 1730;
+    E_SSDP_RAW_LOCAL_QUERY_BOT_LOCATION = 1731;
+    E_SSDP_RAW_LOCAL_QUERY_DOCK_LOCATION = 1732;
+    E_SSDP_RAW_LOCAL_QUERY_MAP_DATA = 1801;
+    E_SSDP_RAW_LOCAL_QUERY_HISTORY_MAP_DATA = 1802;
+    E_SSDP_RAW_LOCAL_QUERY_AREA_DATA = 1803; //all areas
+    E_SSDP_RAW_LOCAL_QUERY_VIRTUAL_WALL = 1804;
+    E_SSDP_RAW_LOCAL_QUERY_ROOM = 1805;
+    E_SSDP_RAW_LOCAL_QUERY_CLEAN_SPOT = 1806;
+    E_SSDP_RAW_LOCAL_QUERY_AREA_ZONE = 1807;
+    E_SSDP_RAW_LOCAL_QUERY_KEEPOUT_ZONE = 1808;
+    E_SSDP_RAW_LOCAL_QUERY_SESSION_INFO = 1809;
+    E_SSDP_RAW_LOCAL_MAP_OPERATION = 1810;
+    E_SSDP_RAW_LOCAL_AUTO_AREA_OPERATION = 1822;
+    E_SSDP_RAW_LOCAL_DOCK_STATUS = 1826;
+    E_SSDP_RAW_LOCAL_SET_PKG = 1830;
+
+    E_SSDP_RAW_LOCAL_QUERY_MAP_INFO = 1815;
+    E_SSDP_ENUM_LOCAL_LED_SHOW = 1811;
+    E_SSDP_ENUM_LOCAL_CLOUD_STATUS = 1812;
+    E_SSDP_ENUM_LOCAL_NET_STATUS = 1813;
+    E_SSDP_ENUM_LOCAL_NET_MODE = 1814;
+
+    E_SSDP_BOOL_LOCAL_SDK_START = 1825;
+    E_SSDP_BOOL_LOCAL_SDK_STOP = 1827;
+    E_SSDP_RAW_LOCAL_QUERY_WAKETYPE = 1828;
+    E_SSDP_RAW_LOCAL_SET_WAKETYPE = 1829;
+    E_SSDP_RAW_LOCAL_AUDIO_BAG = 1831; // 上报ota语音包设置失败
+    E_SSDP_STRING_LOCAL_TIME_SYN = 1832;//time syn
+    E_SSDP_STRING_LOCAL_PUMP_ON_TIME = 1833;
+}
+
+//TODO obsolete
+enum EE_SS_BOT_MESSAGES {
+    E_IOT_GET_DEVICE_SENTINEL = 0;//获取设备信息 Done
+    E_IOT_GET_DEVICE_INFO = 200;//获取设备信息 Done
+    E_IOT_AUTO_CLEAN = 1; //自动清扫 Done
+    E_IOT_DOCKING = 2;  //回充 Done
+    E_IOT_RC_SWITCH = 3;  //遥控切换 Done
+    E_IOT_USR_CTRL_FORWARD = 4; //用户控制前进 Done
+    E_IOT_USR_CTRL_BACKWARD = 5;//用户控制后退 Done
+    E_IOT_USR_LEFT_ROTATE = 6;//用户控制左转 Done
+    E_IOT_USR_RIGHT_ROTATE = 7;//用户控制右转 Done
+    E_IOT_USR_STOP = 8;//用户控制停止 Done
+    E_IOT_SET_APPIONTMENT_CLEAN = 9; //设置预约清扫
+    E_IOT_GET_APPIONTMENT_CLEAN = 10; //获取预约清扫
+    E_IOT_GET_AUDIO_VOLUME = 11;//音量设置 Done
+    E_IOT_SET_FAN_SUCTION = 12;//风机吸力设置 Done
+    E_IOT_LOCATION_ROBOT = 13; //定位机器人 Done
+    E_IOT_SET_AUDIO_BAG = 14;//语音包切换
+    E_IOT_SET_VIRTUAL_WALL = 15; //虚拟墙 Done
+    E_IOT_AREA_CLEAN = 16; //开始区域清扫
+    E_IOT_LOCATION_CLEAN = 17;  //指哪扫哪 Done
+    E_IOT_RESET_MAP = 18;//地图重置 Done
+    E_IOT_GET_DEVICE_STATUS = 19;//获取设备状态 Done
+    E_IOT_GET_DEVICE_NAME = 20;//获取设备名字 Done
+    E_IOT_SET_DEVICE_NAME = 21;//设置设备名字 Done
+    E_IOT_GET_CONSUMP_RECORD = 22;//获取耗材记录 Done
+    E_IOT_RESET_COMSUMP_RECORD = 23; //重置耗材记录 done
+    E_IOT_GET_PART_CLEAN = 24;//局部清扫 Done
+    E_IOT_UPGRADE_FIRMWARE = 25;//固件升级
+    E_IOT_OPEN_CAMERA = 26;//摄像头打开
+    E_IOT_CLOSE_CAMERA = 27;//摄像头关闭
+    E_IOT_RC_MONITOR = 28;  //监控切换
+    E_IOT_RC_MONITOR_FORWARD = 29; //用户监控前进
+    E_IOT_RC_MONITOR_BACKWARD = 30;//用户监控后退
+    E_IOT_RC_MONITOR_LEFT_ROTATE = 31;//用户监控左转
+    E_IOT_RC_MONITOR_RIGHT_ROTATE = 32;//用户监控右转
+    E_IOT_RC_MONITOR_STOP = 33;//用户监控停止
+    E_IOT_SET_AREA_CLEAN_INFO = 34; //设置区域清扫信息
+    E_IOT_SEND_LOG = 35;//发送Log到服务器
+    E_IOT_TELL_SSID_PSWD = 36;//extra command, 2020/6/12
+}
+
+/*
+ * session info
+ * when doing a job
+ */
+message SessionInfo {
+    google.protobuf.BoolValue session_init = 1;
+    google.protobuf.Int32Value active_session_id = 2;
+    google.protobuf.Int32Value last_session_id = 3;
+
+    google.protobuf.Int32Value active_map_id  = 4;
+    google.protobuf.Int32Value last_map_id = 5;
+    google.protobuf.Int32Value map_width = 6;
+    google.protobuf.Int32Value map_height = 7;
+
+    google.protobuf.Int32Value active_path_id = 8;
+    google.protobuf.Int32Value last_path_id = 9;
+    google.protobuf.Int32Value path_from = 10;
+    google.protobuf.Int32Value path_to = 11;
+    google.protobuf.Int32Value path_cnt = 12;
+
+    google.protobuf.Int32Value auto_area_id = 13;
+    google.protobuf.Int32Value area_id = 14;
+    google.protobuf.Int32Value area_type = 15;
+
+    google.protobuf.Int32Value clean_type = 16;
+}
+
+////////////////////////IOT////////////////////////////////
+//=========================Bussiness============================//
+
+
+//=========================None Bussiness============================//
+//传感器类型
+///////////////1, System Inforation////////////////////
+message QuerySystemInfo {
+}
+
+message SystemInformation {
+    message SysInfoRobotType {
+        string bot_name = 1;
+        string bot_type = 2;
+        string serial_num = 3;
+        string uuid = 4;
+        string product_key = 5;
+    };
+    SysInfoRobotType bot_type = 1;
+
+    message SysInfoSwVersion {
+        string sw_version = 1;
+        string sys_version = 2;
+        string mcu_version = 3;
+        string release_date = 4;
+        string ota_file_path = 5;
+    };
+    SysInfoSwVersion sw_ver = 2;
+
+    message SysInfoVoice {
+        string language = 1;
+        string volume = 2;
+        string voice_path = 3;
+    };
+    SysInfoVoice voice = 3;
+
+    message SysInfoWireless {
+        string self_ssid = 1;
+        string mac_addr = 2;
+    };
+    SysInfoWireless wireless = 4;
+}
+///////////////1, System Inforation////////////////////
+
+///////////////2, Periphera Data////////////////////
+enum EE_PERIPHERAL_TYPE {
+    E_PERIPH_SENTINEL = 0;
+    E_PERIPH_GPIO = 1;
+    E_PERIPH_PWM = 2;
+    E_PERIPH_ADC = 3;
+    E_PERIPH_INFRA = 4;
+    E_PERIPH_ALL = 5;
+}
+
+message QueryPeriphInfo {
+    EE_PERIPHERAL_TYPE ppr_type = 1;
+}
+
+//PeriphInformation defines in chass_spit.proto
+//
+///////////////2, Periphera Data////////////////////
+
+///////////////3, Volatile Inforation////////////////////
+message QueryVolatileInfo {
+}
+
+message VolatileInformation {
+    message NoDisturb {
+        bool no_disturb_sw = 1;
+        string no_disturb_from = 2;
+        string no_disturb_to = 3;
+    };
+
+    repeated NoDisturb no_disturb = 1;
+
+    message BriefStat {
+        int32 battery = 1;
+        float sys_load = 2;
+        int32 suction = 3;
+        int32 flow_speed = 4;
+        int32 boost_sw = 5;
+        int32 break_sw = 6;
+        int32 water_level = 7;
+        int32 is_mop_set = 8;
+    };
+    BriefStat brief_stat = 2;
+
+    message JobStatistic {
+        string powerup_time = 1;
+        float poweron_time_sec = 2;
+        float poweron_time_total_sec = 3;
+        int32 mission_count = 4;
+        int32 mileage_statistic = 5;
+        int32 clean_time_total = 6;
+        float clean_area_total = 7;
+    };
+    JobStatistic job_statistics = 3;
+
+    message AudioInfo {
+        string language = 1;
+        int32 volume = 2;
+    };
+    AudioInfo audio_info = 4;
+
+    message WirelessInfo {
+        string configured = 1;
+        string con_ssid = 2;
+        string wifi_pswd = 3;
+        string ip_addr = 5;
+    };
+    WirelessInfo wireless = 5;
+
+    message Comsumble {
+        int32 strainer_used_time = 1;
+        int32 strainer_total_time = 2;
+        int32 mbrush_used_time = 3;
+        int32 mbrush_total_time = 4;
+        int32 sbrush_used_time = 5;
+        int32 sbrush_total_time = 6;
+        int32 sensor_used_time = 7;
+        int32 sensor_total_time = 8;
+        int32 filter_used_time = 9;
+        int32 filter_total_time = 10;
+    };
+    Comsumble comsumble = 6;
+}
+///////////////3, Volatile Inforation////////////////////
+
+///////////////4, Sensor Data////////////////////
+enum EE_CHS_RAW_TYPE {
+    E_CHS_RAW_SENTINEL = 0;
+    E_CHS_RAW_IMU = 1;
+    E_CHS_RAW_LASER = 2;
+    E_CHS_RAW_ODOME = 3;
+    E_CHS_RAW_MIX = 4;
+    E_CHS_RAW_FAC = 5;
+    E_CHS_RAW_IMAGE = 6;
+}
+
+message QueryChassisRaw {
+    EE_CHS_RAW_TYPE chs_raw = 1;
+}
+
+message ChassisRawData {
+    ventura.common_msgs.nav_msgs.Odometry d_odom = 1;
+    ventura.common_msgs.sensor_msgs.PointCloud d_pcl = 2;     //lidar
+    ventura.common_msgs.sensor_msgs.Imu d_imu = 3;
+    ventura.common_msgs.sensor_msgs.Image d_img = 4;
+    ventura.common_msgs.sensor_msgs.PointCloud2 d_llsr = 5;    //line laser
+}
+///////////////4, Sensor Data////////////////////
+
+//=========================None Bussiness============================//
+//for sentinel
+message FrgNullMsg {
+}
+
+message FringeTransferMsg {
+    int32 msg_cnt = 1;
+    oneof FringeMsg {
+        //query system info
+        QuerySystemInfo q_sys = 2;
+        //ack system info
+        SystemInformation a_sys = 3;
+
+        //query peripheral info
+        QueryPeriphInfo q_ppi = 4;
+        //ack peripheral info
+        mstf.chss.proto.PeriphInformation a_ppi = 5;
+
+        //query volatile info
+        QueryVolatileInfo q_vli = 6;
+        //ack volatile info
+        VolatileInformation a_vli = 7;
+
+        //query chassis raw
+        QueryChassisRaw q_chsr = 8;
+        //ack chassis raw
+        ChassisRawData a_chsr = 9;
+
+        //query robot mode & status
+        QueryModeStatus q_ms = 10;
+        //ack robot mode & status
+        RobotModeStatus a_ms = 11;
+
+        //query covered track
+        QueryCoverTrack q_ct = 12;
+        //ack covered track
+        CleanCoverTrack a_ct = 13;
+
+        //query grid map
+        QueryGridMap q_gm = 14;
+        //ack grid map
+        GlobalGridMap a_gm = 15;
+
+        //query storaged map
+        QueryMapStorage q_maps = 16;
+        //ack storaged map
+        MapStorage a_maps = 17;
+
+        //query map id
+        QueryMapID q_mid = 18;
+        //ack map id
+        UniqueId a_mid = 19;
+
+        //query appointment task
+        QueryAppointment q_am = 20;
+        //report ack appointment task & appointment setting by remote
+        AppointmentTask a_am= 21;
+
+        //query zones
+        QueryZones q_z = 22;
+        //ack zone info
+        MultiZonesParam a_mzp = 23;
+
+        //query extra pose
+        QueryLocArray q_loc = 24;
+        //ack extra pose
+        LocationArray a_loc = 25;
+
+        //mission comman, send by remote
+        MissionCommand command = 30;
+
+        //mision status, send to remote
+        MissionStatus mission_stat = 31;
+
+        //clean finish, send to remote
+        CleanFinishInfo finish_info = 32;
+
+        //motion ctrol
+        MotionCtrl mc = 34;
+        MotionCtrlAck mc_result = 35;
+
+        //slam
+        DriveSlam ds = 36;
+        SlamDriveAck a_ds = 37;
+    }
+
+    reserved 26 to 29;
+}

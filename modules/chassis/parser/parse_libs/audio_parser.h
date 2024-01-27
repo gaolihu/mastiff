@@ -12,19 +12,17 @@ namespace parser {
 
     class AudioParser : public ParserBaseItf {
         public:
-            AudioParser(const ChassisConfig*,
-                    const SensorInfo*);
+            AudioParser(const SensorIndicator&);
             virtual  ~AudioParser() final;
 
             virtual int Init() override;
+            virtual int Start() override;
+            virtual int Stop() override;
+            virtual int Resume() override;
+            virtual int Close() override;
+
 
         private:
-            /*
-            virtual int ParseRawBuffer() override;
-            virtual int ParseSigleFrame(const
-                    std::vector<uint8_t>&,
-                    const size_t) override;
-                    */
     };
 
 } //namespace parser

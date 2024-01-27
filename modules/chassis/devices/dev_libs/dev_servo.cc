@@ -1,31 +1,25 @@
-#include "cyber/common/log.h"
-
-#include "modules/chassis/parser/parse_libs/servo_parser.h"
-#include "modules/chassis/devices/data_transact.h"
+#include "modules/chassis/devices/dev_parse_link.h"
 #include "modules/chassis/devices/dev_libs/dev_servo.h"
+#include "modules/chassis/parser/pack_libs/servo_packer.h"
+#include "modules/chassis/parser/parse_libs/servo_parser.h"
 
 namespace mstf {
 namespace chss {
 namespace device {
 
-    DevServo::DevServo(const ChassisConfig* cc,
-            const SensorInfo& si,
-            const SensorIndicator& idc) :
-            DeviceBaseItf(si, idc) {
+    DevServo::DevServo(const
+            SensorIndicator& idc) :
+            DeviceBaseItf(idc) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "DevServo construct" <<
-#if 0
-            ":\n{\n" <<
-            cc->servo_dev().DebugString() << "}";
-#else
-            "";
+        AINFO << "DevServo construct";
 #endif
-#endif
+        data_packer_ = std::make_unique
+            <ServoPacker>(idc.ihi().name());
         data_parser_ = std::make_unique
-            <ServoParser>(cc, &si);
-        DataTransact::Instance()->RegisterDevice(
-                si.name(), idc,
-                dynamic_cast<DeviceBaseItf*>(this));
+            <ServoParser>(idc);
+
+        DevParseLink::Instance()->RegisterDevice(
+                idc, dynamic_cast<DeviceBaseItf*>(this));
     }
 
     DevServo::~DevServo() {
@@ -43,8 +37,10 @@ namespace device {
             return -1;
         }
 
-        DownToServoData data;
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_INIT);
+        ServoSetting org;
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_INIT);
+        auto data = data_packer_->PackServoMtrSetting(org);
+        AINFO << "E_SUBDEV_OPTS_INIT";
 
         return data_parser_->WriteServoMessage(data);
     }
@@ -58,20 +54,26 @@ namespace device {
             return -1;
         }
 
-        DownToServoData data;
+        ServoSetting org;
 
         //load servo motor register values
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_STORE);
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_STORE);
+        auto data = data_packer_->PackServoMtrSetting(org);
+        AINFO << "E_SUBDEV_OPTS_STORE";
         data_parser_->WriteServoMessage(data);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         //load servo motor registers
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_START);
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_START);
+        data = data_packer_->PackServoMtrSetting(org);
+        AINFO << "E_SUBDEV_OPTS_START";
         data_parser_->WriteServoMessage(data);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         //enable axle
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_ENABLE);
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_ENABLE);
+        data = data_packer_->PackServoMtrSetting(org);
+        AINFO << "E_SUBDEV_OPTS_ENABLE";
         return data_parser_->WriteServoMessage(data);
     }
 
@@ -84,28 +86,52 @@ namespace device {
             return -1;
         }
 
-        DownToServoData data;
+        ServoSetting org;
 
         //load servo motor register values
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_STOP);
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_STOP);
+        auto data = data_packer_->PackServoMtrSetting(org);
+        AINFO << "E_SUBDEV_OPTS_STOP";
         return data_parser_->WriteServoMessage(data);
     }
 
-    void DevServo::Close(void) {
+    int DevServo::Resume(void) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "DevServo resume";
+#endif
+        if (DeviceBaseItf::Resume()) {
+            AERROR << "resume servo error!";
+            return -1;
+        }
+
+        return 0;
+    }
+
+    int DevServo::Close(void) {
 #ifdef CHSS_PKG_DBG
         AINFO << "DevServo close";
 #endif
         Stop();
-        DownToServoData data;
 
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_DISABLE);
+        ServoSetting org;
+
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_DISABLE);
+        auto data = data_packer_->PackServoMtrSetting(org);
         data_parser_->WriteServoMessage(data);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        data.mutable_config()->set_opt(E_SUBDEV_OPTS_CLOSE);
+        org.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_DISABLE);
+        data = data_packer_->PackServoMtrSetting(org);
         data_parser_->WriteServoMessage(data);
 
         DeviceBaseItf::Close();
+
+        return 0;
+    }
+
+    int DevServo::SetSpeed(const ChsMovementCtrl& cc) {
+        auto data = data_packer_->PackServoMtrControl(cc);
+        return data_parser_->WriteServoMessage(data);
     }
 
 } //namespace device

@@ -1,10 +1,9 @@
 #include "cyber/cyber.h"
 #include "cyber/time/clock.h"
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-
-#include "modules/chassis/dispatch_chs.h"  //publish
-#include "modules/chassis/receive_ctrl.h"  //subscribe
+#include "modules/chassis/dispatcher.h"     //publish
+#include "modules/chassis/receiver.h"       //subscribe
+#include "modules/chassis/devices/device_manager.h"
 
 using namespace apollo;
 using namespace mstf;
@@ -14,10 +13,21 @@ static ::cyber::Time chas_pkg_start_time_;
 
 static std::shared_ptr<::proto::ChassisConfig> chs_conf_;
 
-static std::unique_ptr<DispatchChs> chas_dispatcher_;
-static std::unique_ptr<ReceiveCtrl> ctrl_receiver_;
+static std::unique_ptr<DispatchMsg> chas_dispatcher_;
+static std::unique_ptr<ReceiveMsg> ctrl_receiver_;
+static std::unique_ptr<DeviceManager> devs_mgr_;
+
+static std::string logo_ = R"(
+   ________                    _
+  / ____/ /_  ____ ___________(_)____
+ / /   / __ \/ __ `/ ___/ ___/ / ___/
+/ /___/ / / / /_/ (__  |__  ) (__  )
+\____/_/ /_/\__,_/____/____/_/____/
+)";
+
 
 int main(int argc, char **argv) {
+    AINFO << logo_;
     AINFO << "chassis start, name: " << PKG_NAME;
 
     ::cyber::Init(PKG_NAME);
@@ -45,21 +55,34 @@ int main(int argc, char **argv) {
         "";
 #endif
 
-    //1, dispatch chassis messages
-    chas_dispatcher_ = std::make_unique<DispatchChs>
-        (&chs_conf_->chs_topic_conf());
-    AINFO << "UPSTREAM >>> publisher for releasing chassis OK";
+    //1, chassis control reader downstream
+    ctrl_receiver_ = std::make_unique<ReceiveMsg>(chs_conf_);
+    AWARN << "<<< DOWNSTREAM subscriber for receiving control OK";
 
-    //2, chassis control reader downstream ReceiveCtrl
-    ctrl_receiver_ = std::make_unique<ReceiveCtrl>(chs_conf_);
-    AINFO << "<<< DOWNSTREAM subscriber for receiving control OK";
+    //2, dispatch chassis messages
+    chas_dispatcher_ = std::make_unique<DispatchMsg>(chs_conf_);
+    AWARN << "UPSTREAM >>> publisher for releasing chassis OK";
+
+#if 1
+    //3, device manager
+    devs_mgr_ = std::make_unique<DeviceManager>(chs_conf_);
+    devs_mgr_->DeviceInit();
+#if 1   //for testing
+    AINFO << "start to powerup peripheral devices, for testing";
+    devs_mgr_->DeviceStart();
+#endif
+#endif
 
     //exit handler
     auto chassis_exit_hdl = [&](void) {
         AWARN << "get exit signal, shutdown!";
 
-        ctrl_receiver_.reset();
+        devs_mgr_->DeviceClose();
+
+        devs_mgr_.reset();
         chas_dispatcher_.reset();
+        ctrl_receiver_.reset();
+
         chs_conf_.reset();
 
         AINFO << "chassis shutdown finish " <<

@@ -6,9 +6,10 @@
  */
 
 #include "utils.h"
-using namespace mstf;
-using namespace chss;
-using namespace network;
+
+namespace mstf {
+namespace chss {
+namespace driver {
 
 std::vector<std::string> GetCurrentKernelModules() {
     std::vector<std::string> modules;
@@ -16,7 +17,7 @@ std::vector<std::string> GetCurrentKernelModules() {
 }
 
 
-int network::Run(const std::string &cmd, std::vector<std::string> &output) {
+int Run(const std::string &cmd, std::vector<std::string> &output) {
     auto fp = popen(cmd.c_str(), "r");
     if (!fp) {
         std::cerr << "popen() failed!" << std::endl;
@@ -30,7 +31,6 @@ int network::Run(const std::string &cmd, std::vector<std::string> &output) {
     ssize_t read;
 
     while ((read = getline(&line, &len, fp)) != -1) {
-        ADEBUG << "run script get: " << line;
         output.push_back(line);
     }
 
@@ -41,12 +41,12 @@ int network::Run(const std::string &cmd, std::vector<std::string> &output) {
 
     return 0;
 }
-int network::Run(const std::string &cmd, std::string &output) {
+int Run(const std::string &cmd, std::string &output) {
     int ret = 0;
 
     std::vector<std::string> lines;
 
-    ret = network::Run(cmd, lines);
+    ret = Run(cmd, lines);
 
     if (0 != ret) {
         return ret;
@@ -64,11 +64,11 @@ int network::Run(const std::string &cmd, std::string &output) {
 
     return 0;
 }
-std::vector<int> network::GetProcessPid(const std::string name) {
+std::vector<int> GetProcessPid(const std::string name) {
     auto                     cmd = "ps -ef | grep " + name + " | grep -v grep | awk '{print $1}'";
     std::vector<std::string> output;
     std::vector<int>         result;
-    ::Run(cmd, output);
+    Run(cmd, output);
     for (auto &o : output) {
         result.push_back(std::atoi(o.c_str()));
     }
@@ -76,7 +76,7 @@ std::vector<int> network::GetProcessPid(const std::string name) {
     return result;
 }
 
-int network::TermProcess(const int pid) {
+int TermProcess(const int pid) {
     if (pid <= 1) {
         return 0;
     }
@@ -85,12 +85,12 @@ int network::TermProcess(const int pid) {
     return ret;
 }
 
-int network::TermProcess(const std::string &name) {
-    auto pids = network::GetProcessPid(name);
+int TermProcess(const std::string &name) {
+    auto pids = GetProcessPid(name);
 
     int ret = -1;
     for (auto &p : pids) {
-        ret = network::TermProcess(p);
+        ret = TermProcess(p);
         if (0 != ret) {
             return 1;
         }
@@ -99,10 +99,14 @@ int network::TermProcess(const std::string &name) {
     return 0;
 }
 
-void network::ReplaceString(std::string &str, const std::string &target, const std::string &replace) {
+void ReplaceString(std::string &str, const std::string &target, const std::string &replace) {
     if (str.empty()) {
         return;
     }
 
     // std::replace(str.begin(), str.end(), target.c_str(), replace.c_str());
 }
+
+}  // namespace driver
+}  // namespace chss
+}  // namespace mstf

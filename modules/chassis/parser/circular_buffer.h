@@ -42,7 +42,7 @@ namespace parser {
 
             explicit CircularBuffer(size_t s,
                     const std::string dev = "DFT") {
-                AINFO << "create cbuf:" << dev <<
+                AINFO << "create cbuf: " << dev <<
                     ", size: " << s;
                 //data_.reserve(s);
                 data_.resize(s);
@@ -509,7 +509,7 @@ namespace parser {
                         oss << " free: " << x << ", ";
                 }
                 AINFO << oss.str() <<
-                    " CBUF" << buf_name_ <<
+                    " CBUF: " << buf_name_ <<
                     ", capacity: " << capacity_cbuf_ <<
                     ", head: " << head_ <<
                     ", tail: " << tail_ <<

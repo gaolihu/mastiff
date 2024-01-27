@@ -1,15 +1,15 @@
 #include <algorithm>
 
+#include "modules/chassis/parser/parse_drv_link.h"
 #include "modules/chassis/parser/parse_libs/lidar_parser.h"
-#include "modules/chassis/proto/frame_up_stream.pb.h"
 
 namespace mstf {
 namespace chss {
 namespace parser {
 
-    LidarParser::LidarParser(const ChassisConfig* cc,
-            const SensorInfo* si) :
-        ParserBaseItf(cc, si) {
+    LidarParser::LidarParser(const
+            SensorIndicator& si) :
+        ParserBaseItf(si) {
             AINFO << "LidarParser construct";
             fan_segs_ = new FanSegment_AA*;
             *fan_segs_ = nullptr;
@@ -17,6 +17,10 @@ namespace parser {
             timeval tv;
             gettimeofday(&tv, NULL);
             point_cloud_last_ = (double)(tv.tv_sec + tv.tv_usec / 1e6);
+
+            ParseDrvLink::Instance()->RegisterUartListener
+                (std::bind(&ParserBaseItf::OnOriginalDataUart,
+                           this, ::_1, ::_2, ::_3), s_idc_);
         }
 
     LidarParser::~LidarParser() {
@@ -25,21 +29,55 @@ namespace parser {
     }
 
     int LidarParser::Init() {
-        cut_from_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
+        cut_from_ = dynamic_cast<const LidarDevConf*>(GetDevConfig())->
             lidar_assemble().cut_from_10th1_deg() * M_PI / 1800;
-        cut_to_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
+        cut_to_ = dynamic_cast<const LidarDevConf*>(GetDevConfig())->
             lidar_assemble().cut_to_10th1_deg() * M_PI / 1800;
-        cut_stuff_ = dynamic_cast<const LidarDevConf&>(GetDevConfig()).
+        cut_stuff_ = dynamic_cast<const LidarDevConf*>(GetDevConfig())->
             lidar_assemble().cut_discard_stuff();
         AINFO << "lidar cut angle from: " << (float)cut_from_ <<
             ", to: " << (float)cut_to_ <<
             ", cut stuff: " << cut_stuff_;
 
-        return ParserBaseItf::Init(
-                dynamic_cast<const LidarDevConf&>
-                (GetDevConfig()).sn_ind().port(),
-                &dynamic_cast<const LidarDevConf&>
-                    (GetDevConfig()).uart_conf().buf_setting());
+        ParseDrvLink::Instance()->Init(s_idc_);
+
+        return ParserBaseItf::Init();
+    }
+
+    int LidarParser::Start() {
+        if (ParserBaseItf::Start() != 0) {
+            AERROR << "LidarParser start error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Start(s_idc_);
+    }
+
+    int LidarParser::Stop() {
+        if (ParserBaseItf::Stop() != 0) {
+            AERROR << "LidarParser stop error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Stop(s_idc_);
+    }
+
+    int LidarParser::Resume() {
+        if (ParserBaseItf::Resume() != 0) {
+            AERROR << "LidarParser resume error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Resume(s_idc_);
+    }
+
+    int LidarParser::Close() {
+        if (ParserBaseItf::Close() != 0) {
+            AERROR << "LidarParser close error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Close(s_idc_);
     }
 
     //lidar protocol related
@@ -899,7 +937,9 @@ namespace parser {
         return -1;
     }
 
-    int LidarParser::ParseRawBuffer(const uint8_t* buf,
+    int LidarParser::ParseUartBuffer(const
+            SensorIndicator* si,
+            const uint8_t* buf,
             const size_t len) {
         int cbuf_len = cbuf_raw_->CbufSize();
 
@@ -1114,8 +1154,7 @@ namespace parser {
     }
 
     int LidarParser::ParseSigleFrame(const
-            std::vector<uint8_t>& data,
-            const size_t len) {
+            std::vector<uint8_t>& data, const size_t len) {
 #if 0
         AWARN << "frame idx: " << userdata_.idx <<
             ", laser point number: " << userdata_.data.framedata.N <<
@@ -1130,7 +1169,7 @@ namespace parser {
         }
 #endif
 #endif
-        if (!frame_processor_) {
+        if (!frame_processor_sp_) {
             AWARN << "no frame processor!";
             return -1;
         }
@@ -1170,14 +1209,14 @@ namespace parser {
                 p->set_y(cut_stuff_);
                 //p->set_z(cut_stuff_);
             } else {
-                p->set_x(cos(2 * M_PI - userdata_.data.framedata.data[i].angle) *
-                        userdata_.data.framedata.data[i].distance == 0 ?
-                        //cut_stuff_ : userdata_.data.framedata.data[i].distance);
-                        200 : userdata_.data.framedata.data[i].distance);
-                p->set_y(sin(2 * M_PI - userdata_.data.framedata.data[i].angle) *
-                        userdata_.data.framedata.data[i].distance == 0 ?
-                        //cut_stuff_ : userdata_.data.framedata.data[i].distance);
-                        200 : userdata_.data.framedata.data[i].distance);
+                double cos_range = cos(2 * M_PI -
+                        userdata_.data.framedata.data[i].angle) *
+                    userdata_.data.framedata.data[i].distance;
+                double sin_range = sin(2 * M_PI -
+                        userdata_.data.framedata.data[i].angle) *
+                    userdata_.data.framedata.data[i].distance;
+                p->set_x( cos_range== 0 ? 200 : cos_range);
+                p->set_y( sin_range == 0 ? 200 : sin_range);
                 //p->set_z(0);
             }
 
@@ -1192,7 +1231,8 @@ namespace parser {
                 (float)(userdata_.data.framedata.N));
         point_cloud_last_ = this_time;
 
-        return frame_processor_(&pcs, "ventura::common_msgs::sensor_msgs::PointCloud");
+        return frame_processor_sp_(std::make_shared
+                <ventura::common_msgs::sensor_msgs::PointCloud>(pcs));
     }
 
 } //namespace parser

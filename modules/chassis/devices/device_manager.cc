@@ -1,5 +1,7 @@
 #include "cyber/common/log.h"
 
+#include "modules/chassis/devices/transactor.h"
+#include "modules/chassis/devices/dev_parse_link.h"
 #include "modules/chassis/devices/device_manager.h"
 
 namespace mstf {
@@ -11,171 +13,119 @@ namespace device {
         ACHECK(cc != nullptr) << "ChassisConfigPtr NULL!";
 
 #ifdef CHSS_PKG_DBG
-        AINFO << "DeviceManager construct start";
-#endif
-
+        AINFO << "~~~~~ DeviceManager construct start ~~~~~";
         auto start_time = std::chrono::steady_clock::now();
+#endif
+        chs_conf_ = cc;
+        AINFO << "start instantiate chs peripherals";
 
-        chs_conf_ = const_cast<ChassisConfig*>(cc.get());
-        AINFO << "start to instantiate peripheral devices";
+        Transactor::Instance()->Init(chs_conf_.lock());
 
         //1, servo motor
-        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
-            if (chs_conf_->servo_dev(i).used()) {
-                servo_.emplace_back(std::make_unique<DevServo>(cc.get(),
-                            chs_conf_->servo_dev(i).si(),
-                            chs_conf_->servo_dev(i).sn_ind()));
-
-                //create SensorIndicator to bind with device
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->servo_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(servo_.back().get());
+        for (int i = 0; i < chs_conf_.lock()->servo_dev().size(); i++) {
+            if (chs_conf_.lock()->servo_dev(i).used()) {
+                servo_.emplace_back(std::make_unique<DevServo>(
+                            chs_conf_.lock()->servo_dev(i).sn_ind()));
             }
         }
 
-        //2, audio device
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if (chs_conf_->aud_dev(i).used()) {
-                audio_paly_.emplace_back(std::make_unique<AudioPlay>(cc.get(),
-                            chs_conf_->aud_dev(i).si(),
-                            chs_conf_->aud_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->aud_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(audio_paly_.back().get());
+        //2, lidar device
+        for (int i = 0; i < chs_conf_.lock()->lidar_dev().size(); i++) {
+            if (chs_conf_.lock()->lidar_dev(i).used()) {
+                dev_lidar_.emplace_back(std::make_unique<DeviceLidar>(
+                            chs_conf_.lock()->lidar_dev(i).sn_ind()));
             }
         }
 
-        //3, wireless device
-        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
-            if (chs_conf_->wireless_dev(i).used()) {
-                dev_wireless_.emplace_back(std::make_unique<DeviceWireless>(cc.get(),
-                            chs_conf_->wireless_dev(i).si(),
-                            chs_conf_->wireless_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->wireless_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_wireless_.back().get());
+        //3, linelaser device
+        for (int i = 0; i < chs_conf_.lock()->linelaser_dev().size(); i++) {
+            if (chs_conf_.lock()->linelaser_dev(i).used()) {
+                line_laser_.emplace_back(std::make_unique<LineLaser>(
+                            chs_conf_.lock()->linelaser_dev(i).sn_ind()));
             }
         }
 
-        //4, lidar device
-        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
-            if (chs_conf_->lidar_dev(i).used()) {
-                dev_lidar_.emplace_back(std::make_unique<DeviceLidar>(cc.get(),
-                            chs_conf_->lidar_dev(i).si(), chs_conf_->lidar_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->lidar_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_lidar_.back().get());
+        //4, IMU device
+        for (int i = 0; i < chs_conf_.lock()->imu_dev().size(); i++) {
+            if (chs_conf_.lock()->imu_dev(i).used()) {
+                dev_imu_.emplace_back(std::make_unique<DeviceIMU>(
+                            chs_conf_.lock()->imu_dev(i).sn_ind()));
             }
         }
 
+        //5, Joystick
+        for (int i = 0; i < chs_conf_.lock()->joystick_dev().size(); i++) {
+            if (chs_conf_.lock()->joystick_dev(i).used()) {
+                dev_joy_.emplace_back(std::make_unique<DeviceJoyStick>(
+                            chs_conf_.lock()->joystick_dev(i).sn_ind()));
+            }
+        }
+
+        //6, audio device
+        for (int i = 0; i < chs_conf_.lock()->aud_dev().size(); i++) {
+            if (chs_conf_.lock()->aud_dev(i).used()) {
+                audio_paly_.emplace_back(std::make_unique<AudioPlay>(
+                            chs_conf_.lock()->aud_dev(i).sn_ind()));
+
+            }
+        }
+
+        //7, wireless device
+        for (int i = 0; i < chs_conf_.lock()->wireless_dev().size(); i++) {
+            if (chs_conf_.lock()->wireless_dev(i).used()) {
+                dev_wireless_.emplace_back(std::make_unique<DeviceWireless>(
+                            chs_conf_.lock()->wireless_dev(i).sn_ind()));
+            }
+        }
+
+        //8, camera device
+        for (int i = 0; i < chs_conf_.lock()->camera_dev().size(); i++) {
+            if (chs_conf_.lock()->camera_dev(i).used()) {
+                dev_camera_.emplace_back(std::make_unique<DeviceCamera>(
+                            chs_conf_.lock()->camera_dev(i).sn_ind()));
+            }
+        }
+
+#if 0
         //5, mcu device
-        for (int i = 0; i < chs_conf_->mcu_dev().size(); i++) {
-            if (chs_conf_->mcu_dev(i).used()) {
+        for (int i = 0; i < chs_conf_.lock()->mcu_dev().size(); i++) {
+            if (chs_conf_.lock()->mcu_dev(i).used()) {
                 dev_mcu_.emplace_back(std::make_unique<DeviceMcu>(cc.get(),
-                            chs_conf_->mcu_dev(i).si(),
-                            chs_conf_->mcu_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->mcu_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_mcu_.back().get());
-            }
-        }
-
-        //6, camera device
-        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
-            if (chs_conf_->camera_dev(i).used()) {
-                dev_camera_.emplace_back(std::make_unique<DeviceCamera>(cc.get(),
-                            chs_conf_->camera_dev(i).si(),
-                            chs_conf_->camera_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->camera_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_camera_.back().get());
+                            chs_conf_.lock()->mcu_dev(i).si(),
+                            chs_conf_.lock()->mcu_dev(i).sn_ind()));
             }
         }
 
         //7, gpio device
-        for (int i = 0; i < chs_conf_->gpio_dev().size(); i++) {
-            if (chs_conf_->gpio_dev(i).used()) {
+        for (int i = 0; i < chs_conf_.lock()->gpio_dev().size(); i++) {
+            if (chs_conf_.lock()->gpio_dev(i).used()) {
                 dev_gpio_.emplace_back(std::make_unique<DeviceGpio>(cc.get(),
-                            chs_conf_->gpio_dev(i).si(),
-                            chs_conf_->gpio_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->gpio_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_gpio_.back().get());
+                            chs_conf_.lock()->gpio_dev(i).si(),
+                            chs_conf_.lock()->gpio_dev(i).sn_ind()));
             }
         }
 
-        //8, linelaser device
-        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
-            if (chs_conf_->linelaser_dev(i).used()) {
-                line_laser_.emplace_back(std::make_unique<LineLaser>(cc.get(),
-                            chs_conf_->linelaser_dev(i).si(),
-                            chs_conf_->linelaser_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->linelaser_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_gpio_.back().get());
-            }
-        }
-
-        //9, IMU device
-        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
-            if (chs_conf_->imu_dev(i).used()) {
-                dev_imu_.emplace_back(std::make_unique<DeviceIMU>(cc.get(),
-                            chs_conf_->imu_dev(i).si(),
-                            chs_conf_->imu_dev(i).sn_ind()));
-
-                sensor_ind_infos_pair_[const_cast
-                    <SensorIndicator*>(&chs_conf_->imu_dev(i).sn_ind())] =
-                    dynamic_cast<DeviceBaseItf*>(dev_imu_.back().get());
-            }
-        }
-
-        /*
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++) {
-            AINFO << "si: \n" << it->first->DebugString();
-        }
-        */
-        auto end_time = std::chrono::steady_clock::now();
+#endif
 #ifdef CHSS_PKG_DBG
-        AINFO << "construction OK, managed: "
-            << sensor_ind_infos_pair_.size() <<
-            ", take : " << std::chrono::duration<double,
-            std::milli>(end_time - start_time).count() <<
-                " ms";
+        auto end_time = std::chrono::steady_clock::now();
+        AINFO << "~~~~~ DeviceManager construct take " <<
+            std::chrono::duration<double, std::milli>
+            (end_time - start_time).count() << "ms ~~~~~";
 #endif
     }
 
     DeviceManager::~DeviceManager() {
+#ifdef CHSS_PKG_DBG
         AINFO << "DeviceManager de-construct start, chs_conf_ p: " <<
-            chs_conf_;
-
-        DeviceClose();
-#if 0
-        dev_mcu_.reset();
-
-        /*
-        AINFO << "DeviceManager de-construct, chs_conf_ mcu_dev: " <<
-            chs_conf_->mcu_dev().DebugString();
-            */
-
-        dev_lidar_.reset();
-        dev_camera0_.reset();
-        dev_gpio_.reset();
-        pwm_.reset();
-        audio_paly_.reset();
-        dev_imu_.reset();
+            chs_conf_.lock();
 #endif
+        Transactor::Instance()->Finish();
+        DeviceClose();
         AINFO << "DeviceManager de-construct finished, chs_conf_ p: " <<
-            chs_conf_;
+            chs_conf_.lock();
     }
 
+#if 0
     void DeviceManager::ManageDevices(const DevicesManager& ma) {
         if (ma.has_gpio_m() && ma.gpio_m().index() < dev_gpio_.size()) {
             switch (ma.gpio_m().val()) {
@@ -332,207 +282,48 @@ namespace device {
                 AWARN << "unknown command for manage audio device!";
             }
         }
+
+        if (ma.has_joy_m() && ma.joy_m().index() < dev_joy_.size()) {
+            switch (ma.joy_m().val()) {
+                case E_DEVICES_MANAGE_START:
+                    dev_joy_[ma.joy_m().index()]->StartSensor();
+                break;
+                case E_DEVICES_MANAGE_STOP:
+                    dev_joy_[ma.joy_m().index()]->StopSensor();
+                break;
+                case E_DEVICES_MANAGE_RESUME:
+                    dev_joy_[ma.joy_m().index()]->ResumeSensor();
+                break;
+                case E_DEVICES_MANAGE_CLOSE:
+                    dev_joy_[ma.joy_m().index()]->CloseSensor();
+                break;
+                default:
+                AWARN << "unknown command for manage Joy Stick device!";
+                break;
+            }
+        }
     }
+#endif
 
     //operate all device
     int DeviceManager::DeviceInit() {
-        int i = 1, ret = 0;
-        auto start_time = std::chrono::steady_clock::now();
-        AINFO << "===== init all of the " <<
-            sensor_ind_infos_pair_.size() <<
-            " managed devices =====";
-
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++, ++i) {
-            DeviceBaseItf* dev_itf = it->second;
-            if ((ret = dev_itf->InitSensor(it->first)) != 0) {
-                AWARN << "init device: " <<
-                    dev_itf->GetSensorName() << " failed!";
-            }
-#ifdef CHSS_PKG_DBG
-            AINFO << "===init device finished index: " << i <<
-                " ~ " << dev_itf->GetSensorName() <<
-                (ret == 0 ? ", OK!" : ", NG!") <<
-#if 0
-                "\n(\n" <<
-                dev_itf->CheckDeviceInfo() << ")";;
-#else
-                "";
-#endif
-#endif
-        }
-
-        auto end_time = std::chrono::steady_clock::now();
-        AINFO << "===== DeviceManager init all " <<
-            sensor_ind_infos_pair_.size() << " devices, take " <<
-            std::chrono::duration<double, std::milli>
-            (end_time - start_time).count() << "ms =====";
-
-        return ret;
+        return DevParseLink::Instance()->DeviceInit();
     }
 
     int DeviceManager::DeviceStart() {
-        int i = 1, ret = 0;
-        auto start_time = std::chrono::steady_clock::now();
-        AINFO << "##### start all of the " <<
-            sensor_ind_infos_pair_.size() <<
-            " managed devices #####";
-        /*
-        //make sure GPIO start first of all
-        dev_gpio_->Start();
-        */
-
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++, ++i) {
-            DeviceBaseItf* dev_itf = it->second;
-            if ((ret = dev_itf->StartSensor()) != 0) {
-                AERROR << "start device: " <<
-                    dev_itf->GetSensorName() << " failed!";
-                ret = -1;
-            }
-#ifdef CHSS_PKG_DBG
-            AINFO << "###start device finished index: " << i <<
-                " ~ " << dev_itf->GetSensorName() <<
-                (ret == 0 ? ", OK!" : ", NG!") <<
-#if 0
-                "\n(\n" <<
-                dev_itf->CheckDeviceInfo() << ")";;
-#else
-                "";
-#endif
-#endif
-        }
-
-        auto end_time = std::chrono::steady_clock::now();
-        AINFO << "##### DeviceManager start all " <<
-            sensor_ind_infos_pair_.size() << " devices, take " <<
-            std::chrono::duration<double, std::milli>
-            (end_time - start_time).count() << "ms #####";
-
-        return ret;
+        return DevParseLink::Instance()->DeviceStart();
     }
 
     int DeviceManager::DeviceStop() {
-        int i = 1, ret = 0;
-        auto start_time = std::chrono::steady_clock::now();
-        AINFO << "@@@@@ stop all of the " <<
-            sensor_ind_infos_pair_.size() <<
-            " managed devices @@@@@";
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++, ++i) {
-            DeviceBaseItf* dev_itf = it->second;
-            if ((ret = dev_itf->StopSensor()) != 0) {
-                AWARN << "stop device: " <<
-                    dev_itf->GetSensorName() << " failed!";
-            }
-#ifdef CHSS_PKG_DBG
-            AINFO << "@@@stop device finished index: " << i <<
-                " ~ " << dev_itf->GetSensorName() <<
-                (ret == 0 ? ", OK!" : ", NG!") <<
-#if 0
-                "\n(\n" <<
-                dev_itf->CheckDeviceInfo() << ")";;
-#else
-                "";
-#endif
-#endif
-        }
-
-        auto end_time = std::chrono::steady_clock::now();
-        AINFO << "@@@@@ DeviceManager stop all " <<
-            sensor_ind_infos_pair_.size() << " devices, take " <<
-            std::chrono::duration<double, std::milli>
-            (end_time - start_time).count() << "ms @@@@@";
-
-        return ret;
+        return DevParseLink::Instance()->DeviceStop();
     }
 
-    void DeviceManager::DeviceClose() {
-        int i = 1;
-        auto start_time = std::chrono::steady_clock::now();
-        AINFO << "----- close all of the " <<
-            sensor_ind_infos_pair_.size() <<
-            " managed devices -----";
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++, ++i) {
-            auto dev_itf = it->second;
-            dev_itf->CloseSensor();
-#ifdef CHSS_PKG_DBG
-            AINFO << "---close device finished index: " << i <<
-                " ~ " << dev_itf->GetSensorName() <<
-#if 0
-                "\n(\n" <<
-                dev_itf->CheckDeviceInfo() << ")";;
-#else
-                "";
-#endif
-#endif
-                std::this_thread::sleep_for(std::chrono::
-                        milliseconds(100));
-        }
-
-        auto end_time = std::chrono::steady_clock::now();
-        AINFO << "----- DeviceManager close all " <<
-            sensor_ind_infos_pair_.size() << " devices, take " <<
-            std::chrono::duration<double, std::milli>
-            (end_time - start_time).count() << "ms -----";
+    int DeviceManager::DeviceResume() {
+        return DevParseLink::Instance()->DeviceResume();
     }
 
-    //operate conclusive device
-    int DeviceManager::DeviceInit(SensorIndicator* snr_ind) {
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++) {
-            auto snr_i = it->first;
-            if (snr_i == snr_ind) {
-                auto dev_itf = it->second;
-                return dev_itf->InitSensor(snr_i);
-            }
-        }
-
-        return -1;
-    }
-
-    int DeviceManager::DeviceStart(SensorIndicator* snr_ind) {
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++) {
-            auto snr_i = it->first;
-            if (snr_i == snr_ind) {
-                auto dev_itf = it->second;
-                return dev_itf->StartSensor();
-            }
-        }
-
-        return -1;
-    }
-
-    int DeviceManager::DeviceStop(SensorIndicator* snr_ind) {
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++) {
-            auto snr_i = it->first;
-            if (snr_i == snr_ind) {
-                auto dev_itf = it->second;
-                return dev_itf->StopSensor();
-            }
-        }
-
-        return -1;
-    }
-
-    void DeviceManager::DeviceClose(SensorIndicator* snr_ind) {
-        for (auto it = sensor_ind_infos_pair_.begin();
-                it != sensor_ind_infos_pair_.end(); it++) {
-            auto snr_i = it->first;
-            if (snr_i == snr_ind) {
-                auto dev_itf = it->second;
-                dev_itf->CloseSensor();
-                return;
-            }
-        }
-    }
-
-    SensorIndicator* DeviceManager::GetGpioSwitchByPin(std::string& pin) {
-        //dev_gpio_
-        return nullptr;
+    int DeviceManager::DeviceClose() {
+        return DevParseLink::Instance()->DeviceClose();
     }
 
 } //namespace device

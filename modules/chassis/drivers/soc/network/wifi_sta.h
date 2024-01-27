@@ -1,20 +1,13 @@
-/*
- * @Date: 2023-09-13 11:29:03
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/network/wifi_sta.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 
 #include <iostream>
 #include <string>
 namespace mstf {
 namespace chss {
-namespace network {
+namespace driver {
 enum class StaPasswordState_t { UNKNOWN, CORRECT, INCORRECT };
 
-class WifiSta {
+class WiFiSta {
 public:
     void        EnableSta(const std::string &ssid, const std::string &pwd);
     void        DisableSta() const;
@@ -46,6 +39,6 @@ private:
 
     WpaState_t GetWpaState() const;
 };
-}  // namespace network
+}  // namespace driver
 }  // namespace chss
 }  // namespace mstf

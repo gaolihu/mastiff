@@ -1,0 +1,525 @@
+syntax = "proto3";
+
+package mstf.chss.proto;
+
+import "google/protobuf/wrappers.proto";
+//import "modules/chassis/proto/protocol_libs/ys_pack_mcu_protocol.proto";
+
+//////////////////// Message Input ////////////////////
+//1, Speed control
+message WheelRpm {
+    // Revolutions Per Minute
+    int32 left_rpm = 1;
+    int32 right_rpm = 2;
+}
+
+message WheelSpeed {
+    float left_whl = 1;     // m/s
+    float right_whl = 2;    // m/s
+}
+
+message WheelDiffSpd {
+    float linear = 1;     // m/s
+    float angular = 2;    // rad/s
+}
+
+message ChsMovementCtrl {
+    oneof MoveCtrl {
+        WheelRpm whl_rpm = 1;
+        WheelSpeed whl_spd = 2;
+        WheelDiffSpd diff_spd = 3;
+    }
+    google.protobuf.BoolValue emergency_stop = 4;
+    google.protobuf.BoolValue wheel_reverse = 5;
+    google.protobuf.BoolValue wheel_release = 6;
+    google.protobuf.BoolValue encoder_reset = 7;
+    google.protobuf.UInt32Value update_freq_ms = 8;
+}
+
+//2, ADC control
+message AdcSetting {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.UInt32Value volt_low_mv = 2;
+    google.protobuf.UInt32Value volt_high_mv = 3;
+    google.protobuf.UInt32Value current_low_ma = 4;
+    google.protobuf.UInt32Value current_high_ma = 5;
+    google.protobuf.BoolValue dev_reset = 6;
+    google.protobuf.UInt32Value update_freq_ms = 7;
+}
+
+message ChsPeriphAdcCtrl {
+    AdcSetting disc_brush_left = 1;
+    AdcSetting disc_brush_right = 2;
+
+    AdcSetting roll_brush_front = 3;
+    AdcSetting roll_brush_rear = 4;
+
+    AdcSetting suck_fan_1 = 5;
+    AdcSetting suck_fan_2 = 6;
+
+    AdcSetting wheel_left = 7;
+    AdcSetting wheel_right = 8;
+
+    AdcSetting battery_config = 9;
+}
+
+//3, PWM control
+message PwmSetting {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.UInt32Value duty_low = 2;
+    google.protobuf.UInt32Value duty_high = 3;
+    google.protobuf.UInt32Value duty_config = 4;
+    google.protobuf.UInt32Value cycle_ns = 5;
+    google.protobuf.UInt32Value positive_ns = 6;
+    google.protobuf.BoolValue dev_reset = 7;
+    google.protobuf.UInt32Value update_freq_ms = 8;
+}
+
+message ChsPeriphPwmCtrl {
+    PwmSetting disc_brush_left = 1;
+    PwmSetting disc_brush_right = 2;
+
+    PwmSetting roll_brush_front = 3;
+    PwmSetting roll_brush_rear = 4;
+
+    PwmSetting suck_fan_1 = 5;
+    PwmSetting suck_fan_2 = 6;
+
+    PwmSetting battery_config = 7;
+}
+
+//4, GPIO control
+message GpioSetting {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.BoolValue reset = 3;
+    google.protobuf.UInt32Value gear = 4;
+    google.protobuf.UInt32Value on_ms = 5;
+    google.protobuf.UInt32Value off_ms = 6;
+    google.protobuf.UInt32Value update_freq_ms = 7;
+}
+
+message ChsPeriphGpioCtrl {
+    GpioSetting emergency_stop = 1;
+    GpioSetting emergency_break = 2;
+    GpioSetting veichle_key = 3;
+    GpioSetting veichle_reverse = 4;
+    GpioSetting gear_adjust = 5;
+
+    //leds
+    GpioSetting logo_led = 6;
+    GpioSetting turn_signal_led = 7;
+    GpioSetting headlight_led = 8;
+    reserved 9 to 10;
+
+    //valves
+    GpioSetting drain_valve = 11;
+    GpioSetting water_fill_valve = 12;
+    GpioSetting water_spray_valve = 13;
+    GpioSetting detergent_valve = 14;
+
+    //cleaning components
+    GpioSetting water_scrape = 15;
+    GpioSetting disc_brush_left = 16;
+    GpioSetting disc_brush_right = 17;
+    GpioSetting roll_brush_front = 18;
+    GpioSetting roll_brush_rear = 19;
+    GpioSetting suck_fan_1 = 20;
+    GpioSetting suck_fan_2 = 21;
+
+    GpioSetting hall_push = 22;
+    GpioSetting bump_1 = 23;
+    GpioSetting bump_2 = 24;
+    GpioSetting bump_3 = 25;
+    GpioSetting bump_4 = 26;
+
+    GpioSetting clean_box = 27;
+    GpioSetting dirty_box = 28;
+    GpioSetting waste_box = 29;
+    GpioSetting detergent_box = 30;
+}
+
+//5, MSIC control
+enum EE_SUBDEV_OPTS {
+    E_SUBDEV_OPTS_SENTINEL = 0;
+    E_SUBDEV_OPTS_INIT = 1;
+    E_SUBDEV_OPTS_START = 2;
+    E_SUBDEV_OPTS_ENABLE = 3;
+    E_SUBDEV_OPTS_RAW = 4;      //raw data to sub device
+    E_SUBDEV_OPTS_PAUSE = 5;
+    E_SUBDEV_OPTS_RESUME = 6;
+    E_SUBDEV_OPTS_STOP = 7;
+    E_SUBDEV_OPTS_DISABLE = 8;
+    E_SUBDEV_OPTS_CLOSE = 9;
+    E_SUBDEV_OPTS_STORE = 10;    //load init info
+}
+
+message SubDevManage {
+    uint32 index = 1;
+    EE_SUBDEV_OPTS sub_opts = 2;
+    uint32 cmd = 3;
+    bytes raw_data = 4;
+}
+
+//camera
+enum EE_CAMERA_OPS {
+    E_CAMERA_SENTINEL = 0;
+    E_CAMERA_CAPTURE = 1;
+    E_CAMERA_VIDEO = 2;
+}
+
+message CameraSetting {
+    /*
+    uint32 index = 1;
+    EE_CAMERA_OPS setting = 2;
+    SubDevManage dev_manage = 3;
+    */
+
+    ////..
+    google.protobuf.BoolValue sw = 1;
+    google.protobuf.Int32Value flip = 2;
+    bool capture = 3;
+    bool video = 4;
+    bool close = 5;
+    bool restart = 6;
+}
+
+//wifi
+enum EE_WIFI_FUNCTIONS {
+    E_WIFI_GET_MODE = 0;             // none, ap, sta, sniffer
+    E_WIFI_GET_IP = 1;
+    E_WIFI_GET_MAC = 2;
+    E_WIFI_GET_DNS = 3;
+    E_WIFI_GET_WPA_INFO = 4;         // wpa_suppclient.conf
+    E_WIFI_GET_NAME = 5;             // wifi name
+    E_WIFI_GET_ROUTER_MAC = 6;       // router mac
+    E_WIFI_GET_STATUS = 7;           // wpa_cli status
+    E_WIFI_GET_SCAN_LIST = 8;        // wpa scan wifi results
+    E_WIFI_GET_RECONNECT = 9;
+
+    E_WIFI_DISCONNECT = 10;
+    E_WIFI_CHECK_CONNECTION = 11;    // 通过ping 判断是否能连接外网
+    E_WIFI_TEST_SPEED = 12;          // 获取ping的平均延迟, 单位 ms
+
+    E_WIFI_CONNECT = 13;             // 需要同时设置wifi ssid和密码
+    E_WIFI_CREATE_AP = 14;           // 同13
+
+    E_WIFI_CLOSE = 15;
+    E_WIFI_START = 16;
+}
+
+message WifiAuthInfo {
+    google.protobuf.StringValue ssid = 1;
+    google.protobuf.StringValue pswd = 2;
+    //shall add PSK info
+}
+
+message WifiSetting {
+    EE_WIFI_FUNCTIONS wifi_func = 1;
+    WifiAuthInfo auth_info = 2;
+    SubDevManage dev_manage = 3;
+}
+
+//4g
+message FourGSetting {
+    WifiAuthInfo auth_info = 1;
+    SubDevManage dev_manage = 2;
+}
+
+//audio
+message AudioPlay {
+    int32 sound_id = 1;     //MUST, voice to play
+    google.protobuf.StringValue pack = 2;   //language
+    google.protobuf.Int32Value play_cnt = 3;//times to play
+    google.protobuf.BoolValue interrupt = 4;//support interrpt
+}
+
+message SetAduioVolume {
+    int32 volmue = 1;
+    google.protobuf.BoolValue mute_sw = 2;
+}
+
+message SetAudioPack {
+    string dft_pack = 1;
+}
+
+message AudioSetting {
+    AudioPlay play = 1;
+    SetAduioVolume vol = 2;
+    SetAudioPack pack = 3;
+    SubDevManage dev_manage = 4;
+}
+
+//lidar
+message LidarSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//imu
+message ImuSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//tof
+message TofSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//lcd
+message LcdSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//super sonic
+message SuperSonicSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//linelaser
+message LineLaserSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//joystic
+message JoyStickSetting {
+    SubDevManage dev_manage = 1;
+}
+
+//servo motor
+message ServoSetting {
+    SubDevManage dev_manage = 1;
+}
+
+message ChsSocMiscCtrl {
+    repeated CameraSetting camera = 1;
+    WifiSetting wifi = 2;
+    FourGSetting four_g = 3;
+    AudioSetting audio = 4;
+    repeated LidarSetting lidar = 5;
+    ImuSetting imu = 6;
+    TofSetting tof = 7;
+    LcdSetting lcd = 8;
+    SuperSonicSetting super_sonic = 9;
+    repeated LineLaserSetting line_laser = 10;
+    JoyStickSetting joy_stick = 11;
+    ServoSetting servo_mtr = 12;
+}
+
+//6, Infra control
+message InfraSetting {
+    string dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.BoolValue reset = 3;
+    google.protobuf.UInt32Value val1 = 4;
+    google.protobuf.UInt32Value val2 = 5;
+    google.protobuf.UInt32Value update_freq_ms = 6;
+}
+
+message ChsPeriphInfraCtrl {
+    InfraSetting drop_info = 1;
+    InfraSetting docker_info = 2;
+}
+
+//7, Firmware update
+message ChsFirmWareUpdate {
+    string version = 1;
+    string dest = 2;
+    string md5sum = 4;
+    bytes data = 3;
+}
+//////////////////// Message Input ////////////////////
+
+//////////////////// Message Output ////////////////////
+//1, Liquid info
+message LiquidInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.UInt32Value lelel = 3;
+    google.protobuf.UInt32Value empty = 4;
+    google.protobuf.UInt32Value low = 5;
+    google.protobuf.UInt32Value full = 6;
+    google.protobuf.UInt32Value update_freq_ms = 7;
+}
+
+message ChsLiquidLvlInfo {
+    LiquidInfo clean_tank = 1;
+    LiquidInfo dirty_tank = 2;
+    LiquidInfo dust_box = 3;
+    LiquidInfo detergent_tank = 4;
+}
+
+//2, ADC info
+message AdcInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.UInt32Value voltage_mv = 3;
+    google.protobuf.UInt32Value current_ma = 4;
+    google.protobuf.UInt32Value temperature = 5;
+    google.protobuf.UInt32Value update_freq_ms = 6;
+}
+
+message ChsPeriphAdcInfo {
+    AdcInfo disc_brush_left = 1;
+    AdcInfo disc_brush_right = 2;
+
+    AdcInfo roll_brush_front = 3;
+    AdcInfo roll_brush_rear = 4;
+
+    AdcInfo suck_fan_1 = 5;
+    AdcInfo suck_fan_2 = 6;
+
+    AdcInfo wheel_left = 7;
+    AdcInfo wheel_right = 8;
+
+    AdcInfo battery_config = 9;
+}
+
+//3, Peripheral ADC
+message PwmInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.UInt32Value duty = 3;
+    google.protobuf.UInt32Value cycle_ns = 4;
+    google.protobuf.UInt32Value positive_ns = 5;
+    google.protobuf.UInt32Value update_freq_ms = 6;
+}
+
+message ChsPeriphPwmInfo {
+    PwmInfo disc_brush_left = 1;
+    PwmInfo disc_brush_right = 2;
+
+    PwmInfo roll_brush_front = 3;
+    PwmInfo roll_brush_rear = 4;
+
+    PwmInfo suck_fan_1 = 5;
+    PwmInfo suck_fan_2 = 6;
+
+    PwmInfo battery_config = 9;
+}
+
+//4, Peripheral GPIO
+message GpioInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.UInt32Value gear = 3;
+    google.protobuf.UInt32Value on_ms = 4;
+    google.protobuf.UInt32Value off_ms = 5;
+    google.protobuf.UInt32Value update_freq_ms = 6;
+}
+
+message ChsPeriphGpioInfo {
+    GpioInfo emergency_stop = 1;
+    GpioInfo emergency_break = 2;
+    GpioInfo veichle_key = 3;
+    GpioInfo veichle_reverse = 4;
+    GpioInfo gear_adjust = 5;
+
+    //leds
+    GpioInfo logo_led = 6;
+    GpioInfo turn_signal_led = 7;
+    GpioInfo headlight_led = 8;
+    reserved 9 to 10;
+
+    //valves
+    GpioInfo drain_valve = 11;
+    GpioInfo water_fill_valve = 12;
+    GpioInfo water_spray_valve = 13;
+    GpioInfo detergent_valve = 14;
+
+    //cleaning components
+    GpioInfo water_scrape = 15;
+    GpioInfo disc_brush_left = 16;
+    GpioInfo disc_brush_right = 17;
+    GpioInfo roll_brush_front = 18;
+    GpioInfo roll_brush_rear = 19;
+    GpioInfo suck_fan_1 = 20;
+    GpioInfo suck_fan_2 = 21;
+
+    GpioInfo hall_push = 22;
+    GpioInfo bump_1 = 23;
+    GpioInfo bump_2 = 24;
+    GpioInfo bump_3 = 25;
+    GpioInfo bump_4 = 26;
+
+    GpioInfo clean_box = 27;
+    GpioInfo dirty_box = 28;
+    GpioInfo waste_box = 29;
+    GpioInfo detergent_box = 30;
+}
+
+//5, Peripheral INFRA
+message InfraInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.BoolValue en = 2;
+    google.protobuf.UInt32Value value = 4;
+    google.protobuf.UInt32Value update_freq_ms = 5;
+}
+
+message ChsPeriphInfraInfo {
+    InfraInfo drop_sensor = 1;
+}
+
+//6, Peripheral SOC
+//camera
+message CameraInfo {
+    uint32 index = 1;
+    google.protobuf.StringValue dev = 2;
+    google.protobuf.BoolValue en = 3;
+}
+
+//wifi
+message WifiInfo {
+    string mode = 1; // ap , sta, master
+    string ip = 2;
+    string mac = 3;
+    string dns = 4;
+    string info = 5;
+    string name = 6;
+    string bssid = 7;
+    string status = 8;
+    string scan_list = 9; // json str
+    bool is_online = 10; // 是否有网络
+    float ping_speed = 11; // ping baidu.com 延迟，单位 ms
+
+    string wifi_result = 12;
+}
+
+//4g
+message FourgInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.UInt32Value account = 2;
+}
+
+//audio
+message AudioInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.StringValue pack = 2;   //language
+    google.protobuf.UInt32Value volmue = 3;
+    google.protobuf.BoolValue mute_sw = 4;
+}
+
+//lidar & imu & linelaser & super sonic & tof & joystick
+message SensorCommonInfo {
+    google.protobuf.StringValue dev = 1;
+    google.protobuf.StringValue stat = 2;
+    google.protobuf.UInt32Value freq = 3;
+    google.protobuf.UInt32Value update_freq_ms = 4;
+}
+
+message ChsMiscSocInfo {
+    repeated CameraInfo camera = 1;
+    WifiInfo wire_less = 2;
+    FourgInfo four_g = 3;
+    AudioInfo audoi = 4;
+    repeated SensorCommonInfo lidar_info = 5;
+    SensorCommonInfo imu_info = 6;
+    SensorCommonInfo tof_info = 7;
+    SensorCommonInfo super_sonic = 8;
+    SensorCommonInfo joy_stick = 9;
+}
+
+message ChsResponseCtrl {
+    uint32 response_ctrl_id = 1;
+    bool if_success = 2;
+}
+//////////////////// Message Output ////////////////////

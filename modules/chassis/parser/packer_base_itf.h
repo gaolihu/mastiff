@@ -2,7 +2,7 @@
 
 #include "cyber/common/log.h"
 
-#include "modules/chassis/proto/frame_down_stream.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 namespace mstf {
 namespace chss {
@@ -13,52 +13,44 @@ namespace parser {
     class PackerBaseItf {
         public:
             PackerBaseItf(const std::string& dev) {
-                AINFO << "PackerBaseItf construct for " << dev;
+#ifdef CHSS_PKG_DBG
+                AINFO << "PackerBaseItf construct: " <<
+                    dev;
+#endif
             }
 
             virtual ~PackerBaseItf() {
+#ifdef CHSS_PKG_DBG
                 AINFO << "PackerBaseItf de-construct";
+#endif
             }
 
             virtual const std::vector<uint8_t>
-            PackMcuMessage(const DownToMcuData&) {
+            PackMcuMessage(/*const DownToMcuData&*/) {
                 return {};
             }
 
-            //for servo motor device
-            virtual std::tuple<const int, const std::vector<uint8_t>>
-            PackMotorMessageRaw(const DownToServoData&) {
+            ///////// servo motor device /////////
+            virtual std::vector<std::tuple<const int,
+                    const std::vector<uint8_t>>>
+            PackServoMtrControl(const ChsMovementCtrl&) {
+                AERROR << "shall override control in servo packer!!";
                 return {};
             }
-
-            virtual std::vector<std::tuple<const int, const std::vector<uint8_t>>>
-            PackMotorDiffSpeedDouble(const DownToServoData&) {
+            virtual std::vector<std::tuple<const int,
+                    const std::vector<uint8_t>>>
+                        PackServoMtrSetting(const
+                                ServoSetting&) {
+                AERROR << "shall override setting in servo packer!!";
                 return {};
             }
+            ///////// servo motor device /////////
 
-            virtual std::tuple<const int, const std::vector<uint8_t>>
-            PackMotorDiffSpeed(const DownToServoData&) {
-                return {};
-            }
-
-            virtual std::tuple<const int, const std::vector<uint8_t>>
-            PackMotorWheelSpeed(const DownToServoData&) {
-                return {};
-            }
-
-            virtual std::vector<std::tuple<const int, const std::vector<uint8_t>>>
-            PackMotorMessageArrayRaw(const DownToServoData&) {
-                return {};
-            }
-
+            //for serial devices
+            //line laser
             virtual const std::vector<uint8_t>
-            PackMotorMessageString(const DownToServoData&) {
-                return {};
-            }
-
-            //for serial device
-            virtual const std::vector<uint8_t>
-            PackLineLaserMessageRaw(const DownToMiscData&) {
+                PackLlaserRawSetting(const
+                        LineLaserSetting&) {
                 return {};
             }
     };

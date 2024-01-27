@@ -1,31 +1,25 @@
-#include "cyber/common/log.h"
-
 #include "modules/chassis/parser/parse_libs/linelaser_parser.h"
-#include "modules/chassis/devices/data_transact.h"
+#include "modules/chassis/devices/dev_parse_link.h"
+#include "modules/chassis/parser/pack_libs/llaser_packer.h"
 #include "modules/chassis/devices/dev_libs/line_laser.h"
 
 namespace mstf {
 namespace chss {
 namespace device {
 
-    LineLaser::LineLaser(const ChassisConfig* cc,
-            const SensorInfo& si,
-            const SensorIndicator& idc) :
-            DeviceBaseItf(si, idc) {
+    LineLaser::LineLaser(const
+            SensorIndicator& idc) :
+            DeviceBaseItf(idc) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "LineLaser construct" <<
-#if 0
-            ":\n{\n" <<
-            cc->linelaser_dev().DebugString() << "}";
-#else
-            "";
+        AINFO << "LineLaser construct";
 #endif
-#endif
+        data_packer_ = std::make_unique
+            <LlaserPacker>(idc.ihi().name());
         data_parser_ = std::make_unique
-            <LineLaserParser>(cc, &si);
-        DataTransact::Instance()->RegisterDevice(
-                si.name(), idc,
-                dynamic_cast<DeviceBaseItf*>(this));
+            <LineLaserParser>(idc);
+
+        DevParseLink::Instance()->RegisterDevice(
+                idc, dynamic_cast<DeviceBaseItf*>(this));
     }
 
     LineLaser::~LineLaser() {
@@ -40,10 +34,12 @@ namespace device {
 #endif
         DeviceBaseItf::Init();
 
-        DownToMiscData data;
-        data.set_opt(E_SUBDEV_OPTS_INIT);
+        LineLaserSetting lst;
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_INIT);
+        std::vector<uint8_t> data =
+            data_packer_->PackLlaserRawSetting(lst);
 
-        return data_parser_->WriteMiscMessage(data);
+        return data_parser_->WriteUartMessage(data);
     }
 
     int LineLaser::Start(void) {
@@ -52,43 +48,39 @@ namespace device {
 #endif
         DeviceBaseItf::Start();
 
-        DownToMiscData data;
+        LineLaserSetting lst;
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_STOP);
+        auto data = data_packer_->PackLlaserRawSetting(lst);
+        data_parser_->WriteUartMessage(data);
 
-        data.set_opt(E_SUBDEV_OPTS_STOP);
-        data_parser_->WriteMiscMessage(data);
-        data.set_opt(E_SUBDEV_OPTS_STOP);
-        data_parser_->WriteMiscMessage(data);
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_RAW);
+        lst.mutable_dev_manage()->set_cmd(0x60);
+        data = data_packer_->PackLlaserRawSetting(lst);
+        data_parser_->WriteUartMessage(data);
 
-        data.set_opt(E_SUBDEV_OPTS_RAW);
-        data.set_raw_data(0x6b);
-        data_parser_->WriteMiscMessage(data);
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_RAW);
+        lst.mutable_dev_manage()->set_cmd(0x61);
+        data = data_packer_->PackLlaserRawSetting(lst);
+        data_parser_->WriteUartMessage(data);
 
-        data.set_opt(E_SUBDEV_OPTS_RAW);
-        data.set_raw_data(0x62);
-        data_parser_->WriteMiscMessage(data);
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_RAW);
+        lst.mutable_dev_manage()->set_cmd(0x62);
+        data = data_packer_->PackLlaserRawSetting(lst);
+        data_parser_->WriteUartMessage(data);
 
-        data.set_opt(E_SUBDEV_OPTS_STOP);
-        data_parser_->WriteMiscMessage(data);
-
-        data.set_opt(E_SUBDEV_OPTS_RAW);
-        data.set_raw_data(0x60);
-        data_parser_->WriteMiscMessage(data);
-
-        data.set_opt(E_SUBDEV_OPTS_STORE);
-        data_parser_->WriteMiscMessage(data);
-
-        data.set_opt(E_SUBDEV_OPTS_START);
-        return data_parser_->WriteMiscMessage(data);
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_START);
+        data = data_packer_->PackLlaserRawSetting(lst);
+        return data_parser_->WriteUartMessage(data);
     }
 
     int LineLaser::Stop(void) {
 #ifdef CHSS_PKG_DBG
         AINFO << "LineLaser stop";
 #endif
-        DownToMiscData data;
-        data.set_opt(E_SUBDEV_OPTS_STOP);
-        //stop line laser
-        data_parser_->WriteMiscMessage(data);
+        LineLaserSetting lst;
+        lst.mutable_dev_manage()->set_sub_opts(E_SUBDEV_OPTS_STOP);
+        auto data = data_packer_->PackLlaserRawSetting(lst);
+        data_parser_->WriteUartMessage(data);
 
         return DeviceBaseItf::Stop();
     }

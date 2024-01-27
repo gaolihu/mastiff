@@ -1,7 +1,5 @@
 #pragma once
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-
 #include "modules/chassis/devices/device_base_itf.h"
 
 namespace mstf {
@@ -10,9 +8,7 @@ namespace device {
 
     class DeviceLidar : public DeviceBaseItf {
         public:
-            DeviceLidar(const ChassisConfig*,
-                    const SensorInfo&,
-                    const SensorIndicator&);
+            DeviceLidar(const SensorIndicator&);
             virtual ~DeviceLidar();
 
         private:

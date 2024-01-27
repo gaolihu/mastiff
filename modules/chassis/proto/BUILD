@@ -21,44 +21,6 @@ proto_library(
 )
 
 cc_proto_library(
-    name = "input_output_chs_cc_proto",
-    deps = [
-        ":input_output_chs_proto",
-    ],
-)
-
-proto_library(
-    name = "input_output_chs_proto",
-    srcs = [
-        "input_output_chs.proto",
-    ],
-    deps = [
-        "@com_google_protobuf//:wrappers_proto",
-        ":frame_up_stream_proto",
-        ":frame_down_stream_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "frame_up_stream_cc_proto",
-    deps = [
-        ":frame_up_stream_proto",
-    ],
-)
-
-proto_library(
-    name = "frame_up_stream_proto",
-    srcs = [
-        "frame_up_stream.proto",
-    ],
-    deps = [
-        "@com_google_protobuf//:wrappers_proto",
-        ":ys_pack_mcu_protocol_proto",
-        ":external_msg_proto",
-    ],
-)
-
-cc_proto_library(
     name = "external_msg_cc_proto",
     deps = [
         ":external_msg_proto",
@@ -104,6 +66,42 @@ proto_library(
     name = "ys_pack_mcu_protocol_proto",
     srcs = [
         "protocol_libs/ys_pack_mcu_protocol.proto",
+    ],
+    deps = [
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+####
+cc_proto_library(
+    name = "chss_io_cc_proto",
+    deps = [
+        ":chss_io_proto",
+    ],
+)
+
+proto_library(
+    name = "chss_io_proto",
+    srcs = [
+        "chss_io.proto",
+    ],
+    deps = [
+        ":internal_msg_proto",
+        ":external_msg_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "internal_msg_cc_proto",
+    deps = [
+        ":internal_msg_proto",
+    ],
+)
+
+proto_library(
+    name = "internal_msg_proto",
+    srcs = [
+        "internal_msg.proto",
     ],
     deps = [
         "@com_google_protobuf//:wrappers_proto",

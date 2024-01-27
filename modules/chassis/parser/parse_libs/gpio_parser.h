@@ -2,8 +2,6 @@
 
 #include "cyber/common/log.h"
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-
 #include "modules/chassis/parser/parser_base_itf.h"
 
 namespace mstf {
@@ -13,7 +11,7 @@ namespace parser {
     class GpioParser : public ParserBaseItf {
         public:
             GpioParser(const ChassisConfig*,
-                    const SensorInfo*);
+                    const SensorIndicator*);
             virtual  ~GpioParser() final;
 
             virtual int Init() override;

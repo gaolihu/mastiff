@@ -1,21 +1,36 @@
 #pragma once
 
-#include <atomic>
-#include <functional>
-
 #include "cyber/cyber.h"
+#include "cyber/timer/timer.h"
+
+#include "modules/chassis/proto/chassis_config.pb.h"
 
 namespace mstf {
 namespace chss {
 namespace driver {
 
-//#define USE_CYBER_TIMER
+    using namespace /*mstf::chss::*/proto;
+    using namespace google::protobuf;
 
     using DriveDataPolling = std::function<void()>;
     using DriveDataMonitor = std::function<void
-        (const void*, const uint8_t*, const size_t)>;
-    using DriveDataMonitorCan = std::function<void
-        (const uint8_t*, const int)>;
+        (const SensorIndicator*, const uint8_t*, const size_t)>;
+
+    using UartDataListener = std::function<void
+        (const SensorIndicator*, const uint8_t*, const size_t)>;
+
+    using IIcDataListener = std::function<void
+        (const SensorIndicator*, const uint8_t*, const size_t)>;
+
+    using CanDataListener = std::function<void
+        (const SensorIndicator*, const uint8_t*, const size_t)>;
+
+    using JoyDataListener = std::function<void
+        (const SensorIndicator*, const uint8_t*, const size_t)>;
+
+    using SocDataListener = std::function<void
+        (const SensorIndicator*, const Message&,
+         const uint8_t*, const size_t)>;
 
     class DriveDataItf {
         public:
@@ -25,32 +40,38 @@ namespace driver {
             DriveDataItf& operator=(const DriveDataItf&) = delete;
 
             // generic operations
-            virtual int Init(const std::string& dev,
-                    const int loop_cycle_ms, const
-                    DriveDataPolling& p = nullptr) {
-                dev_ = dev;
-                if (p != nullptr) {
-                    pollinger_ = p;
+            virtual int Init(const std::string& dev, /*dev name*/
+                    const int loop_cycle_ms) {       /*looping cycle*/
+                if (!dev_.empty())
+                    dev_ = dev;
+
+                if (loop_cycle_ms <= 0)
+                    loop_cycle_ms_ = 2000;
+
 #ifdef USE_CYBER_TIMER
-                    AINFO << "init cyber timer for getting low layer data!";
-                    tim_.reset(new apollo::cyber::Timer(
-                                loop_cycle_ms == 0 ? 20 : loop_cycle_ms,
-                                [this] () {
-                                    pollinger_();
-                                },
-                                false));
+                AINFO << "timer for <" <<
+                    dev << "> getting low layer data!";
+                tim_.reset(new apollo::cyber::Timer(
+                            loop_cycle_ms_,
+                            [this] () {
+                                PollingDriveRutine();
+                            },
+                            false));
 #else
-                    AINFO << "init thread for getting low layer data!";
+                AINFO << "thread for <" <<
+                    dev << "> getting low layer data!";
 #endif
-                } else {
-                    AWARN << "poller NULL!";
-                }
                 return 0;
             }
 
             virtual int Start() {
+                if (is_inited_) {
+                    AWARN << "driver base already started!";
+                    return -1;
+                }
                 AINFO << "capture " << dev_ <<
-                    " thread start!";
+                    " thread " << loop_cycle_ms_ <<
+                    "ms, start!";
 #ifdef USE_CYBER_TIMER
                 if (tim_)
                     tim_->Start();
@@ -65,16 +86,20 @@ namespace driver {
                         [this] () {
                             while (!terminate_) {
                                 if (running_) {
-                                    pollinger_();
+                                    PollingDriveRutine();
                                 } else {
                                     //AINFO << "stop & wait resume " << dev_;
                                     std::this_thread::sleep_for(
-                                            std::chrono::milliseconds(250));
+                                            std::chrono
+                                            ::milliseconds(loop_cycle_ms_));
                                 }
                             }
                             AWARN << "terminate & exit capture " << dev_;
                         });
 #endif
+                AINFO << "capture " << dev_ <<
+                    " thread start OK!";
+
                 return 0;
             }
 
@@ -153,7 +178,7 @@ namespace driver {
                 return once_read_size_;
             };
 
-            virtual void SetStatus(const size_t size) {
+            virtual void SetOnceRead(const size_t size) {
                 once_read_size_ = size;
             };
 
@@ -176,13 +201,17 @@ namespace driver {
             };
 
             // message handles(receive/send)
-            virtual int WritePort(const google::protobuf::Message&) {
+            virtual int WritePort(const Message&) {
                 return 0;
             };
 
             virtual int WritePort(const std::vector<uint8_t>&) {
                 return 0;
             };
+
+            virtual int WritePort(const uint8_t*, const size_t) {
+                return 0;
+            }
 
             virtual int WritePort(const int, const uint8_t*, const size_t) {
                 return 0;
@@ -192,18 +221,29 @@ namespace driver {
                 return 0;
             };
 
-        private:
+            //pure ITFs
+            virtual int Init(const SensorIndicator*) = 0;
+            virtual int Start(const SensorIndicator*) = 0;
+            virtual int Stop(const SensorIndicator*) = 0;
+            virtual int Resume(const SensorIndicator*) = 0;
+            virtual int Close(const SensorIndicator*) = 0;
+
+            virtual void PollingDriveRutine() {
+                AERROR << "Shall override this!";
+            };
+
+        protected:
             size_t once_read_size_ = 256;
+            uint8_t* once_read_buf_ {};
+            size_t loop_cycle_ms_ = 2048;   //blocking
 
-            std::atomic<bool> readable_ = {false};
-            std::atomic<bool> writable_ = {false};
+            std::atomic<bool> readable_ { false };
+            std::atomic<bool> writable_ { false };
 
-            std::string dev_ = "DFT";
+            std::string dev_ { "DFT-DEV" };
 
-            std::string drive_data_des_ = "";
-            std::string drive_data_status_ = "";
-
-            DriveDataPolling pollinger_ = nullptr;
+            std::string drive_data_des_ {};
+            std::string drive_data_status_ {};
 
             //timer common for data polling
 #ifdef USE_CYBER_TIMER
@@ -214,6 +254,11 @@ namespace driver {
             bool terminate_ = false;
             std::thread raw_capture_thread_;
 #endif
+            //dev fd
+            int dev_fd_ = -1;
+            const SensorIndicator* s_idc_ {};
+
+            DriveDataMonitor data_monitor_ {};
     };
 
 } // namespace driver

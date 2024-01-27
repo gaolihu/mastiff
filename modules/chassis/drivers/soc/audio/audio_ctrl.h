@@ -1,10 +1,3 @@
-/*
- * @Date: 2023-11-15 15:14:46
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/audio/audio_ctrl.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 #include <unistd.h>
 
@@ -19,32 +12,24 @@
 #include <unordered_map>
 
 #include "audio_alsa.h"
-#include "cyber/common/log.h"
 #include "modules/chassis/drivers/soc/audio/audio_alsa.h"
-#include "modules/chassis/drivers/soc/soc_defs.h"
-#include "modules/chassis/proto/chassis_config.pb.h"
-#include "modules/chassis/proto/frame_down_stream.pb.h"
-#include "modules/chassis/proto/frame_up_stream.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 using namespace google;
 using namespace protobuf;
 namespace mstf {
 namespace chss {
-namespace audio {
+namespace driver {
+
 class AudioCtrl {
 public:
-    AudioCtrl(/* args */);
+    AudioCtrl(const AudioConfig*);
     ~AudioCtrl();
     void Init();
     void Start();
     void Stop();
     void Close();
-    bool SetAudioCtrl(const chss::proto::AudioCtrl& msg);
-
-    inline void SetAudioConfig(const RepeatedPtrField<proto::AudioDevConf>& c) {
-        aud_dev_ = c;
-        audio_.SetChssConfig(c);
-    }
+    bool SetAudioCtrl(const chss::proto::AudioSetting& msg);
 
 private:
     void AudioRunner();
@@ -54,13 +39,11 @@ private:
     bool                    can_running_{false};
     std::thread             audio_th_;
 
-    proto::AudioCtrl ctrl_msg_;
+    proto::AudioSetting ctrl_msg_;
 
-    AudioAlsa audio_;
-
-    RepeatedPtrField<proto::AudioDevConf> aud_dev_;
+    std::shared_ptr<AudioAlsa> audio_;
 };
 
-}  // namespace audio
+}  // namespace driver
 }  // namespace chss
 }  // namespace mstf

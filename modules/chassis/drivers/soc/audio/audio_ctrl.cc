@@ -1,20 +1,15 @@
-/*
- * @Date: 2023-11-15 15:14:55
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/audio/audio_ctrl.cc
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
+#include "cyber/common/log.h"
 
 #include "modules/chassis/drivers/soc/audio/audio_ctrl.h"
-
 #include "modules/chassis/drivers/soc/audio/audio_alsa.h"
 
 namespace mstf {
 namespace chss {
-namespace audio {
+namespace driver {
 
-AudioCtrl::AudioCtrl(/* args */) {
+AudioCtrl::AudioCtrl(const AudioConfig* c) {
     can_running_ = false;
+    audio_ = std::make_shared<AudioAlsa>(c);
 }
 
 AudioCtrl::~AudioCtrl() {
@@ -42,7 +37,7 @@ void AudioCtrl::Close() {
         audio_th_.join();
     }
 }
-bool AudioCtrl::SetAudioCtrl(const chss::proto::AudioCtrl& msg) {
+bool AudioCtrl::SetAudioCtrl(const chss::proto::AudioSetting& msg) {
     std::unique_lock<std::mutex> lk(audio_mtx_);
     ctrl_msg_ = msg;
     lk.unlock();
@@ -55,7 +50,7 @@ void AudioCtrl::AudioRunner() {
     while (can_running_) {
         std::unique_lock<std::mutex> lk(audio_mtx_);
         audio_cv_.wait(lk);
-        auto result = audio_.AudioOperate(ctrl_msg_);
+        auto result = audio_->AudioOperate(ctrl_msg_);
         ctrl_msg_.Clear();
         AINFO << "Audio thread play run once...";
     }

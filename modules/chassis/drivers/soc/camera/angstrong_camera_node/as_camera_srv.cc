@@ -33,39 +33,41 @@
 
 CameraSrv::CameraSrv(ICameraStatus *cameraStatus) : m_camera_status(cameraStatus) {
     int ret = 0;
-    AINFO << "Angstrong camera server" << std::endl;
+    AINFO << "Angstrong camera server";
     ret = AS_SDK_Init();
     if (ret != 0) {
-        AFATAL << "sdk init failed" << std::endl;
+        AFATAL << "sdk init failed";
     }
     char sdkVersion[64] = {0};
     ret                 = AS_SDK_GetSwVersion(sdkVersion, sizeof(sdkVersion));
     if (ret != 0) {
-        AFATAL << "get sdk version failed" << std::endl;
+        AFATAL << "get sdk version failed";
     }
-    AINFO << "Angstrong camera sdk version:" << sdkVersion << std::endl;
+    AINFO << "Angstrong camera sdk version:" << sdkVersion;
 }
 
 CameraSrv::~CameraSrv() {
-    AINFO << "Angstrong camera server exit" << std::endl;
+    AINFO << "Angstrong camera server exit";
     int ret = AS_SDK_Deinit();
     if (ret != 0) {
-        AFATAL << "sdk deinit failed" << std::endl;
+        AFATAL << "sdk deinit failed";
     }
 }
 
-int CameraSrv::start() {
+int CameraSrv::Start() {
     int ret = -1;
+
+    std::lock_guard<std::mutex> lg(m_mutex);
 
     m_devsList.clear();
     ret = AS_SDK_GetCameraList(m_devsList);
 
     if (ret == -1) {
-        AFATAL << "get camera list failed, ret " << ret << std::endl;
+        AFATAL << "get camera list failed, ret " << ret;
         return -1;
     }
     else {
-        AINFO << "get camera cnt: " << m_devsList.size() << std::endl;
+        AINFO << "get camera cnt: " << m_devsList.size();
     }
 
     for (auto it = m_devsList.begin(); it != m_devsList.end(); it++) {
@@ -73,23 +75,27 @@ int CameraSrv::start() {
 
         // get model type
         ret = AS_SDK_GetCameraModel(pCamera, m_cam_type);
-        AINFO << "get model type " << m_cam_type << std::endl;
+        AINFO << "get model type " << m_cam_type;
 
         std::string file_path;
         if (getConfigFile(pCamera, file_path, m_cam_type) != 0) {
-            AFATAL << "cannot find config file" << std::endl;
+            AFATAL << "cannot find config file";
             return -1;
         }
 
         m_camera_status->onCameraAttached(pCamera, m_cam_type);
 
         // Open camera
-        ret = AS_SDK_OpenCamera(pCamera, file_path.c_str());
-        if (ret != 0) {
-            AFATAL << "Open camera handle failed, confiPath " << file_path << std::endl;
-            return -1;
+        try {
+            ret = AS_SDK_OpenCamera(pCamera, file_path.c_str());
+            if (ret != 0) {
+                AERROR << "Open camera handle failed, confiPath " << file_path;
+                return -1;
+            }
+            m_camera_status->onCameraOpen(pCamera);
+        } catch (std::exception &e) {
+            AFATAL << "Open camera failed, exception: " << e.what();
         }
-        m_camera_status->onCameraOpen(pCamera);
 
 #if UPGRADE
         /* upgrade: before start stream */
@@ -107,7 +113,7 @@ int CameraSrv::start() {
 
         ret = AS_SDK_RegisterStreamCallback(pCamera, &streamCallback);
         if (ret != 0) {
-            AFATAL << "Register stream callback failed" << std::endl;
+            AFATAL << "Register stream callback failed";
             return -1;
         }
 
@@ -119,7 +125,7 @@ int CameraSrv::start() {
 
             ret = AS_SDK_RegisterMergeFrameCallback(pCamera, &mergeStreamCallback);
             if (ret != 0) {
-                AFATAL << "Register merge stream callback failed" << std::endl;
+                AFATAL << "Register merge stream callback failed";
                 return -1;
             }
         }
@@ -127,7 +133,7 @@ int CameraSrv::start() {
         // Start stream
         ret = AS_SDK_StartStream(pCamera);
         if (ret != 0) {
-            AFATAL << "Start stream failed" << std::endl;
+            AFATAL << "Start stream failed";
             return -1;
         }
 
@@ -135,34 +141,42 @@ int CameraSrv::start() {
         m_time.insert(std::make_pair(pCamera, std::chrono::high_resolution_clock::now()));
 #endif
     }
+    have_started_ = true;
+
     return 0;
 }
 
-void CameraSrv::stop() {
+void CameraSrv::Stop() {
     int ret     = 0;
     int dev_idx = 0;
 
-    AINFO << "stop and close the camera" << std::endl;
+    std::lock_guard<std::mutex> lg(m_mutex);
+
+    have_started_ = false;
+
+    AINFO << "stop and close the camera";
     for (auto it = m_devsList.begin(); it != m_devsList.end(); it++) {
         AS_CAM_PTR dev = (AS_CAM_PTR)(*it);
-        AINFO << "close camera idx " << dev_idx << std::endl;
+        AINFO << "close camera idx " << dev_idx;
 
-        m_camera_status->onCameraStop(dev);
         ret = AS_SDK_StopStream(dev);
         if (ret < 0) {
-            AFATAL << "stop stream failed, ret: " << ret << std::endl;
+            AFATAL << "stop stream failed, ret: " << ret;
+            continue;
         }
         else {
-            AINFO << "stop stream success" << std::endl;
+            m_camera_status->onCameraStop(dev);
+            AINFO << "stop stream success";
         }
 
-        m_camera_status->onCameraClose(dev);
         ret = AS_SDK_CloseCamera(dev);
         if (ret < 0) {
-            AFATAL << "close camera failed, ret: " << ret << std::endl;
+            AFATAL << "close camera failed, ret: " << ret;
+            continue;
         }
         else {
-            AINFO << "close camera success" << std::endl;
+            m_camera_status->onCameraClose(dev);
+            AINFO << "close camera success";
         }
 
         m_camera_status->onCameraDetached(dev);
@@ -181,23 +195,31 @@ void CameraSrv::stop() {
     }
 
     ret = AS_SDK_FreeCameraList(m_devsList);
-    AINFO << "Free Camera List, ret: " << ret << std::endl;
+    AINFO << "Free Camera List, ret: " << ret;
+}
+void CameraSrv::StopOne(AS_CAM_PTR pCamera) {}
+void CameraSrv::Close() {
+    Stop();
+}
+void CameraSrv::Restart() {
+    Stop();
+    Start();
 }
 
-int CameraSrv::startMonitor() {
+int CameraSrv::StartMonitor() {
     m_monitor       = true;
     m_monitorThread = std::thread(&CameraSrv::monitor, this);
-    // AINFO << "start to monitor." << std::endl;
+    AINFO << "start camera monitor.";
     return 0;
 }
 
-int CameraSrv::stopMonitor() {
+int CameraSrv::StopMonitor() {
     if (m_monitor) {
         m_monitor = false;
         if (m_monitorThread.joinable()) {
             m_monitorThread.join();
         }
-        AINFO << "stop monitor." << std::endl;
+        AINFO << "stop camera monitor.";
     }
     return 0;
 }
@@ -237,38 +259,38 @@ int CameraSrv::getConfigFile(AS_CAM_PTR pCamera, std::string &configfile, AS_SDK
     case AS_SDK_CAM_MODEL_KONDYOR:
     case AS_SDK_CAM_MODEL_KONDYOR_NET:
         name_key = "kondyor_";
-        AINFO << "found a kondyor camera" << std::endl;
+        AINFO << "found a kondyor camera";
         break;
     case AS_SDK_CAM_MODEL_NUWA_XB40:
     case AS_SDK_CAM_MODEL_NUWA_X100:
     case AS_SDK_CAM_MODEL_NUWA_HP60:
     case AS_SDK_CAM_MODEL_NUWA_HP60V:
         name_key = "nuwa_";
-        AINFO << "found a nuwa camera" << std::endl;
+        AINFO << "found a nuwa camera";
         break;
     case AS_SDK_CAM_MODEL_KUNLUN_A:
     case AS_SDK_CAM_MODEL_KUNLUN_C:
         name_key = "kunlun_";
-        AINFO << "found a kunlun camera" << std::endl;
+        AINFO << "found a kunlun camera";
         break;
     case AS_SDK_CAM_MODEL_HP60C:
         name_key = "hp60c_";
-        AINFO << "found a hp60c camera" << std::endl;
+        AINFO << "found a hp60c camera";
         break;
     case AS_SDK_CAM_MODEL_HP60CN:
         name_key = "hp60cn_";
-        AINFO << "found a hp60cn camera" << std::endl;
+        AINFO << "found a hp60cn camera";
         break;
     case AS_SDK_CAM_MODEL_VEGA:
         name_key = "vega_";
-        AINFO << "found a vega camera" << std::endl;
+        AINFO << "found a vega camera";
         break;
     case AS_SDK_CAM_MODEL_CHANGA:
         name_key = "changA_";
-        AINFO << "found a chang-A camera" << std::endl;
+        AINFO << "found a chang-A camera";
         break;
     default:
-        AFATAL << "cam type error" << std::endl;
+        AFATAL << "cam type error";
         return -1;
         break;
     }
@@ -280,7 +302,7 @@ int CameraSrv::getConfigFile(AS_CAM_PTR pCamera, std::string &configfile, AS_SDK
     for (auto it = files.begin(); it != files.end(); it++) {
         std::string filename = (*it).substr((*it).find_last_of("/"));
         if (filename.find(name_key) < filename.size()) {
-            AINFO << "get file: " << *it << std::endl;
+            AINFO << "get file: " << *it;
             configfile = (*it);
             ret        = 0;
             break;
@@ -288,7 +310,7 @@ int CameraSrv::getConfigFile(AS_CAM_PTR pCamera, std::string &configfile, AS_SDK
     }
 
     if (ret != 0) {
-        AFATAL << "cannot find config file" << std::endl;
+        AFATAL << "cannot find config file";
         return -1;
     }
 
@@ -300,7 +322,7 @@ int CameraSrv::scanDir(const std::string &dir, std::vector<std::string> &file) {
     DIR           *directory;
     struct dirent *ent;
     if (!(directory = opendir(dir.c_str()))) {
-        std::cout << "can't not open dir:" << dir << std::endl;
+        std::cout << "can't not open dir:" << dir;
         return -1;
     }
     while ((ent = readdir(directory)) != nullptr) {
@@ -325,7 +347,7 @@ int CameraSrv::scanDir(const std::string &dir, std::vector<std::string> &file) {
 }
 
 void CameraSrv::process(AS_CAM_PTR pCamera, void *privateData, float fProcess) {
-    AINFO << " upgrade process:" << fProcess << std::endl;
+    AINFO << " upgrade process:" << fProcess;
 }
 
 int CameraSrv::monitor() {
@@ -338,6 +360,8 @@ int CameraSrv::monitor() {
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     while (m_monitor) {
+        std::unique_lock<std::mutex> lk(m_mutex);
+
         for (auto it = m_devsList.begin(); it != m_devsList.end(); it++) {
             AS_CAM_PTR pCamera  = *it;
             auto       its      = m_streaming.find(pCamera);
@@ -347,7 +371,7 @@ int CameraSrv::monitor() {
                     st_later  = std::chrono::high_resolution_clock::now();
                     st_former = its_time->second;
                     duration  = std::chrono::duration_cast<std::chrono::seconds>(st_later - st_former).count();
-                    // AINFO << "############ duration " << duration << std::endl;
+                    // AINFO << "############ duration " << duration;
                     if (duration < -2 || duration > 2) {
                         restart = true;
                         break;
@@ -356,13 +380,15 @@ int CameraSrv::monitor() {
             }
         }
 
-        if (restart) {
-            AINFO << "detect device expection, try to reconnect..." << std::endl;
+        if (restart && have_started_) {
+            AINFO << "detect device expection, try to reconnect...";
             restart = false;
-            stop();
-            start();
+            lk.unlock();
+            Stop();
+            Start();
         }
         else {
+            lk.unlock();
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }

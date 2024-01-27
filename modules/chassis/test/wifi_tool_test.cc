@@ -40,6 +40,7 @@ void GetPid(const std::string &name) {
 }
 void GetMode() {
     network::Mode m = tool.GetCurrentMode();
+    tool.Mode2Str(m);
 }
 void BasicInfo() {
     std::cout << "ip: " << tool.GetStaIp() << std::endl;

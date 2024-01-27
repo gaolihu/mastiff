@@ -1,135 +1,140 @@
-#include "cyber/common/log.h"
-
 #include "Eigen/Core"
 #include "Eigen/Dense"
 
-#include "modules/chassis/parser/parse_libs/servo_parser.h"
+#include "modules/chassis/parser/parse_drv_link.h"
 #include "modules/chassis/parser/parse_libs/ds20270da_driver.h"
+#include "modules/chassis/parser/parse_libs/servo_parser.h"
 
 namespace mstf {
 namespace chss {
 namespace parser {
 
-    ServoParser::ServoParser(const ChassisConfig* cc,
-            const SensorInfo* si) :
-        ParserBaseItf(cc, si) {
+    ServoParser::ServoParser(
+            const SensorIndicator& si) :
+        ParserBaseItf(si) {
+#ifdef CHSS_PKG_DBG
             AINFO << "ServoParser construct";
+#endif
+            ParseDrvLink::Instance()->RegisterCanListener
+                (std::bind(&ParserBaseItf::OnOriginalDataCan,
+                           this, ::_1, ::_2, ::_3), s_idc_);
         }
 
     ServoParser::~ServoParser() {
+#ifdef CHSS_PKG_DBG
         AINFO << "ServoParser de-construct";
+#endif
     }
 
     int ServoParser::Init() {
         AINFO << "wheel diameter: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_diameter_10th1_mm() <<
             " 1/10mm | distance: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_distance_10th1_mm() <<
             " 1/10mm, acc: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().accelerate_time_ms() <<
             " | dec time: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().decelerate_time_ms();
         AINFO <<"reporting speed period: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().speed_report_period_ms() <<
             "ms | status: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().status_report_period_ms() <<
             ", resolution: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().servo_motor_resolution() <<
             ", reduction ratio: " <<
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().servo_motor_reduction();
         config_servo_motor_parameters(
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().wheel_diameter_10th1_mm(),
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().wheel_distance_10th1_mm(),
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().accelerate_time_ms(),
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().decelerate_time_ms(),
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().speed_report_period_ms(),
-                dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+                dynamic_cast<const ServoDevConf*>(GetDevConfig())->
                 servo_info().status_report_period_ms());
-        return ParserBaseItf::Init(
-                dynamic_cast<const ServoDevConf&>
-                (GetDevConfig()).sn_ind().port(),
-                &dynamic_cast<const ServoDevConf&>(GetDevConfig()).
-                can_conf().buf_setting());
+
+        ParseDrvLink::Instance()->Init(s_idc_);
+
+        return ParserBaseItf::Init();
     }
 
-    int ServoParser::WriteServoMessage(const DownToServoData& data) {
-#if 0
-        AINFO << "data to servo motor:\n" << data.DebugString();
-#endif
-#if 0
-        //for testing
-        std::vector<uint8_t> packed_data =
-            packer_->PackMotorMessageString(data);
-        return RawManage::Instance()->WriteCan(packed_data);
-#else
-        if (data.has_motor_speed()) {
-            //set motor speed
-            if (data.motor_speed().use_diff_speed()) {
-#ifdef USE_FREE_CAN_PROTOCOL // 0
-                //use diff speed
-                std::tuple<const int,
-                    const std::vector<uint8_t>> packed_data =
-                        packer_->PackMotorDiffSpeed(data);
-                return RawManage::Instance()->
-                    WriteCan(std::get<0>(packed_data),
-                            &(std::get<1>(packed_data))[0],
-                            std::get<1>(packed_data).size());
-#else
-                std::vector<std::tuple<const int,
-                    const std::vector<uint8_t>>> packed_datas =
-                        packer_->PackMotorDiffSpeedDouble(data);
-                for (int i = 0; i < (int)packed_datas.size(); i++) {
-                    RawManage::Instance()->
-                        WriteCan(std::get<0>(packed_datas[i]),
-                                &(std::get<1>(packed_datas[i]))[0],
-                                std::get<1>(packed_datas[i]).size());
-                    //??? delay for two wheels ???
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                }
-#endif
-            } else {
-                //use wheel speed
-                std::tuple<const int,
-                    const std::vector<uint8_t>> packed_data =
-                        packer_->PackMotorWheelSpeed(data);
-                return RawManage::Instance()->
-                    WriteCan(std::get<0>(packed_data),
-                            &(std::get<1>(packed_data))[0],
-                            std::get<1>(packed_data).size());
-            }
-        } else {
-            //config motor
+    int ServoParser::Start() {
+        if (ParserBaseItf::Start() != 0) {
+            AERROR << "ServoParser start error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Start(s_idc_);
+    }
+
+    int ServoParser::Stop() {
+        if (ParserBaseItf::Stop() != 0) {
+            AERROR << "ServoParser stop error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Stop(s_idc_);
+    }
+
+    int ServoParser::Resume() {
+        if (ParserBaseItf::Resume() != 0) {
+            AERROR << "ServoParser resume error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Resume(s_idc_);
+    }
+
+    int ServoParser::Close() {
+        if (ParserBaseItf::Close() != 0) {
+            AERROR << "ServoParser close error!";
+            return -1;
+        }
+
+        return ParseDrvLink::Instance()->Close(s_idc_);
+    }
+
+    int ServoParser::WriteServoMessage(const
             std::vector<std::tuple<const int,
-                const std::vector<uint8_t>>> packed_datas =
-                    packer_->PackMotorMessageArrayRaw(data);
-            AINFO << "send commands num: " << packed_datas.size();
-            for (int i = 0; i < (int)packed_datas.size(); i++) {
-                RawManage::Instance()->
-                    WriteCan(std::get<0>(packed_datas[i]),
-                            &(std::get<1>(packed_datas[i]))[0],
-                            std::get<1>(packed_datas[i]).size());
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            const std::vector<uint8_t>>>& data) {
+        for (int i = 0; i < (int)data.size(); i++) {
+#if 0
+            AINFO << "write servo messages " << i;
+#endif
+            if (ParseDrvLink::Instance()->
+                WriteCan(s_idc_, std::get<0>(data[i]),
+                        &(std::get<1>(data[i]))[0],
+                        std::get<1>(data[i]).size()) !=
+                std::get<1>(data[i]).size()) {
+                AERROR << "write servo error!";
+            }
+
+            if (i % 5 == 0) {
+                //for multi pack of data sending
+                std::this_thread::sleep_for(std::
+                        chrono::milliseconds(1));
             }
         }
-#endif
+
         return 0;
     }
 
 //#define SERVO_DBG 1
-    int ServoParser::ParseCanBuffer(const uint8_t* buf,
+    int ServoParser::ParseCanBuffer(const
+            SensorIndicator* si,
+            const uint8_t* buf,
             const size_t len) {
         //if the current frame is good enough to parse
         //a whole frame of data, send upstream directly
@@ -237,8 +242,7 @@ namespace parser {
     }
 
     int ServoParser::ParseSigleFrame(const
-            std::vector<uint8_t>& data,
-            const size_t len) {
+            std::vector<uint8_t>& data, const size_t len) {
         ventura::common_msgs::nav_msgs::Odometry odom;
 
         odom.mutable_header()->set_seq(odom_seq_++);
@@ -258,67 +262,63 @@ namespace parser {
 #endif
         odom.set_child_frame_id("base_link");
 
-        float d_left = M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+        float d_left = M_PI * dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_diameter_10th1_mm() *
             (left_encoder_ - last_left_encoder_ /*+ left_scale * encoder_scale_val*/) /
-            ((dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            ((dynamic_cast<const ServoDevConf*>(GetDevConfig())->
               servo_info().servo_motor_resolution() /**
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().servo_motor_reduction()*/) * 1e4);
 
-        float d_right = M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+        float d_right = M_PI * dynamic_cast<const ServoDevConf*>(GetDevConfig())->
         servo_info().wheel_diameter_10th1_mm() *
             (right_encoder_ - last_right_encoder_ /*+ right_scale * encoder_scale_val*/) /
-            ((dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            ((dynamic_cast<const ServoDevConf*>(GetDevConfig())->
               servo_info().servo_motor_resolution() /**
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().servo_motor_reduction()*/) * 1e4);
 
         float ds = (d_left + d_right) / 2;
         float dth = (d_right - d_left) * 1e4 /
-            dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+            dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_distance_10th1_mm();
 
         pose_x_ += ds * (cos(pose_theta_ + dth / 2.f));
         pose_y_ += ds * (sin(pose_theta_ + dth / 2.f));
         pose_theta_ += dth;
 
-        /*
-        auto q = Eigen::AngleAxisd(pose_theta_, Eigen::Vector3d::UnitZ()) *
-            Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX()) *
-            Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY());
-            */
         auto q = Eigen::Quaterniond(Eigen::AngleAxisd(pose_theta_, Eigen::Vector3d::UnitZ()));
 
         odom.mutable_pose()->mutable_pose()->mutable_position()->set_x(pose_x_);
         odom.mutable_pose()->mutable_pose()->mutable_position()->set_y(pose_y_);
         //odom.mutable_pose()->mutable_pose()->mutable_position()->set_z(0);
-        for (int i = 0; i < 36; i++)
-            odom.mutable_pose()->add_covariance(0.f);
+        odom.mutable_pose()->mutable_covariance()->Resize(36, 0.f);
 
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_x(q.x());
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_y(q.y());
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(q.z());
         odom.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(q.w());
 
-        float vl = left_rpm_ * M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+        float vl = left_rpm_ * M_PI * dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_diameter_10th1_mm() / 6e6;
-        float vr = right_rpm_ * M_PI * dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+        float vr = right_rpm_ * M_PI * dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_diameter_10th1_mm() / 6e6;
 
         float line = (vl + vr) / 2;
-        float omg = (vr - vl) * 1e4 / dynamic_cast<const ServoDevConf&>(GetDevConfig()).
+        float omg = (vr - vl) * 1e4 / dynamic_cast<const ServoDevConf*>(GetDevConfig())->
             servo_info().wheel_distance_10th1_mm();
 
         //speed
         odom.mutable_twist()->mutable_twist()->mutable_linear()->set_x(line);
-        //odom.mutable_twist()->mutable_twist()->mutable_linear()->set_y();
-        //odom.mutable_twist()->mutable_twist()->mutable_linear()->set_z();
-        //odom.mutable_twist()->mutable_twist()->mutable_angular()->set_x();
-        //odom.mutable_twist()->mutable_twist()->mutable_angular()->set_y();
+        /*
+         * default zero
+        odom.mutable_twist()->mutable_twist()->mutable_linear()->set_y();
+        odom.mutable_twist()->mutable_twist()->mutable_linear()->set_z();
+        odom.mutable_twist()->mutable_twist()->mutable_angular()->set_x();
+        odom.mutable_twist()->mutable_twist()->mutable_angular()->set_y();
+        */
         odom.mutable_twist()->mutable_twist()->mutable_angular()->set_z(omg);
-        for (int i = 0; i < 36; i++)
-            odom.mutable_twist()->add_covariance(0.f);
+        odom.mutable_twist()->mutable_covariance()->Resize(36, 0.f);
 
         //AINFO_EVERY(100) << "odom:\n" << odom.DebugString();
 
@@ -343,33 +343,8 @@ namespace parser {
             ", line speed: " << line << "m/s" <<
             ", omg: " << omg << "rad/s";
 #endif
-        //TF
-        /*
-        apollo::transform::TransformStamped tf2_msg;
-
-        auto mutable_head = tf2_msg.mutable_header();
-        mutable_head->set_timestamp_sec(tv.tv_sec + tv.tv_usec / 1e3);
-        mutable_head->set_frame_id("odom");
-
-        tf2_msg.set_child_frame_id("base_link");
-
-        auto mutable_translation = tf2_msg.mutable_transform()->mutable_translation();
-        mutable_translation->set_x(pose_x_);
-        mutable_translation->set_y(pose_y_);
-
-        //mutable_translation->set_z(0);
-        auto mutable_rotation = tf2_msg.mutable_transform()->mutable_rotation();
-        mutable_rotation->set_qx(q.x());
-        mutable_rotation->set_qy(q.y());
-        mutable_rotation->set_qz(q.z());
-        mutable_rotation->set_qw(q.w());
-
-        tf_broadcaster_->SendTransform(tf2_msg);
-
-        tf_broadcaster_.reset(new apollo::transform::TransformBroadcaster(node_cyber_));
-        */
-
-        return frame_processor_(&odom, "ventura::common_msgs::nav_msgs::Odometry");
+        return frame_processor_sp_(std::make_shared
+                <ventura::common_msgs::nav_msgs::Odometry>(odom));
     }
 
 } //namespace parser

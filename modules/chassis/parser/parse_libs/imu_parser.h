@@ -1,16 +1,4 @@
-/*
- * @Date: 2023-11-06 13:56:19
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/parser/parse_libs/imu_parser.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
 #pragma once
-
-#include "cyber/common/log.h"
-
-#include "modules/chassis/proto/chassis_config.pb.h"
-#include "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.pb.h"
-#include "modules/aventurier_common_msgs/proto/ros_msgs/geometry_msgs.pb.h"
 
 #include "modules/chassis/parser/parser_base_itf.h"
 
@@ -22,7 +10,7 @@ namespace parser {
 static const float g_angle_resolution=100.0;
 // 加速度度分辨率为  1mg/s, 也就是 0.001g/s
 static const float g_acc_resolution=1000.0;
-#pragma pack(1)
+#pragma pack(push,1)
 struct IMUHeader
 {
     uint8 header[2] = {0xAA, 0x00};
@@ -47,18 +35,27 @@ struct IMUMsgData
 
     class IMUParser : public ParserBaseItf {
         public:
-            IMUParser(const ChassisConfig*,
-                    const SensorInfo*);
+            IMUParser(const SensorIndicator&);
             virtual  ~IMUParser() final;
 
             virtual int Init() override;
+            virtual int Start() override;
+            virtual int Stop() override;
+            virtual int Resume() override;
+            virtual int Close() override;
 
         private:
-            virtual int ParseRawBuffer(const uint8_t* buf,
-                    const size_t len) override;
+            virtual int ParseUartBuffer(const
+                    SensorIndicator*,
+                    const uint8_t*,
+                    const size_t) override;
+            virtual int ParseI2cBuffer(const
+                    SensorIndicator*,
+                    const uint8_t*,
+                    const size_t) override;
             int ParseSigleFrame(const IMUMsgData*);
-            // int TryParseRawData(int, unsigned char*, UartState*, RawData& dat, int&,
-            //     int, char*, CmhHeader*, void** )
+
+            int frame_count_ = 0;
     };
 
 } //namespace parser

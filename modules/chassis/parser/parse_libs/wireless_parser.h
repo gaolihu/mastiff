@@ -1,9 +1,5 @@
 #pragma once
 
-#include "cyber/common/log.h"
-
-#include "modules/chassis/proto/chassis_config.pb.h"
-
 #include "modules/chassis/parser/parser_base_itf.h"
 
 namespace mstf {
@@ -12,19 +8,19 @@ namespace parser {
 
     class WirelessParser : public ParserBaseItf {
         public:
-            WirelessParser(const ChassisConfig*,
-                    const SensorInfo*);
+            WirelessParser(const SensorIndicator&);
             virtual  ~WirelessParser() final;
 
             virtual int Init() override;
+            virtual int Start() override;
+            virtual int Stop() override;
+            virtual int Resume() override;
+            virtual int Close() override;
+
 
         private:
-            /*
-            virtual int ParseRawBuffer() override;
-            virtual int ParseSigleFrame(const
-                    std::vector<uint8_t>&,
-                    const size_t) override;
-                    */
+            virtual int ParseSocMsg(const
+                    SensorIndicator*, const Message&) override;
     };
 
 } //namespace parser

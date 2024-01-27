@@ -1,32 +1,36 @@
-/*
- * @Date: 2023-11-15 15:15:06
- * @LastEditors: xianweijing
- * @FilePath: /aventurier_framework/modules/chassis/drivers/soc/audio/audio_alsa.h
- * @Description: Copyright (c) 2023 ShenZhen Aventurier Co. Ltd All rights reserved.
- */
-
 #pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <thread>
 #include <iostream>
 #include <string>
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-#include "modules/chassis/proto/frame_down_stream.pb.h"
+extern "C" {
+#include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavutil/avutil.h"
+#include "libavutil/opt.h"
+#include "libswscale/swscale.h"
+#include "libswresample/swresample.h"
+#include "libavutil/log.h"
+}
+
+#include "modules/chassis/proto/chss_io.pb.h"
 #include "modules/chassis/proto/chassis_config.pb.h"
 #include "tinyalsa/asoundlib.h"
 
 #define DEFAULT_SAMPLE_RATE   44100
 #define DEFAULT_CHANNELS      2
 #define DEFAULT_SAMPLE_FORMAT PCM_FORMAT_S16_LE
+#define DEFAULT_BIT_PER_SAMPLE 16
 
 using namespace google;
 using namespace protobuf;
 
-#pragma pack(1)
+#pragma pack(push,1)
 struct wav_header {
     char     chunk_id[4];
     uint32_t chunk_size;
@@ -46,27 +50,69 @@ struct wav_header {
 
 namespace mstf {
 namespace chss {
-namespace audio {
+namespace driver {
+
+    using namespace proto;
 
 class AudioAlsa {
 public:
-    AudioAlsa(/* args */);
+    AudioAlsa(const AudioConfig*);
     ~AudioAlsa();
+    /**
+     * @brief 从文件读取wav文件并播放
+     *
+     * @param file
+     * @return true
+     * @return false
+     */
     bool PlayFromFile(const std::string& file);
+    /**
+     * @brief 设置音量,百分比
+     *
+     * @param volume
+     * @return true
+     * @return false
+     */
+    bool SetVolume(size_t volume=50);
+    bool Mute(); // 静音
+    /**
+     * @brief 参考MPlayer, 把mp3文件用ffmpeg转换为wav数据帧
+     *
+     * @param mp3
+     * @return true
+     * @return false
+     */
+    bool ConvertMp3ToWav(const std::string& mp3);
+    /**
+     * @brief PCM 播放参数设置
+     *
+     * @param header
+     * @return true
+     * @return false
+     */
+    bool SetPcmConfig(struct wav_header header);
 
-    std::string AudioOperate(const mstf::chss::proto::AudioCtrl& msg);
-    inline void SetChssConfig(RepeatedPtrField<proto::AudioDevConf> c) {
-        aud_dev_ = c;
-    }
+    /**
+     * @brief 接收控制指令
+     *
+     * @param msg protobuf类型的消息
+     * @return std::string
+     */
+    std::string AudioOperate(const AudioSetting& msg);
+
 private:
-    void ParsePlay(const proto::AudioPlay& p);
-    void ParseVolume(const proto::SetAduioVolume& v);
-    void ParsePackage(const proto::SetAudioPack& p);
+    void ParsePlay(const AudioPlay& p);
+    void ParseVolume(const SetAduioVolume& v);
+    void ParsePackage(const SetAudioPack& p);
+    void VolumeControl(size_t volume);
 
-    RepeatedPtrField<proto::AudioDevConf> aud_dev_;
+    void PlayWavFile(const std::string& name);
+    void PlayMp3File(const std::string& name);
+
+    const AudioConfig* audio_conf_;
     std::string package_;
 };
 
-}  // namespace audio
+}  // namespace driver
 }  // namespace chss
 }  // namespace mstf

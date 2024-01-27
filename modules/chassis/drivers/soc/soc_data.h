@@ -1,15 +1,12 @@
 #pragma once
 
-#include "cyber/timer/timer.h"
+#include "modules/chassis/proto/chss_io.pb.h"
+#include "modules/chassis/drivers/driver_data_itf.h"
 
-#include "modules/chassis/proto/chassis_config.pb.h"
-#include "modules/chassis/proto/input_output_chs.pb.h"
-
-#include "network/wifi_thread.h"
-#include "audio/audio_ctrl.h"
-
-#include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_demo.h"
-#include "modules/chassis/drivers/soc/soc_defs.h"
+#include "modules/chassis/drivers/soc/js/joystick_data.h"
+#include "modules/chassis/drivers/soc/audio/audio_ctrl.h"
+#include "modules/chassis/drivers/soc/network/wifi_thread.h"
+#include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera_ctrl.h"
 
 namespace mstf {
 namespace chss {
@@ -20,34 +17,38 @@ namespace driver {
     using namespace protobuf;
     using namespace /*mstf::chss::*/proto;
 
-    class SocData {
+    class SocData : public DriveDataItf {
         public:
-            SocData(const SocDataListener&);
+            SocData(const SocDataListener&,
+                    const std::shared_ptr<ChassisConfig>&);
             virtual ~SocData();
 
-            int Init(const SensorInfo* si = nullptr,
-                    const ChassisConfig* = nullptr);
-            int Start(const SensorInfo* si);
-            int Stop(const SensorInfo* si);
-            int Close(const SensorInfo* si);
+            virtual int Init(const SensorIndicator* si) override;
+            virtual int Start(const SensorIndicator* si) override;
+            virtual int Stop(const SensorIndicator* si) override;
+            virtual int Close(const SensorIndicator* si) override;
+            virtual int Resume(const SensorIndicator* si) override;
 
             int SocWrite(const Message&);
 
         private:
+            virtual void PollingDriveRutine() override;
+
+        private:
             std::string dev_;
 
-            //SocMessageListener soc_listener_ = nullptr;
-            //GpioMessageListener gpio_listener_ = nullptr;
-
-            //std::vector<GpioHw*> gpio_hws_;
             SocDataListener soc_listner_ = nullptr;
 
-            std::shared_ptr<network::WiFiThread>
-                wifi_thread_; // wifi control
-            std::shared_ptr<camera::Demo> camera_ctrl_; // camera control
-            std::shared_ptr<audio::AudioCtrl> audio_ctrl_;
+            std::shared_ptr<JoyStickData> js_ {};
+            std::shared_ptr<AudioCtrl> audio_ctrl_ {};
+            std::shared_ptr<WiFiThread> wifi_ctrl_{}; // wifi control
+            std::shared_ptr<AsCameraCtrl> camera_ctrl_{};
 
-            const ChassisConfig* chs_conf_ = nullptr;
+            //GpioMessageListener gpio_listener_ = nullptr;
+            //std::vector<GpioHw*> gpio_hws_;
+
+
+            std::weak_ptr<ChassisConfig> chs_conf_ {};
     };
 
 } //namespace driver
