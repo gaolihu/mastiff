@@ -20,7 +20,10 @@
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 
+#if 0
+#else
 #include "modules/chassis/proto/input_output_chs.pb.h"
+#endif
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
@@ -34,7 +37,7 @@ int main(int argc, char *argv[]) {
   auto talker_node = apollo::cyber::CreateNode("talker");
   // create talker
   auto talker = talker_node->CreateWriter<Chatter>("channel/chatter");
-  Rate rate(1.0);
+  Rate rate(3.0);
   uint64_t seq = 0;
   while (apollo::cyber::OK()) {
     auto msg = std::make_shared<Chatter>();
@@ -52,7 +55,7 @@ int main(int argc, char *argv[]) {
   // create talker
 
   auto talker = talker_node->CreateWriter<ventura::common_msgs::geometry_msgs::Twist>("cmd_vel");
-  Rate rate(1.0);
+  Rate rate(0.1);
   uint64_t seq = 0;
   while (apollo::cyber::OK()) {
     auto msg = std::make_shared<ventura::common_msgs::geometry_msgs::Twist>();

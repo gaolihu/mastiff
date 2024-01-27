@@ -14,7 +14,7 @@ rm -fr out/conf/
 rm -fr out/btxml/
 rm -fr out/dag/
 rm -fr out/cyber/
-rm -fr mstf_pack.tar
+rm -fr mastiff.tar
 
 if [ ! -d out/bin ]; then
     mkdir -p out/bin/
@@ -145,7 +145,8 @@ else
 fi
 
 # copy angstrong camera lib
-find bazel-bin/_solib_aarch64/ -not -path '*_objs/*' -name *.so | xargs cp -ft out/lib
+#find bazel-bin/_solib_aarch64/ -not -path '*_objs/*' -name *.so | xargs cp -ft out/lib
+find bazel-mastiff/external/angstrong_camera/lib/ -name "*.so" -exec cp -frd {} out/lib \;
 if [ $? -eq 0 ]; then
     good "copy angstrong so lib files OK!"
 else
@@ -162,14 +163,14 @@ find bazel-mastiff/external/opencv4_8/lib/ -name "*.so*" -exec cp -frd {} out/li
         warning "copy openCV so lib files NG!";
     }
 
-# copy alsa libs
-find bazel-mastiff/external/tinyalsa/lib/ -name "*.so*" -exec cp -frd {} out/lib/ \;
+# copy ffmpeg libs
+find bazel-mastiff/external/ffmpeg_4_4_aarch/lib/ -name "*.so*" -exec cp -frd {} out/lib/ \;
 [[ $? -eq 0 ]] &&
     {
-        good "copy openCV so lib files OK1!";
+        good "copy ffmpeg so lib files OK!";
     } ||
     {
-        warning "copy openCV so lib files NG!";
+        warning "copy ffmpeg so lib files NG!";
     }
 
 # running scripts
@@ -183,8 +184,8 @@ fi
 # pack target
 cd $TOPDIR/out
 info "Create mastiff project tar-ball file!"
-tar cf mstf.tar *
-mv mstf.tar $TOPDIR
+tar cf mastiff.tar *
+mv mastiff.tar $TOPDIR
 cd $TOPDIR
 
 success "pack veuns finished!"

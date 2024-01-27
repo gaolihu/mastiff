@@ -153,11 +153,32 @@ http_archive(
 )
 
 http_archive(
-    name = "websocket_cpp",
-    sha256 = "3947404ab3da8f6fe0884a2d4316816fdd0850ed1e10291f4a04642a6ce3c7fd",
-    strip_prefix = "websocket_cpp",
+    name = "ffmpeg_latest",
+    # commit: af509f995786e72e2f6438b61c004bfcc37515da, 2024/1/10
+    sha256 = "df952a5ecdd20468b6b2beaaa6416f0163e30b5de415cd86be88b6195bb03d1a",
+    strip_prefix = "ffmpeg_aarch64",
     urls = [
-        "@REMOTE_HTTP_SERVER@/websocket/websocket_cpp.tgz",
+        "@REMOTE_HTTP_SERVER@/ffmpeg/ffmpeg_aarch64.tgz",
+    ],
+    build_file = "@//3rd_party/ffmpeg:fmp.BUILD",
+)
+
+http_archive(
+    name = "ffmpeg_4_4_aarch",
+    sha256 = "959731838005330d2b977c60d4549fb48765c8f2042f757f23087b280006a83f",
+    strip_prefix = "ffmpeg_4_4_aarch",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/ffmpeg/ffmpeg_4_4_aarch.tgz",
+    ],
+    build_file = "@//3rd_party/ffmpeg:fmp.BUILD",
+)
+
+http_archive(
+    name = "websocket_cpp",
+    sha256 = "b9f1204664889f8b7c61d101b70bc4d121b3f0ab56b5dd327dc62ab244d32dc7",
+    strip_prefix = "websocketpp-1b11fd301531e6df35a6107c1e8665b1e77a2d8e",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/websocket/1b11fd301531e6df35a6107c1e8665b1e77a2d8e.zip",
     ],
     build_file = "@//3rd_party/websocket:websock.BUILD",
 )
@@ -346,20 +367,30 @@ http_archive(
 
 http_archive(
     name = "tinyalsa",
-    sha256 = "9450aa99d0ea1a632f71357b1ca1f86c80c0b4a963547ddce3b3df80423879d3",
-    strip_prefix = "tinyalsa-1.1.1",
+    sha256 = "fdd93c95329325937efd4992496c9933c5099e79b0f051c6aa284414d721f21b",
+    # commit: f78ed25aced2dfea743867b8205a787bfb091340, 2023/9/18
+    strip_prefix = "tinyalsa-f78ed25aced2dfea743867b8205a787bfb091340",
     urls = [
-        "@REMOTE_HTTP_SERVER@/tinyalsa/tinyalsa-1.1.1.tgz"
+        "@REMOTE_HTTP_SERVER@/tinyalsa/tinyalsa-f78ed25aced2dfea743867b8205a787bfb091340.zip",
     ],
-    build_file = "@//3rd_party/tinyalsa:ta.BUILD",
 )
 
 http_archive(
     name = "sqlite3",
-    sha256 = "e98c100dd1da4e30fa460761dab7c0b91a50b785e167f8c57acc46514fae9499",
-    strip_prefix = "sqlite-autoconf-3410200",
+    sha256 = "833be89b53b3be8b40a2e3d5fedb635080e3edb204957244f3d6987c2bb2345f",
+    strip_prefix = "sqlite-amalgamation-3440200",
     urls = [
-        "@REMOTE_HTTP_SERVER@/amalgamation/sqlite-autoconf-3410200.tar.gz",
+        "@REMOTE_HTTP_SERVER@/sqlite3/sqlite-amalgamation-3440200.zip",
+    ],
+    build_file = "@//3rd_party/amalgamation:sq3.BUILD",
+)
+
+http_archive(
+    name = "redis",
+    sha256 = "833be89b53b3be8b40a2e3d5fedb635080e3edb204957244f3d6987c2bb2345f",
+    strip_prefix = "sqlite-amalgamation-3440200",
+    urls = [
+        "https://github.com/redis/redis/archive/068051e378ceaea85a7fb011f1271587a17bd0e7.zip"
     ],
     build_file = "@//3rd_party/amalgamation:sq3.BUILD",
 )

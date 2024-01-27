@@ -18,10 +18,21 @@
 
 #include "cyber/cyber.h"
 
+#if 0
+#else
+#include "modules/chassis/proto/input_output_chs.pb.h"
+#endif
+
 void MessageCallback(
+#if 0
     const std::shared_ptr<apollo::cyber::cbr_examples::proto::Chatter>& msg) {
   AINFO << "Received message seq-> " << msg->seq();
   AINFO << "msgcontent->" << msg->content();
+#else
+    //const std::shared_ptr<ventura::common_msgs::geometry_msgs::Twist>& msg) {
+    const std::shared_ptr<ventura::common_msgs::sensor_msgs::Imu>& msg) {
+  AINFO << "msgcontent->" << msg->DebugString();
+#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -31,8 +42,14 @@ int main(int argc, char* argv[]) {
   auto listener_node = apollo::cyber::CreateNode("listener");
   // create listener
   auto listener =
+#if 0
       listener_node->CreateReader<apollo::cyber::cbr_examples::proto::Chatter>(
           "channel/chatter", MessageCallback);
+#else
+      //listener_node->CreateReader<ventura::common_msgs::geometry_msgs::Twist>(
+      listener_node->CreateReader<ventura::common_msgs::sensor_msgs::Imu>(
+          "imu", MessageCallback);
+#endif
   apollo::cyber::WaitForShutdown();
   return 0;
 }

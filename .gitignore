@@ -112,6 +112,9 @@ output
 # Directory for local config
 conf/
 
+# external msgs
+modules/aventurier_common_msgs
+
 # Flamegraph files
 tools/FlameGraph
 
@@ -128,3 +131,9 @@ mstf_pack.sh
 mstf.tar
 mstf.tar.gz
 mstf.tgz
+mastiff.tgz
+mastiff.tar
+
+# Temporary
+web_htmls
+obslete

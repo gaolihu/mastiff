@@ -24,13 +24,11 @@ genrule(
     name = "library_x",
     outs = ["x.cc",],
     cmd = "\
-        echo -e \"void x86() {return;}\" > $(@) && \
-        sed -i \'27c name = \"linux_aarch64\",\' external/boost/BUILD.bazel && \
-        sed -i \'35c name = \"linux_x86_64\",\' external/boost/BUILD.bazel && \
-        sed -i \'324c \"-msse2\",\' external/boost/BUILD.bazel && \
-        sed -i \'325c \"-msse4.1\",\' external/boost/BUILD.bazel && \
-        sed -i \'57s|^#||\' external/org_lzma_lzma/BUILD.bazel && \
-        rm external/org_lzma_lzma/src/liblzma/api/config.h \
+        echo -e \"void hello_x86() {return;}\" > $(@) && \
+        sed -i \'27c name   = \"linux_aarch64\",\' external/boost/BUILD.bazel && \
+        sed -i \'35c name   = \"linux_x86_64\",\' external/boost/BUILD.bazel && \
+        rm external/org_lzma_lzma/src/liblzma/api/config.h && \
+        cp external/com_github_nelhage_rules_boost/config.lzma-linux.h external/org_lzma_lzma/src/liblzma/api/config.h \
         "
 )
 
@@ -39,6 +37,7 @@ cc_library(
     srcs = ["x.cc"],
     deps = [
         ":library_x",
+        "@org_lzma_lzma//:lzma",
     ],
 )
 
@@ -46,9 +45,9 @@ genrule(
     name = "library_a",
     outs = ["a.cc",],
     cmd = "\
-        echo -e \"void aarch64() {return;}\" > $(@) && \
-        sed -i \'27c name = \"linux_x86_64\",\' external/boost/BUILD.bazel && \
-        sed -i \'35c name = \"linux_aarch64\",\' external/boost/BUILD.bazel && \
+        echo -e \"void hi_aarch64() {return;}\" > $(@) && \
+        sed -i \'27c name =   \"linux_x86_64\",\' external/boost/BUILD.bazel && \
+        sed -i \'35c name =   \"linux_aarch64\",\' external/boost/BUILD.bazel && \
         sed -i \'324c #\"-msse2\",\' external/boost/BUILD.bazel && \
         sed -i \'325c #\"-msse4.1\",\' external/boost/BUILD.bazel && \
         sed -i \'57s|^|#|\' external/org_lzma_lzma/BUILD.bazel && \
@@ -69,7 +68,7 @@ cc_binary(
     name = "client",
     srcs = ["client.cc"],
     deps = [
-        ":lib_a",
+        ":lib_x",
         "//cyber",
         "//CyberRT_tutorials/cbr_examples/proto:cbr_examples_cc_proto",
         "@behaviour_tree//:bt",
