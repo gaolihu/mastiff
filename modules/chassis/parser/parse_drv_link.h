@@ -4,6 +4,7 @@
 
 #include "modules/chassis/proto/chassis_config.pb.h"
 
+#include "modules/chassis/parser/common_inf.h"
 #include "modules/chassis/drivers/can/can_data.h"
 #include "modules/chassis/drivers/uart/serial_data.h"
 #include "modules/chassis/drivers/i2c/i2c_data.h"
@@ -55,6 +56,9 @@ namespace parser {
             }
 
             // --------------------- data downstream ---------------------
+            // write SOC
+            bool WriteSoc(const SensorIndicator*, const Message&);
+
             // write CAN
             size_t WriteCan(const SensorIndicator*,
                     const int, const uint8_t*, const size_t);
@@ -86,15 +90,12 @@ namespace parser {
                 return WriteUart(si, &data[0], data.size());
             }
 
-            // write SOC
-            bool WriteSoc(const Message&);
-
             // --------------------- data upstream ---------------------
             void OnRecvCan(const SensorIndicator*, const uint8_t*, const size_t);
             void OnRecvIIc(const SensorIndicator*, const uint8_t*, const size_t);
             void OnRecvUart(const SensorIndicator*, const uint8_t*, const size_t);
             void OnRecvSoc(const SensorIndicator*, const Message&,
-                    const uint8_t*, const size_t);
+                    const uint8_t* = nullptr, const size_t = 0);
 
         private:
             //helpers

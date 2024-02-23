@@ -31,19 +31,21 @@ namespace device {
     //downstream
     int Transactor::RecvChassCtrl(const
             std::shared_ptr<ImportChassisCtrl>& ctrl) {
-#ifdef CHSS_PKG_DBG
+//#ifdef CHSS_PKG_DBG
 #if 0
         //too much noise
         AINFO << "receive chassis control:\n" <<
             ctrl->DebugString();
 #endif
-#endif
         int ret = -1;
 
         //1, ctrl wheel
-        if (ctrl->has_move_ctrl())
-            if ((ret = _CtrlChsMovement(ctrl->move_ctrl())) != 0)
+        if (ctrl->has_move_ctrl()) {
+            if ((ret = _CtrlChsMovement(ctrl->move_ctrl())) != 0) {
                 AWARN << "speed control problem!";
+            }
+            return ret;
+        }
 
         //2, ctrl adc
         if (ctrl->has_adc_ctrl())

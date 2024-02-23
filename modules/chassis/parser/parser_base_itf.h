@@ -20,7 +20,7 @@ namespace parser {
 
     using FrameProcessor = std::function<int(const Message*)>;
     using FrameProcessorSp = std::function<int(const
-            std::shared_ptr<Message>&)>;
+            std::shared_ptr<Message>&, const std::string&)>;
 
     class ParserBaseItf {
         public:
@@ -47,7 +47,8 @@ namespace parser {
                 auto cbs = GetCircleBuf();
                 const EE_COMM_PORT_TYPE type = s_idc_->port();
 
-                AINFO << "Init ParserBaseItf, port: " << type <<
+                AINFO << "Init ParserBaseItf, port: " <<
+                    CommonItf::Instance()->GetCommPort(s_idc_) <<
                     ", dev: " << s_idc_->ihi().name() <<
                     ", cbuf:\n" <<
                     (cbs == nullptr ? "no cbuf" : cbs->DebugString());
@@ -255,7 +256,7 @@ namespace parser {
             ////////// data upstream //////////
 
             ////////// data downstream //////////
-            virtual int WriteSocMessage(/*const DownToSocData& data*/) {
+            virtual int WriteSocMessage(const Message& data) {
 #if 0
                 return ParseDrvLink::Instance()->WriteSoc(data);
 #endif

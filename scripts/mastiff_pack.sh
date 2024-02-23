@@ -14,6 +14,7 @@ rm -fr out/conf/
 rm -fr out/btxml/
 rm -fr out/dag/
 rm -fr out/cyber/
+rm -fr out/wifi/
 rm -fr mastiff.tar
 
 if [ ! -d out/bin ]; then
@@ -25,7 +26,7 @@ if [ ! -d out/lib ]; then
 fi
 
 if [ ! -d out/conf ]; then
-    mkdir -p out/conf/
+    mkdir -p out/conf/configurationfiles/
 fi
 
 if [ ! -d out/btxml ]; then
@@ -42,6 +43,10 @@ fi
 
 if [ ! -d out/cyber ]; then
     mkdir -p out/cyber/conf
+fi
+
+if [ ! -d out/wifi ]; then
+    mkdir -p out/wifi
 fi
 
 good "Init output files directory OK!"
@@ -77,6 +82,18 @@ if [ $? -eq 0 ]; then
     good "copy ChassisConfigRK3588 config OK!"
 else
     warning "copy ChassisConfigRK3588 config NG!"
+fi
+cp modules/chassis/conf/configurationfiles/hp60c_v2_00_20230704_configEncrypt.json out/configurationfiles/conf/ -fr
+if [ $? -eq 0 ]; then
+    good "copy camera config OK!"
+else
+    warning "copy camera config NG!"
+fi
+cp modules/chassis/drivers/soc/network/wifi_tool.sh out/wifi/ -fr
+if [ $? -eq 0 ]; then
+    good "copy wifi config OK!"
+else
+    warning "copy wifi config NG!"
 fi
 cp bazel-bin/modules/chassis/chss_pkg out/bin/ -fr
 if [ $? -eq 0 ]; then

@@ -272,9 +272,60 @@ namespace parser {
         return nullptr;
     }
 
+    const std::string CommonItf::GetCommPort(const
+            SensorIndicator* si) const {
+        if (!chss_conf_)
+            return "";
+
+        switch (si->port()) {
+            case E_COMM_PORT_SERIAL:
+                return "serial";
+            case E_COMM_PORT_485:
+                return "485";
+            case E_COMM_PORT_232:
+                return "232";
+            case E_COMM_PORT_CAN:
+                return "can";
+            case E_COMM_PORT_I2C:
+                return "i2c";
+            case E_COMM_PORT_SPI:
+                return "spi";
+            case E_COMM_PORT_USB:
+                return "usb";
+            case E_COMM_PORT_MIPI:
+                return "mipi";
+            case E_COMM_PORT_GPIO:
+                return "gpio";
+            case E_COMM_PORT_I2S:
+                return "i2s";
+            case E_COMM_PORT_SDIO:
+                return "sdio";
+            case E_COMM_PORT_24G:
+                return "2.4G";
+            default:
+            //case E_COMM_PORT_SENTINEL:
+                return "ERROR";
+        }
+    }
+
     const bool CommonItf::IsLacateSoc(const
             SensorIndicator* sidc) const {
         return (sidc->dev_main() == EE_DEV_MAIN_SOC);
+    }
+
+    const std::string CommonItf::GetTopic1(const
+            SensorIndicator* sidc) const {
+        return (sidc->ihi().topic1());
+    }
+
+    const std::string CommonItf::GetTopic2(const
+            SensorIndicator* sidc) const {
+        return (sidc->ihi().topic2());
+    }
+
+    const std::string CommonItf::GetTopic3(const
+            SensorIndicator* sidc) const {
+        return (sidc->ihi().topic3());
     }
 
 } //namespace parser

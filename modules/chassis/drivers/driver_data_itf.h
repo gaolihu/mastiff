@@ -46,7 +46,7 @@ namespace driver {
                     dev_ = dev;
 
                 if (loop_cycle_ms <= 0)
-                    loop_cycle_ms_ = 2000;
+                    loop_cycle_ms_ = 200;
 
 #ifdef USE_CYBER_TIMER
                 AINFO << "timer for <" <<
@@ -87,6 +87,9 @@ namespace driver {
                             while (!terminate_) {
                                 if (running_) {
                                     PollingDriveRutine();
+                                    std::this_thread::sleep_for(
+                                            std::chrono
+                                            ::milliseconds(loop_cycle_ms_ / 10));
                                 } else {
                                     //AINFO << "stop & wait resume " << dev_;
                                     std::this_thread::sleep_for(

@@ -141,6 +141,9 @@ message InherentInfo {
     string name = 1;
     string manufacture_by = 2;
     string type = 3;
+    string topic1 = 4;
+    string topic2 = 5;
+    string topic3 = 6;
 }
 
 message SensorIndicator {
@@ -448,7 +451,6 @@ message CameraConfig {
     int32 width = 5;
     int32 height = 6;
     int32 fps = 7;
-    bool used = 8;
 }
 
 message CameraConfigs {
@@ -546,18 +548,20 @@ message ChassissTopicConfig {
     //writer, for upstream messages
     string output_imu_topic_name = 2;
     string output_odom_topic_name = 3;
-    string output_lpa_topic_name = 4;
-    string output_tpa_topic_name = 5;
+    string output_lpa_topic_name = 4;   //lidar pcl
+    string output_lla_topic_name = 5;   //line laser pcl
     string output_cmd_topic_name = 6;
     string output_cfd_topic_name = 7;
-    string output_img_topic_name = 8;
-    string output_hcr_topic_name = 9;
+    string output_irgb_topic_name = 8;  //iamge rgb
+    string output_idep_topic_name = 9;  //image depth
+    string output_ipa_topic_name = 10;  //image pcl
+    string output_hcr_topic_name = 11;
 
     //read channel
-    string chassis_input_channel = 10;
+    string chassis_input_channel = 12;
     //reader, for downstream messages
-    string input_crtl_topic_name = 11;
-    string input_move_topic_name = 12;
+    string input_crtl_topic_name = 13;
+    string input_move_topic_name = 14;
 
     /*
     string output_wifi_topic_name = 13;

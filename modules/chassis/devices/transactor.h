@@ -49,7 +49,7 @@ namespace device {
 
             inline void  Init(const std::shared_ptr<
                     ChassisConfig>& cc) {
-                AINFO << "transactor init";
+                AINFO << "transactor init, set chassis config";
                 parser::CommonItf::Instance()->
                     SetChasisConfig(cc);
             }
@@ -58,17 +58,20 @@ namespace device {
             template <typename MessageT>
             void RegisterPublishers(const
                     std::function<int(const
-                        std::shared_ptr<Message>&)>& p) {
+                        std::shared_ptr<Message>&)>& p,
+                    const std::string& tpk) {
 #ifdef CHSS_PKG_DBG
                 AINFO << "TRANS_W[" << msg_publisher_pair_.size() <<
-                    "] register msg publisher \"" <<
+                    "] [" << tpk <<
+                    "] \"" <<
                     cyber::message::GetMessageName<MessageT>() << "\"";
 #endif
-                msg_publisher_pair_[
+                msg_publisher_pair_[tpk +
                     cyber::message::GetMessageName<MessageT>()] = p;
             }
 
-            int OnTransferMessageOut(const std::shared_ptr<Message>& msg) {
+            int OnTransferMessageOut(const std::shared_ptr<Message>& msg,
+                    const std::string& tpk) {
 #if 0
 //#ifdef CHSS_PKG_DBG
                 static int i = 0;
@@ -82,9 +85,22 @@ namespace device {
                 }
 #endif
                 for (auto x : msg_publisher_pair_) {
-                    if (x.first == msg->GetTypeName()) {
-                        //=&MsgsSendTmpl::MessagePublish()
-                        return x.second(msg);
+                    if (!tpk.empty()) {
+                        if (x.first.find(tpk) != std::string::npos){
+                            //=&MsgsSendTmpl::MessagePublish()
+                            /*
+                            AINFO << "msg_publisher_pair_ size: " <<
+                                msg_publisher_pair_.size() <<
+                                ", msg: " << x.first <<
+                                ", tpk" << tpk;
+                                */
+                            return x.second(msg);
+                        }
+                    } else {
+                        if (x.first.find(msg->GetTypeName())) {
+                            //=&MsgsSendTmpl::MessagePublish()
+                            return x.second(msg);
+                        }
                     }
                 }
 
@@ -180,37 +196,58 @@ namespace device {
             //specified performer
             inline int _CtrlChsMovement(const
                     ChsMovementCtrl& ctrl) {
-                return ctrl_move_(ctrl);
+                if (ctrl_move_)
+                    return ctrl_move_(ctrl);
+                AERROR << "no move handle!";
+                return -1;
             }
 
             inline int _CtrlChsPeriphAdc(const
                     ChsPeriphAdcCtrl& ctrl) {
-                return ctrl_adc_(ctrl);
+                if (ctrl_adc_)
+                    return ctrl_adc_(ctrl);
+                AERROR << "no adc handle!";
+                return -1;
             }
 
             inline int _CtrlChsPeriphPwm(const
                     ChsPeriphPwmCtrl& ctrl) {
-                return ctrl_pwm_(ctrl);
+                if (ctrl_pwm_)
+                    return ctrl_pwm_(ctrl);
+                AERROR << "no pwm handle!";
+                return -1;
             }
 
             inline int _CtrlChsPeriphGpio(const
                     ChsPeriphGpioCtrl& ctrl) {
-                return ctrl_gpio_(ctrl);
+                if (ctrl_gpio_)
+                    return ctrl_gpio_(ctrl);
+                AERROR << "no gpio handle!";
+                return -1;
             }
 
             inline int _CtrlChsPeriphInfra(const
                     ChsPeriphInfraCtrl& ctrl) {
-                return ctrl_infra_(ctrl);
+                if (ctrl_infra_)
+                    return ctrl_infra_(ctrl);
+                AERROR << "no infra handle!";
+                return -1;
             }
 
             inline int _CtrlChsSocMisc(const
                     ChsSocMiscCtrl& ctrl) {
-                return ctrl_soc_(ctrl);
+                if (ctrl_soc_)
+                    return ctrl_soc_(ctrl);
+                AERROR << "no soc handle!";
+                return -1;
             }
 
             inline int _CtrlChsUpdate(const
                     ChsFirmWareUpdate& ctrl) {
-                return ctrl_update(ctrl);
+                if (ctrl_update)
+                    return ctrl_update(ctrl);
+                AERROR << "no update handle!";
+                return -1;
             }
 
         private:

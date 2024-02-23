@@ -235,7 +235,7 @@ message AudioPlay {
 }
 
 message SetAduioVolume {
-    int32 volmue = 1;
+    int32 volume = 1;
     google.protobuf.BoolValue mute_sw = 2;
 }
 
@@ -494,7 +494,7 @@ message FourgInfo {
 message AudioInfo {
     google.protobuf.StringValue dev = 1;
     google.protobuf.StringValue pack = 2;   //language
-    google.protobuf.UInt32Value volmue = 3;
+    google.protobuf.UInt32Value volume = 3;
     google.protobuf.BoolValue mute_sw = 4;
 }
 
@@ -508,9 +508,9 @@ message SensorCommonInfo {
 
 message ChsMiscSocInfo {
     repeated CameraInfo camera = 1;
-    WifiInfo wire_less = 2;
+    WifiInfo wifi = 2;
     FourgInfo four_g = 3;
-    AudioInfo audoi = 4;
+    AudioInfo audio = 4;
     repeated SensorCommonInfo lidar_info = 5;
     SensorCommonInfo imu_info = 6;
     SensorCommonInfo tof_info = 7;
@@ -521,5 +521,8 @@ message ChsMiscSocInfo {
 message ChsResponseCtrl {
     uint32 response_ctrl_id = 1;
     bool if_success = 2;
+}
+
+message NullMsg {
 }
 //////////////////// Message Output ////////////////////

@@ -32,6 +32,13 @@ namespace device {
 #endif
     }
 
+    int AudioPlay::SetMisc(const ChsSocMiscCtrl& m) {
+        if (m.has_audio()) {
+            return data_parser_->WriteSocMessage(m);
+        }
+        return -1;
+    }
+
 } //namespace device
 } //namespace chss
 } //namespace mstf

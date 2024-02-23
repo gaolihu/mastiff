@@ -235,9 +235,12 @@ camera_dev: [
             port: E_COMM_PORT_USB
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Camera"
+                name: "Camera-L"
                 manufacture_by: "Unknown"
                 type: "USB-camera"
+                topic1: "mastiff/chassis/output/chs_irgb"
+                topic2: "mastiff/chassis/output/chs_idep"
+                topic3: "mastiff/chassis/output/chs_ipa"
             }
         }
         ca {
@@ -248,7 +251,7 @@ camera_dev: [
             number: 1
         }
         camera_conf {
-            dev_name: "usb-caemra"
+            dev_name: "usb-camera-left"
             conf: [
                 {
                     sensor_name: "HBV-1780-2 S2.0"
@@ -258,12 +261,86 @@ camera_dev: [
                     width: 1280
                     height: 480
                     fps: 7
-                    used: false
                 }
             ]
-            used: false
         }
         used: true
+    },
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_SOC
+            type: E_DEVICE_CAMERA
+            port: E_COMM_PORT_USB
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Camera-M"
+                manufacture_by: "Unknown"
+                type: "USB-camera"
+                topic1: "mastiff/chassis/output/chs_irgb"
+                topic2: "mastiff/chassis/output/chs_idep"
+                topic3: "mastiff/chassis/output/chs_ipa"
+            }
+        }
+        ca {
+            height: 100
+            set_angle: 90.0f
+            locate: 10.0f
+            iface: E_ITF_USB
+            number: 1
+        }
+        camera_conf {
+            dev_name: "usb-camera-mid"
+            conf: [
+                {
+                    sensor_name: "HBV-1780-2 S2.0"
+                    interface: "usb"
+                    cam_dev: "/dev/video10"
+                    format: "mjpeg"
+                    width: 1280
+                    height: 480
+                    fps: 7
+                }
+            ]
+        }
+        used: false
+    },
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_SOC
+            type: E_DEVICE_CAMERA
+            port: E_COMM_PORT_USB
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Camera-R"
+                manufacture_by: "Unknown"
+                type: "USB-camera"
+                topic1: "mastiff/chassis/output/chs_irgb"
+                topic2: "mastiff/chassis/output/chs_idep"
+                topic3: "mastiff/chassis/output/chs_ipa"
+            }
+        }
+        ca {
+            height: 100
+            set_angle: 90.0f
+            locate: 10.0f
+            iface: E_ITF_USB
+            number: 1
+        }
+        camera_conf {
+            dev_name: "usb-camera-right"
+            conf: [
+                {
+                    sensor_name: "HBV-1780-2 S2.0"
+                    interface: "usb"
+                    cam_dev: "/dev/video11"
+                    format: "mjpeg"
+                    width: 1280
+                    height: 480
+                    fps: 7
+                }
+            ]
+        }
+        used: false
     }
 ]
 
@@ -533,12 +610,12 @@ wireless_dev: [
             port: E_COMM_PORT_SDIO
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Wifi-Module"
+                name: "Network-Wifi"
                 manufacture_by: "AMPACK"
                 type: "AP6275P"
             }
         }
-        used: true
+        used: false
     }
 ]
 
@@ -553,6 +630,7 @@ linelaser_dev: [
                 name: "Line-Laser-Left"
                 manufacture_by: "AVT-Line-Laser"
                 type: "EAI"
+                topic1: "point_cloud_tof"
             }
         }
         uart_configs {
@@ -585,6 +663,7 @@ linelaser_dev: [
                 name: "Line-Laser-Right"
                 manufacture_by: "AVT-Line-Laser"
                 type: "EAI"
+                topic1: "point_cloud_tof"
             }
         }
         uart_configs {
@@ -644,10 +723,12 @@ chs_topic_conf {
     output_imu_topic_name: "imu"
     output_odom_topic_name: "odometry"
     output_lpa_topic_name: "point_cloud"
-    output_tpa_topic_name: "point_cloud_tof"
+    output_lla_topic_name: "point_cloud_tof"
     output_cmd_topic_name: "mastiff/chassis/output/chs_cmd"
     output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
-    output_img_topic_name: "mastiff/chassis/output/chs_img"
+    output_irgb_topic_name: "mastiff/chassis/output/chs_irgb"
+    output_idep_topic_name: "mastiff/chassis/output/chs_idep"
+    output_ipa_topic_name: "mastiff/chassis/output/chs_ipa"
     output_hcr_topic_name: "mastiff/chassis/output/chs_hcr"
 
     chassis_input_channel: "robot/subscribe"

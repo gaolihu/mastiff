@@ -29,16 +29,12 @@ public:
     void Start();
     void Stop();
     void Close();
-    bool SetAudioCtrl(const chss::proto::AudioSetting& msg);
+    void SetAudioCtrl(const chss::proto::AudioSetting& msg);
+
+    void PollingAudioRutine();
 
 private:
-    void AudioRunner();
-
-    std::mutex              audio_mtx_;
-    std::condition_variable audio_cv_;
-    bool                    can_running_{false};
-    std::thread             audio_th_;
-
+    bool has_data_ = false;
     proto::AudioSetting ctrl_msg_;
 
     std::shared_ptr<AudioAlsa> audio_;

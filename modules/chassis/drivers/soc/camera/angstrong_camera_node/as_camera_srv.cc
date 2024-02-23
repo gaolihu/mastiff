@@ -297,7 +297,7 @@ int CameraSrv::getConfigFile(AS_CAM_PTR pCamera, std::string &configfile, AS_SDK
 
     // get json
     std::vector<std::string> files;
-    scanDir("./configurationfiles", files);
+    scanDir("/data/conf/configurationfiles", files);
     ret = -1;
     for (auto it = files.begin(); it != files.end(); it++) {
         std::string filename = (*it).substr((*it).find_last_of("/"));

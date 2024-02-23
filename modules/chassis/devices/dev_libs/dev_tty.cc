@@ -253,8 +253,6 @@ static int tty_filter(tty_hand* tty_hand)
 
     //AINFO << "command: " << command;
 
-    check_val = false;
-
     //command store
     if (command == 'c') {
         AINFO << "command: " << cmd;
@@ -268,80 +266,106 @@ static int tty_filter(tty_hand* tty_hand)
             ", value: " << val;
 
         cmd = val = 0;
+        check_val = false;
+
         return ret;
     }
 
     switch (command) {
         case 'w':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b41; //forward
         case 's':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b42; //backward
         case 'd':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b43; //right
         case 'a':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b44; //left
         case 'e':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b45; //stop
         case 't':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b46; //
         case 'y':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b47; //
         case 'u':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b48; //
         case 'i':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b49; //
         case 'o':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b50; //
         case 'p':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b51; //
         case 'l':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b52; //
         case 'n':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b53; //
         case 'm':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b54; //
         case 'v':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b55; //
         case 'x':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b56; //
         case 'z':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b57; //
         case 'g':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b58; //
         case 'b':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b59; //
         case 'f':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b60; //
         case 'h':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b61; //
         case 'j':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b62; //
         case 'k':
+            check_val = false;
             cmd = val = 0;
             return 0x1b4b63; //
         case 'q':
+            check_val = false;
             cmd = val = 0;
             return 'q'; //quit program
 
@@ -354,6 +378,7 @@ static int tty_filter(tty_hand* tty_hand)
             printf("shift tty handler: {%s} -> {%s}\n",
                     tty_hand->hand_key, tty_hand->next->hand_key);
             cmd = val = 0;
+            check_val = false;
 
             tty_handle_list_cursor = tty_handle_list_cursor->next;
             return 0;

@@ -11,6 +11,8 @@ namespace device {
             DeviceWireless(const SensorIndicator&);
             virtual ~DeviceWireless();
 
+            virtual int SetMisc(const ChsSocMiscCtrl&) override;
+
         private:
     };
 

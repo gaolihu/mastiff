@@ -11,11 +11,6 @@
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
-#include "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.pb.h"
-
-using namespace ventura;
-using namespace common_msgs;
-using namespace sensor_msgs;
 
 Camera::Camera(AS_CAM_PTR pCamera, const AS_SDK_CAM_MODEL_E &cam_type) {
     int ret     = 0;
@@ -139,38 +134,29 @@ int Camera::backgroundThread() {
     }
     return 0;
 }
-void Camera::PublishAnImage(const AS_Frame_s &img_data) {
-    /*
-    if (!msg_publisher_) {
-        return;
-    }
-    */
-    //TODO
-
+void Camera::PublishAnImageRgb(const AS_Frame_s &img_data) {
     callback_finished_ = false;
-
-    ADEBUG << "camera soc get depth or rgb image .....";
-    sensor_msgs::Image response;
     //header
-
-    response.mutable_header()->set_seq(frame_seq_);
-    response.mutable_header()->set_frame_id(frame_id_);
+    img_rgb_.mutable_header()->set_seq(frame_seq_);
+    img_rgb_.mutable_header()->set_frame_id(frame_id_);
     auto sec  = cyber::Time::Now().ToSecond();
     auto nsec = cyber::Time::Now().ToNanosecond() % static_cast<uint64_t>(1e9);
-    response.mutable_header()->mutable_stamp()->set_sec(sec);
-    response.mutable_header()->mutable_stamp()->set_nsec(nsec);
+    img_rgb_.mutable_header()->mutable_stamp()->set_sec(sec);
+    img_rgb_.mutable_header()->mutable_stamp()->set_nsec(nsec);
 
     // data
-    response.set_width(img_data.width);
-    response.set_height(img_data.height);
-    response.set_encoding("16UC1");
-    response.set_is_bigendian(false);
-    response.set_step(img_data.width * 2);
+    img_rgb_.set_width(img_data.width);
+    img_rgb_.set_height(img_data.height);
+    img_rgb_.set_encoding("16UC1");
+    img_rgb_.set_is_bigendian(false);
+    img_rgb_.set_step(img_data.width * 2);
 
-    ADEBUG << "Camera depthImg width: " << img_data.width;
-    ADEBUG << "Camera depthImg height: " << img_data.height;
-    ADEBUG << "Camera depthImg bufferSize: " << img_data.bufferSize;
-    ADEBUG << "Camera depthImg size: " << img_data.size;
+    /*
+    AINFO << "Rgb width: " << img_data.width <<
+        ", height: " << img_data.height <<
+        ", buf size " << img_data.bufferSize <<
+        ", img size: " << img_data.size;
+        */
 
     // image buffer
     size_t             len = img_data.size;
@@ -179,53 +165,80 @@ void Camera::PublishAnImage(const AS_Frame_s &img_data) {
         data_str.clear();
         data_str = std::string(static_cast<const char *>(img_data.data), len);
     }
-    response.set_data(data_str);
-
-    // send
-    //msg_publisher_(response);
-    //GLH TODO, 1/27
+    img_rgb_.set_data(data_str);
 }
-void Camera::PublishAPointCloud(const AS_Frame_s &pc_data) {
-    //if (!msg_publisher_) {
-        //return;
-    //}
-    sensor_msgs::PointCloud2 response;
+
+void Camera::PublishAnImageDepth(const AS_Frame_s &img_data) {
+    callback_finished_ = false;
     //header
-    response.mutable_header()->set_seq(frame_seq_);
-    response.mutable_header()->set_frame_id(frame_id_);
+    img_depth_.mutable_header()->set_seq(frame_seq_);
+    img_depth_.mutable_header()->set_frame_id(frame_id_);
     auto sec  = cyber::Time::Now().ToSecond();
     auto nsec = cyber::Time::Now().ToNanosecond() % static_cast<uint64_t>(1e9);
-    response.mutable_header()->mutable_stamp()->set_sec(sec);
-    response.mutable_header()->mutable_stamp()->set_nsec(nsec);
+    img_depth_.mutable_header()->mutable_stamp()->set_sec(sec);
+    img_depth_.mutable_header()->mutable_stamp()->set_nsec(nsec);
+
+    // data
+    img_depth_.set_width(img_data.width);
+    img_depth_.set_height(img_data.height);
+    img_depth_.set_encoding("16UC1");
+    img_depth_.set_is_bigendian(false);
+    img_depth_.set_step(img_data.width * 2);
+
+    /*
+    AINFO << "dep width: " << img_data.width <<
+        ", height: " << img_data.height <<
+        ", buf size " << img_data.bufferSize <<
+        ", img size: " << img_data.size;
+        */
+
+    // image buffer
+    size_t             len = img_data.size;
+    std::string data_str;
+    {
+        data_str.clear();
+        data_str = std::string(static_cast<const char *>(img_data.data), len);
+    }
+    img_depth_.set_data(data_str);
+}
+
+void Camera::PublishAPointCloud(const AS_Frame_s &pc_data) {
+    //header
+    pcl_.mutable_header()->set_seq(frame_seq_);
+    pcl_.mutable_header()->set_frame_id(frame_id_);
+    auto sec  = cyber::Time::Now().ToSecond();
+    auto nsec = cyber::Time::Now().ToNanosecond() % static_cast<uint64_t>(1e9);
+    pcl_.mutable_header()->mutable_stamp()->set_sec(sec);
+    pcl_.mutable_header()->mutable_stamp()->set_nsec(nsec);
 
     // meta data
-    response.set_width(pc_data.size / sizeof(float) / 3);
-    response.set_height(1);
-    response.set_point_step(sizeof(float) * 3);
-    response.set_row_step(pc_data.size);
-    response.set_is_dense(true);
-    response.set_is_bigendian(false);
+    pcl_.set_width(pc_data.size / sizeof(float) / 3);
+    pcl_.set_height(1);
+    pcl_.set_point_step(sizeof(float) * 3);
+    pcl_.set_row_step(pc_data.size);
+    pcl_.set_is_dense(true);
+    pcl_.set_is_bigendian(false);
 
     //field
-    auto field1 = response.add_fields();
+    auto field1 = pcl_.add_fields();
 
     std::string x_name = "x", y_name = "y", z_name = "z";
     field1->set_name(x_name);
     field1->set_offset(0);
     field1->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
     field1->set_count(1);
-    auto field2 = response.add_fields();
+    auto field2 = pcl_.add_fields();
     field2->set_name(y_name);
     field2->set_offset(4);
     field2->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
     field2->set_count(1);
-    auto field3 = response.add_fields();
+    auto field3 = pcl_.add_fields();
     field3->set_name(z_name);
     field3->set_offset(8);
     field3->set_datatype(sensor_msgs::PointField::TYPE::PointField_TYPE_FLOAT32);
     field3->set_count(1);
 
-    size_t points     = response.width() * response.height() * 3;
+    size_t points     = pcl_.width() * pcl_.height() * 3;
     size_t points_len = points * sizeof(float);
 
     std::vector<float> pc_tmp;
@@ -241,11 +254,12 @@ void Camera::PublishAPointCloud(const AS_Frame_s &pc_data) {
         pc2_data.clear();
         pc2_data = std::string(reinterpret_cast<const char *>(pc_tmp.data()), points_len);
     }
-    response.set_data(pc2_data);
+    pcl_.set_data(pc2_data);
 
     // send
-    //msg_publisher_(response);
+    //msg_publisher_(pcl_);
     frame_seq_++;
+    //AINFO << "PublishAPointCloud PCL cnt: " << frame_seq_;
 }
 
 void Camera::saveImage(const AS_SDK_Data_s *pstData) {
@@ -290,7 +304,7 @@ void Camera::saveImage(const AS_SDK_Data_s *pstData) {
             }
         }
         else {
-            PublishAnImage(sdk_data_.depthImg);
+            PublishAnImageDepth(sdk_data_.depthImg);
         }
     }
 
@@ -308,7 +322,7 @@ void Camera::saveImage(const AS_SDK_Data_s *pstData) {
             }
         }
         else {
-            PublishAnImage(sdk_data_.rgbImg);
+            PublishAnImageRgb(sdk_data_.rgbImg);
         }
     }
 
@@ -333,6 +347,7 @@ void Camera::saveImage(const AS_SDK_Data_s *pstData) {
         }
     }
 
+    has_image_ = true;
     callback_finished_ = true;
     save_to_file_      = false;
     return;
@@ -402,4 +417,17 @@ bool Camera::getDisplayStatus() {
     else {
         return m_display;
     }
+}
+
+bool Camera::GetImageDatas(mstf::chss::proto::CameraPopDatas& data) {
+    if (!has_image_) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lg(pub_mtx_);
+    data.mutable_rgb()->CopyFrom(img_rgb_);
+    data.mutable_depth()->CopyFrom(img_depth_);
+    data.mutable_pcl()->CopyFrom(pcl_);
+    has_image_ = false;
+    return true;
 }

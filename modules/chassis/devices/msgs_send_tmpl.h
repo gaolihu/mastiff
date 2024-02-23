@@ -20,17 +20,18 @@ namespace device {
             explicit MsgsSendTmpl<MessageT>(
                     std::function<
                     std::shared_ptr<cyber::Writer<MessageT>>()
-                    > w) {
+                    > w, const std::string& tpk) {
 #ifdef CHSS_PKG_DBG
-                AINFO << "tmpl send " <<
+                AINFO << "tmpl construct " <<
                     cyber::message::GetMessageName<MessageT>();
 #endif
                 writer_gen_ = w;
 
+                topic_ = tpk;
                 Transactor::Instance()->
                     RegisterPublishers<MessageT>(std::bind(
                                 &MsgsSendTmpl::MessagePublish, this,
-                                std::placeholders::_1));
+                                std::placeholders::_1), tpk);
             }
 
             virtual ~MsgsSendTmpl() final {
@@ -52,7 +53,8 @@ namespace device {
 #ifdef CHSS_PKG_DBG
                 AINFO << "[" << this <<
                     "] publishing msg: \"" <<
-                    cyber::message::GetMessageName<MessageT>() << "\"";
+                    cyber::message::GetMessageName<MessageT>() << "\"" <<
+                    ", by ch: " << topic_;
 #endif
                 if (writable_)
                     return writer_->Write(std::
@@ -87,6 +89,7 @@ namespace device {
             std::shared_ptr<cyber::Writer<MessageT>> writer_ {};
 
             bool writable_ { false };
+            std::string topic_ {};
     };
 
 } //namespace device

@@ -11,6 +11,8 @@ namespace device {
             AudioPlay(const SensorIndicator&);
             virtual ~AudioPlay();
 
+            virtual int SetMisc(const ChsSocMiscCtrl&) override;
+
         private:
     };
 

@@ -25,10 +25,9 @@ namespace mstf {
 namespace chss {
 namespace driver {
 
-
-//SocDataListener AsCameraCtrl::soc_listener_ = nullptr;
-
-AsCameraCtrl::AsCameraCtrl() {
+AsCameraCtrl::AsCameraCtrl(const std::string& dev) {
+    AINFO << "Camera ctrl " << dev;
+    dev_ = dev;
 #ifdef CFG_X11_ON
     XInitThreads();
 #endif
@@ -57,7 +56,15 @@ bool AsCameraCtrl::SetCameraCtrl(const proto::CameraSetting &ctrl) {
     return true;
 }
 
+bool AsCameraCtrl::SetCameraCtrl(const google::protobuf::RepeatedPtrField<proto::CameraSetting>& ctrl) {
+    for (auto c : ctrl) {
+        SetCameraCtrl(c);
+    }
+    return true;
+}
+
 int AsCameraCtrl::Start() {
+    AINFO << "start " << dev_;
     int ret = 0;
     if (server == nullptr) {
         server = new CameraSrv(this);
@@ -72,6 +79,14 @@ int AsCameraCtrl::Start() {
 }
 
 void AsCameraCtrl::Stop() {
+    /* stop streaming and stop the camera */
+    if (server != nullptr) {
+        server->StopMonitor();
+        /* it will stop the hotplug monitor */
+    }
+}
+
+void AsCameraCtrl::Close() {
     /* stop streaming and close the camera */
     if (server != nullptr) {
         server->Stop();
@@ -83,6 +98,20 @@ void AsCameraCtrl::Stop() {
 
     /* free the map */
     m_camera_map.erase(m_camera_map.begin(), m_camera_map.end());
+}
+
+bool AsCameraCtrl::PollingCameraRutine(CameraPopDatas& data) {
+    if (m_camera_map.size() == 0)
+        //no camera
+        return false;
+
+    camera_it_++;
+    if (camera_it_ == m_camera_map.end()) {
+        camera_it_ = m_camera_map.begin();
+    }
+
+    data.set_camera_id(std::distance(camera_it_, m_camera_map.begin()));
+    return camera_it_->second->GetImageDatas(data);
 }
 
 void AsCameraCtrl::Display(bool enable) {
@@ -112,20 +141,11 @@ void AsCameraCtrl::LogFps(bool enable) {
 bool AsCameraCtrl::GetLogFps() {
     return m_logfps;
 }
-//void AsCameraCtrl::CameraMsgCallback(const Message &msg) {
-    //if (soc_listener_) {
-        //soc_listener_(msg);
-    //}
-    //else {
-        //AERROR << "soc publisher not set, can not send msg";
-    //}
-    //TODO GLH, 2024/1/27
-//}
+
 int AsCameraCtrl::onCameraAttached(AS_CAM_PTR pCamera, const AS_SDK_CAM_MODEL_E &cam_type) {
     auto c = std::make_shared<Camera>(pCamera, cam_type);
-    //c->SetMsgPublisher(std::bind(&AsCameraCtrl::CameraMsgCallback, ::_1));
-    //TODO glh
     m_camera_map.insert({pCamera, c});
+    camera_it_ = m_camera_map.begin();
     AINFO << "camera attached, now camera count: " << m_camera_map.size();
 
     return 0;

@@ -13,12 +13,12 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 
-/*
-using namespace mstf;
-using namespace chss;
-using namespace driver;
-*/
+#include "modules/chassis/proto/chss_io.pb.h"
+
 using namespace apollo;
+using namespace ventura;
+using namespace common_msgs;
+using namespace sensor_msgs;
 
 class CheckFps {
 public:
@@ -69,6 +69,8 @@ public:
     void   saveMergeImage(const AS_SDK_MERGE_s *pstData);
     int    enableSaveImageToFile(bool enable);
 
+    bool GetImageDatas(mstf::chss::proto::CameraPopDatas&);
+
     /**
      * @brief     convert the depth to clolor map for display
      * @param[out]color : color image
@@ -84,20 +86,10 @@ public:
 
     cv::Mat yuyv2bgr(const cv::Mat &yuyv);
 
-    /**
-     * @brief 从 AsCameraCtrl 注册过来的回调函数
-     *
-     * @param f
-     */
-    /*
-    inline void SetMsgPublisher(SocDataListener f) {
-        msg_publisher_ = f;
-    }
-    */
-
 private:
     int  backgroundThread();
-    void PublishAnImage(const AS_Frame_s &img_data);
+    void PublishAnImageRgb(const AS_Frame_s &img_data);
+    void PublishAnImageDepth(const AS_Frame_s &img_data);
     void PublishAPointCloud(const AS_Frame_s &pc_data);
 
 private:
@@ -122,6 +114,7 @@ private:
     bool               m_is_thread       = false;
     std::thread        m_backgroundThread;
     bool               callback_finished_{true};
+    bool               has_image_{false};
 
     bool          save_to_file_{false};
     size_t        frame_seq_{0};
@@ -129,5 +122,7 @@ private:
     std::mutex    pub_mtx_;
     AS_SDK_Data_s sdk_data_;
 
-    //SocDataListener msg_publisher_{nullptr};
+    sensor_msgs::Image img_rgb_;
+    sensor_msgs::Image img_depth_;
+    sensor_msgs::PointCloud2 pcl_;
 };

@@ -17,6 +17,7 @@ namespace parser {
             virtual int Resume() override;
             virtual int Close() override;
 
+            virtual int WriteSocMessage(const Message&) override;
 
         private:
             virtual int ParseSocMsg(const

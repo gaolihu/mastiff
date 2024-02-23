@@ -32,41 +32,32 @@ namespace device {
                 std::shared_ptr<ImportChassisCtrl> chassis_ctrl = std::make_shared<ImportChassisCtrl>();
 
                 switch (cmd) {
-                    //////////////////////////////AUDIO TEST//////////////////////////////////
                 case 0x0001: {
-                    //play keyboard choosed music
-#if 0
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->set_audio_id(val);
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->mutable_pack()->set_value("Chinese");
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->mutable_play_cnt()->set_value(val);
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->mutable_interrupt()->set_value(true);
-
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(35);
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->mutable_mute_sw()->set_value(false);
-
-                    chassis_ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("ver1.9");
-#endif
+                    //play music
+                    AudioPlay(chassis_ctrl, val);
                 }
                     break;
+
                 case 0x00002: {
-                    WirelessKeySim(chassis_ctrl, val);
+                    //audio setting
+                    AudioCtrl(chassis_ctrl, val);
                 }
                     break;
 
-                    //////////////////////////////DEVICE MANAGE TEST//////////////////////////////////
                 case 0x00003: {
+                    //device manager
                     DeviceManageSim(chassis_ctrl, val);
                 }
                     break;
                 case 0x00004: {
-                    AudioKeySim(chassis_ctrl, val);
+                    //wireless manage
+                    WirelessKeySim(chassis_ctrl, val);
                 }
                     break;
                 case 0x00005: {
                     CameraKeySim(chassis_ctrl, val);
                 }
                     break;
-                    //////////////////////////////DEVICE MANAGE TEST//////////////////////////////////
 
                 case 0x4b49: {
                 }
@@ -197,236 +188,236 @@ namespace device {
         switch (val) {
                 // --------- GPIO --------- //
             case 11:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 12:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 13:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 14:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_gpio_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- MCU0 --------- //
             case 21:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 22:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 23:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 24:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- MCU1 --------- //
             case 31:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 32:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 33:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 34:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_mcu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- MOTOR --------- //
             case 41:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 42:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 43:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 44:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_servo_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- LIDAR --------- //
             case 51:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 52:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 53:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 54:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lidar_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- CAMERA0 --------- //
             case 61:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 62:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 63:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 64:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- CAMERA1 --------- //
             case 71:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 72:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 73:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 74:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- CAMERA2 --------- //
             case 81:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 82:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 83:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 84:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(2);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- CAMERA3 --------- //
             case 91:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 92:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 93:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 94:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(3);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- CAMERA4 --------- //
             case 101:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 102:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 103:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 104:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(4);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- AUDIO --------- //
             case 111:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 112:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 113:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 114:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_audio_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
             case 121:
                 // --------- LCD --------- //
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 122:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 123:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 124:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_lcd_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- WIFI --------- //
             case 131:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 132:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 133:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 134:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- 4G --------- //
             case 141:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 142:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 143:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 144:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_camera_m()->set_index(1);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_wifi_4g_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
                 // --------- IMU --------- //
             case 151:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_START);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_START);
                 break;
             case 152:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_STOP);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_STOP);
                 break;
             case 153:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_RESUME);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_RESUME);
                 break;
             case 154:
-                chassis_ctrl->mutable_soc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
+                chassis_ctrl->mutable_misc_ctrl()->mutable_dev_maganger()->mutable_imu_m()->set_val(E_DEVICES_MANAGE_CLOSE);
                 break;
 
             default:
@@ -438,126 +429,108 @@ namespace device {
 
 void KeySimulate::WirelessKeySim(std::shared_ptr<ImportChassisCtrl>& chassis_ctrl, const int val)
 {
-#if 0
-    proto::WirelessInfoType get_type=proto::WirelessInfoType::WIFI_GET_IP;
+    EE_WIFI_FUNCTIONS get_type = E_WIFI_GET_IP;
     switch (val)
     {
     case 1:
-        get_type = proto::WirelessInfoType::WIFI_GET_MODE;
+        get_type = E_WIFI_GET_MODE;
         break;
     case 2:
-        get_type = proto::WirelessInfoType::WIFI_GET_IP;
+        get_type = E_WIFI_GET_IP;
         break;
     case 3:
-        get_type = proto::WirelessInfoType::WIFI_GET_MAC;
+        get_type = E_WIFI_GET_MAC;
         break;
     case 4:
-        get_type = proto::WirelessInfoType::WIFI_GET_DNS;
+        get_type = E_WIFI_GET_DNS;
         break;
     case 5:
-        get_type = proto::WirelessInfoType::WIFI_GET_WPA_INFO;
+        get_type = E_WIFI_GET_WPA_INFO;
         break;
     case 6:
-        get_type = proto::WirelessInfoType::WIFI_GET_NAME;
+        get_type = E_WIFI_GET_NAME;
         break;
     case 7:
-        get_type = proto::WirelessInfoType::WIFI_GET_ROUTER_MAC;
+        get_type = E_WIFI_GET_ROUTER_MAC;
         break;
     case 8:
-        get_type = proto::WirelessInfoType::WIFI_GET_STATUS;
+        get_type = E_WIFI_GET_STATUS;
         break;
     case 9:
-        get_type = proto::WirelessInfoType::WIFI_GET_SCAN_LIST;
+        get_type = E_WIFI_GET_SCAN_LIST;
         break;
     case 10:
-        get_type = proto::WirelessInfoType::WIFI_GET_RECONNECT;
+        get_type = E_WIFI_GET_RECONNECT;
         break;
     case 11:
-        get_type = proto::WirelessInfoType::WIFI_DISCONNECT;
+        get_type = E_WIFI_DISCONNECT;
         break;
     case 12:
-        get_type = proto::WirelessInfoType::WIFI_CHECK_CONNECTION;
+        get_type = E_WIFI_CHECK_CONNECTION;
         break;
     case 13:
-        get_type = proto::WirelessInfoType::WIFI_TEST_SPEED;
+        get_type = E_WIFI_TEST_SPEED;
         break;
     case 14: {
-        get_type = proto::WirelessInfoType::WIFI_CONNECT;
-        auto ssid = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_ssid();
-        if(ssid.empty())
-            ssid = "AITO";
-        auto pswd = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_pswd();
-        if(pswd.empty())
-            pswd = "wjtswjts";
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid(ssid);
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd(pswd);
+        get_type = E_WIFI_CONNECT;
+        chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->mutable_auth_info()->mutable_ssid()->set_value("AITO");
+        chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->mutable_auth_info()->mutable_pswd()->set_value("wjtswjts");
     }
         break;
     case 15: {
-        get_type = proto::WirelessInfoType::WIFI_CREATE_AP;
-        auto ssid = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_ssid();
-        if(ssid.empty())
-            ssid = "aventurier";
-        auto pswd = chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->wifi_pswd();
-        if(pswd.empty())
-            pswd = "12345678";
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_ssid(ssid);
-        chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_wifi_pswd(pswd);
+        get_type = E_WIFI_CREATE_AP;
+        chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->mutable_auth_info()->mutable_ssid()->set_value("aventurier");
+        chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->mutable_auth_info()->mutable_pswd()->set_value("12345678");
     }
         break;
     case 16:
-        get_type = proto::WirelessInfoType::WIFI_CLOSE; // 关闭 wifi功能
+        get_type = E_WIFI_CLOSE; // 关闭 wifi功能
         break;
     case 17:
-        get_type = proto::WirelessInfoType::WIFI_START; // 开启 wifi 功能
+        get_type = E_WIFI_START; // 开启 wifi 功能
         break;
     default:
         break;
     }
-    chassis_ctrl->mutable_soc_ctrl()->mutable_wireless()->set_get_wifi_info(get_type);
-#endif
+    chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->set_wifi_func(get_type);
 }
-void KeySimulate::AudioKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val)
-{
-#if 0
-    switch (val)
-    {
-    case 0: { // 静音 、打断当前的播放
-        google::protobuf::BoolValue sw;
-        sw.set_value(true);
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->mutable_mute_sw()->CopyFrom(sw);
-    }
-    break;
-    case 1:
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(0);
-    break;
-    case 2: // 音量 50%
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(50);
-    break;
-    case 3: // 音量 100%
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_vol()->set_volmue(100);
-    break;
-    case 11: // 中文
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("chinese");
-    break;
-    case 12: // 英文
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("english");
-    break;
-    case 13: // 日语(小日本)
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("xiaoriben");
-    break;
-    case 14: // 韩语
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("korean");
-    break;
-    default:
-        break;
-    }
 
-    // case 101:  语音id 1, 以下类推
-    if(val >= 100)
-        ctrl->mutable_soc_ctrl()->mutable_audio()->mutable_play()->set_audio_id(val - 100);
-#endif
+void KeySimulate::AudioPlay(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val) {
+    ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_play()->set_sound_id(val);
 }
+
+void KeySimulate::AudioCtrl(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val) {
+    switch (val) {
+        case 0:
+            //set mute
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_vol()->mutable_mute_sw()->set_value(true);
+            break;
+        case 1:
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_vol()->set_volume(0);
+            break;
+        case 2: // 音量 50%
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_vol()->set_volume(50);
+            break;
+        case 3: // 音量 100%
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_vol()->set_volume(100);
+            break;
+        case 11: // 中文
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("chinese");
+            break;
+        case 12: // 英文
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("english");
+            break;
+        case 13: // 日语(小日本)
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("xiaoriben");
+            break;
+        case 14: // 韩语
+            ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_pack()->set_dft_pack("korean");
+            break;
+        default:
+            break;
+    }
+}
+
 void KeySimulate::CameraKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val)
 {
 #if 0
@@ -565,19 +538,19 @@ void KeySimulate::CameraKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const i
     {
     case 0:
         // capture a frame save to file
-        ctrl->mutable_soc_ctrl()->mutable_camera()->set_capture(true);
+        ctrl->mutable_misc_ctrl()->mutable_camera()->set_capture(true);
     break;
     case 1:
         //TODO: record images as a video
-        // chassis_ctrl->mutable_soc_ctrl()->mutable_camera()->set_video(true);
+        // chassis_ctrl->mutable_misc_ctrl()->mutable_camera()->set_video(true);
     break;
     case 2:
         // close all cameras
-        ctrl->mutable_soc_ctrl()->mutable_camera()->set_close(true);
+        ctrl->mutable_misc_ctrl()->mutable_camera()->set_close(true);
     break;
     case 3:
         // restart all cameras
-        ctrl->mutable_soc_ctrl()->mutable_camera()->set_restart(true);
+        ctrl->mutable_misc_ctrl()->mutable_camera()->set_restart(true);
     break;
     default:
         break;

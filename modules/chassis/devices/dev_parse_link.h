@@ -65,6 +65,7 @@ namespace device {
                     if (ind_ptr->type() == type)
                         return it->second;
                 }
+                //AERROR << "no device base for type: " << type;
                 return nullptr;
             }
 

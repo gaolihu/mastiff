@@ -38,8 +38,6 @@ bool AudioAlsa::Mute() {
     return true;
 }
 std::string AudioAlsa::AudioOperate(const AudioSetting& msg) {
-    /*
-     * TODO
     if (msg.has_vol()) {
         ParseVolume(msg.vol());
     }
@@ -53,7 +51,6 @@ std::string AudioAlsa::AudioOperate(const AudioSetting& msg) {
         }
         ParsePlay(msg.play());
     }
-    */
     return "";
 }
 void AudioAlsa::ParsePlay(const AudioPlay& p) {
@@ -90,7 +87,7 @@ void AudioAlsa::ParsePlay(const AudioPlay& p) {
     }
 }
 void AudioAlsa::ParseVolume(const SetAduioVolume& v) {
-    int32_t volume  = v.volmue();
+    int32_t volume  = v.volume();
     bool    mute_sw = v.mute_sw().value();
 
     if (mute_sw) {

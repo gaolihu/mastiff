@@ -8,48 +8,55 @@ namespace driver {
     SocData::SocData(const SocDataListener& soc_l,
             const std::shared_ptr<ChassisConfig>& cc) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "SocData construct";
+        AINFO << "SOC SocData drive construct";
 #endif
         soc_listner_ = soc_l;
 
-        chs_conf_ = cc;
-        DriveDataItf::Init("soc drive", -1);
+        //chs_conf_ = cc;
+        DriveDataItf::Init("SOC-Drive", -1);
+        DriveDataItf::Start();
+
     }
 
     SocData::~SocData() {
 #ifdef CHSS_PKG_DBG
-        AINFO << "SocData de-construct, dev: " << dev_;
+        AINFO << "SocData de-construct";
 #endif
     }
 
     int SocData::Init(const SensorIndicator* si) {
+#ifdef CHSS_PKG_DBG
         AINFO << "init soc dev driver:\n" <<
             si->DebugString();
-
+#endif
         if (si->dev_main() != EE_DEV_MAIN_SOC) {
             AERROR << "init soc device error";
             return -1;
         }
 
         if (si->type() == E_DEVICE_JOYSTICK) {
-            js_ = std::make_shared<JoyStickData>
+            js_.first = si;
+            js_.second = std::make_shared<JoyStickData>
                 (parser::CommonItf::Instance()->GetDevJsConf(si));
-            js_->Init();
+            js_.second->Init();
         }
 
         if(si->type() == E_DEVICE_AUDIO) {
-            audio_ctrl_ = std::make_shared<AudioCtrl>(
-                    parser::CommonItf::Instance()->GetDevAudConf(si));
-            audio_ctrl_->Init();
+            audio_ctrl_.first = si;
+            audio_ctrl_.second = std::make_shared<AudioCtrl>
+                (parser::CommonItf::Instance()->GetDevAudConf(si));
+            audio_ctrl_.second->Init();
         }
 
         if(si->type() == E_DEVICE_WIRELESS) {
-            wifi_ctrl_ = std::make_shared<WiFiThread>();
-            wifi_ctrl_->Init();
+            wifi_ctrl_.first = si;
+            wifi_ctrl_.second = std::make_shared<WiFiThread>();
+            wifi_ctrl_.second->Init();
         }
 
         if(si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_ = std::make_shared<AsCameraCtrl>();
+            camera_ctrl_.first = si;
+            camera_ctrl_.second = std::make_shared<AsCameraCtrl>(si->ihi().name());
             //camera_ctrl_->Init();
         }
 
@@ -57,108 +64,137 @@ namespace driver {
     }
 
     int SocData::Start(const SensorIndicator* si) {
+#ifdef CHSS_PKG_DBG
         AINFO << "soc data start\n" <<
             si->DebugString();
-
-        DriveDataItf::Start();
-
-        if (js_ && si->type() == E_DEVICE_JOYSTICK) {
-            js_->Start();
+#endif
+        if (js_.first && si->type() == E_DEVICE_JOYSTICK) {
+            js_.second->Start();
+            js_working_ = true;
         }
 
-        if (audio_ctrl_ && si->type() == E_DEVICE_AUDIO) {
-            audio_ctrl_->Start();
+        if (audio_ctrl_.first && si->type() == E_DEVICE_AUDIO) {
+            audio_ctrl_.second->Start();
+            audio_working_ = true;
         }
 
-        if(wifi_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            wifi_ctrl_->Start();
+        if(wifi_ctrl_.first && si->type() == E_DEVICE_WIRELESS) {
+            wifi_ctrl_.second->Start();
+            wifi_working_ = true;
         }
 
-        if(camera_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            camera_ctrl_->Start();
+        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_ctrl_.second->Start();
+            camera_working_ = true;
         }
 
         return 0;
     }
 
     int SocData::Stop(const SensorIndicator* si) {
+#ifdef CHSS_PKG_DBG
         AINFO << "soc data stop\n" <<
             si->DebugString();
-
-        if (js_ && si->type() == E_DEVICE_JOYSTICK) {
-            js_->Stop();
+#endif
+        if (js_.first && si->type() == E_DEVICE_JOYSTICK) {
+            js_.second->Stop();
+            js_working_ = false;
         }
 
-        if (audio_ctrl_ && si->type() == E_DEVICE_AUDIO) {
-            audio_ctrl_->Stop();
+        if (audio_ctrl_.first && si->type() == E_DEVICE_AUDIO) {
+            audio_ctrl_.second->Stop();
+            audio_working_ = false;
         }
 
-        if(wifi_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            wifi_ctrl_->Stop();
+        if(wifi_ctrl_.first && si->type() == E_DEVICE_WIRELESS) {
+            wifi_ctrl_.second->Stop();
+            wifi_working_ = false;
         }
 
-        if(camera_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            camera_ctrl_->Stop();
+        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_ctrl_.second->Stop();
+            camera_working_ = false;
         }
 
         return 0;
     }
 
     int SocData::Close(const SensorIndicator* si) {
+#ifdef CHSS_PKG_DBG
         AINFO << "soc data close\n" <<
             si->DebugString();
-
-        if (js_ && si->type() == E_DEVICE_JOYSTICK) {
-            js_->Close();
+#endif
+        if (js_.first && si->type() == E_DEVICE_JOYSTICK) {
+            js_.second->Close();
+            js_working_ = false;
         }
 
-        if (audio_ctrl_ && si->type() == E_DEVICE_AUDIO) {
-            audio_ctrl_->Close();
+        if (audio_ctrl_.first && si->type() == E_DEVICE_AUDIO) {
+            audio_ctrl_.second->Close();
+            audio_working_ = false;
         }
 
-        if(wifi_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            wifi_ctrl_->Close();
+        if(wifi_ctrl_.first && si->type() == E_DEVICE_WIRELESS) {
+            wifi_ctrl_.second->Close();
+            wifi_working_ = false;
         }
 
-        if(camera_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            //camera_ctrl_->Close();
+        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_ctrl_.second->Close();
+            camera_working_ = false;
         }
 
         return 0;
     }
 
     int SocData::Resume(const SensorIndicator* si) {
+#ifdef CHSS_PKG_DBG
         AINFO << "soc data resume\n" <<
             si->DebugString();
-
-        if (js_ && si->type() == E_DEVICE_JOYSTICK) {
-            //js_->Resume();
+#endif
+        if (js_.first && si->type() == E_DEVICE_JOYSTICK) {
+            //js_.second->Resume();
         }
 
-        if (audio_ctrl_ && si->type() == E_DEVICE_AUDIO) {
-            //audio_ctrl_->Resume();
+        if (audio_ctrl_.first && si->type() == E_DEVICE_AUDIO) {
+            //audio_ctrl_.second->Resume();
         }
 
-        if(wifi_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            //wifi_ctrl_->Resume();
+        if(wifi_ctrl_.first && si->type() == E_DEVICE_WIRELESS) {
+            //wifi_ctrl_.second->Resume();
         }
 
-        if(camera_ctrl_ && si->type() == E_DEVICE_WIRELESS) {
-            //camera_ctrl_->Resume();
+        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
+            //camera_ctrl_.second->Resume();
         }
 
         return 0;
     }
 
-    int SocData::SocWrite(const Message& msg) {
-        #ifdef CHSS_PKG_DBG
-        AINFO << "write soc:\n" << msg.DebugString();
-        #endif
+    int SocData::SocWrite(const SensorIndicator* si,
+            const Message& msg) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "write soc:\n" << si->DebugString() <<
+            "msg to soc:\n" << msg.DebugString();
+#endif
+        if (audio_ctrl_.first && si->type() == E_DEVICE_AUDIO) {
+            //audio play
+            audio_ctrl_.second->SetAudioCtrl(dynamic_cast<const
+                    ChsSocMiscCtrl&>(msg).audio());
+        }
+
+        if (wifi_ctrl_.first && si->type() == E_DEVICE_WIRELESS) {
+            // call wifi tool
+            wifi_ctrl_.second->SetWiFiCtrl(dynamic_cast<const
+                    ChsSocMiscCtrl&>(msg).wifi());
+        }
+
+        if (camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_ctrl_.second->SetCameraCtrl(dynamic_cast<const
+                    ChsSocMiscCtrl&>(msg).camera());
+        }
 
 #if 0
-        const DownToSocData data =
-            dynamic_cast<const DownToSocData&>(msg);
-
         if (data.has_gpio()) {
             //TODO 1,
         }
@@ -166,43 +202,42 @@ namespace driver {
         if (data.has_pwm()) {
             //TODO 2,
         }
-
-        if (data.has_audio()) {
-            //TODO 3,
-            //ChassisConfig AudioDevice AudioConfig
-            audio_ctrl_->SetAudioCtrl(data.audio());
-        }
-
-        if (data.has_camera()) {
-            /*bool ret = */camera_ctrl_->SetCameraCtrl(data.camera());
-            //TODO: if ret=false, do something?
-        }
-
-        if(data.has_wireless()){
-            // call wifi tool
-            wifi_ctrl_->SetWiFiCtrl(data.wireless());
-        }
-
 #endif
         return 0;
     }
 
     void SocData::PollingDriveRutine() {
-        if (soc_listner_ == nullptr)
-            AFATAL << "no soc listener";
-
-        if (js_) {
+        if (js_.first && js_working_) {
+            //joystick TODO
             std::vector<uint8_t> data;
-            js_->PollingJsRutine(data);
+            js_.second->PollingJsRutine(data);
             if (!data.empty()) {
                 AINFO << "has data!";
+                NullMsg n;
+                soc_listner_(js_.first, n, &data[0], data.size());
             }
         }
 
         //audio TODO
+        if (audio_ctrl_.first && audio_working_) {
+            audio_ctrl_.second->PollingAudioRutine();
+            //soc_listner_(audio_ctrl_.first, );
+        }
+
         //network TODO
+        if (wifi_ctrl_.first && wifi_working_) {
+            WifiInfo wi;
+            wifi_ctrl_.second->PollingNetworkRutine(wi);
+            soc_listner_(wifi_ctrl_.first, wi, nullptr, 0);
+        }
+
         //camera TODO
-        //GLH, 2024/1/27, 16:57
+        if (camera_ctrl_.first && camera_working_) {
+            CameraPopDatas cam;
+            if (camera_ctrl_.second->PollingCameraRutine(cam))
+                soc_listner_(camera_ctrl_.first, cam, nullptr, 0);
+        }
+
 
         return;
     }

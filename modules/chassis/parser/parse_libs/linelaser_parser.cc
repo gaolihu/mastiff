@@ -257,7 +257,8 @@ int LineLaserParser::ParseSigleFrame(const std::vector<uint8_t>& data, const siz
     // send
     if (frame_processor_sp_) {
         AINFO_EVERY(200) << "send a line laser frame point cloud 2";
-        return frame_processor_sp_(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud2>(response));
+        return frame_processor_sp_(std::make_shared<ventura::common_msgs::sensor_msgs::PointCloud2>(response),
+                CommonItf::Instance()->GetTopic1(s_idc_));
     }
     else {
         AFATAL << "No line laser publisher handle";

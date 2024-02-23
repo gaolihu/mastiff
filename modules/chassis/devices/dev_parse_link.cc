@@ -51,9 +51,10 @@ namespace device {
             si.ihi().name();
 #endif
         FrameProcessorSp proto_proc_sp =
-            [this](const std::shared_ptr<Message>& msg)->int {
+            [this](const std::shared_ptr<Message>& msg,
+                    const std::string& tpk)->int {
                 return Transactor::Instance()->
-                    OnTransferMessageOut(msg);
+                    OnTransferMessageOut(msg, tpk);
             };
         ind_dev_pair_[&si] = dev_base;
 
@@ -281,37 +282,69 @@ namespace device {
     }
 
     int DevParseLink::HandleChsMovement(const
-            ChsMovementCtrl& cc) {
-        return _GetDevBaseByType(E_DEVICE_SERVO)->SetSpeed(cc);
+            ChsMovementCtrl& data) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle movement!";
+#endif
+        if (_GetDevBaseByType(E_DEVICE_SERVO))
+            return _GetDevBaseByType(E_DEVICE_SERVO)->SetSpeed(data);
+
+        AERROR << "control move NG!";
+
+        return -1;
     }
 
     int DevParseLink::HandleChsPeriphAdc(const
             ChsPeriphAdcCtrl&) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle adc!";
+#endif
         return 0;
     }
 
     int DevParseLink::HandleChsPeriphPwm(const
             ChsPeriphPwmCtrl&) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle pwm!";
+#endif
         return 0;
     }
 
     int DevParseLink::HandleChsPeriphGpio(const
             ChsPeriphGpioCtrl&) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle gpio!";
+#endif
         return 0;
     }
 
     int DevParseLink::HandleChsPeriphInfra(const
             ChsPeriphInfraCtrl&) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle infra!";
+#endif
         return 0;
     }
 
     int DevParseLink::HandleChsSocMisc(const
-            ChsSocMiscCtrl&) {
-        return 0;
+            ChsSocMiscCtrl& data) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle misc!";
+#endif
+        if (_GetDevBaseByType(E_DEVICE_AUDIO))
+            return _GetDevBaseByType(E_DEVICE_AUDIO)->SetMisc(data);
+        else if (_GetDevBaseByType(E_DEVICE_WIRELESS))
+            return _GetDevBaseByType(E_DEVICE_WIRELESS)->SetMisc(data);
+
+        AERROR << "no handler for misc message!";
+        return -1;
     }
 
     int DevParseLink::HandleChsUpdate(const
             ChsFirmWareUpdate&) {
+#ifdef CHSS_PKG_DBG
+        AINFO << "handle update!";
+#endif
         return 0;
     }
 

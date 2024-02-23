@@ -1,4 +1,3 @@
-#include "modules/chassis/parser/common_inf.h"
 #include "modules/chassis/parser/parse_drv_link.h"
 
 using namespace std::placeholders;
@@ -95,29 +94,6 @@ namespace parser {
             return drv_base_itf->Start(si);
         }
 
-        //return soc_data_->Start(si);
-
-        /*
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if(&chs_conf_->aud_dev(i).sn_ind() == si) {
-                //audio driver start
-                return soc_data_->Start(si);
-            }
-        }
-        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
-            if(&chs_conf_->wireless_dev(i).sn_ind() == si) {
-                //audio driver start
-                return soc_data_->Start(si);
-            }
-        }
-        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
-            if(&chs_conf_->camera_dev(i).sn_ind() == si) {
-                //camera driver start
-                return soc_data_->Start(si);
-            }
-        }
-        */
-
         AWARN << "Start TODO for\n" << si->DebugString();
 
         return -1;
@@ -133,81 +109,6 @@ namespace parser {
             return drv_base_itf->Stop(si);
         }
 
-        //return soc_data_->Stop(si);
-
-#if 0
-        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
-            if(&chs_conf_->servo_dev(i).sn_ind() == si) {
-                AINFO << "stop servo motor CAN";
-                return dev_can_data_->Stop();
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
-            if(&chs_conf_->linelaser_dev(i).sn_ind() == si) {
-                //UART IMU driver start
-                if (auto s = _FindSerialData(si)) {
-                    return s->Stop();
-                }
-                AERROR << "find UART IMU stop error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
-            if(&chs_conf_->lidar_dev(i).sn_ind() == si) {
-                //UART IMU driver start
-                if (auto s = _FindSerialData(si)) {
-                    return s->Stop();
-                }
-                AERROR << "find UART lidar stop error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
-            if(&chs_conf_->imu_dev(i).sn_ind() == si) {
-                //UART IMU driver stop
-                if (auto s = _FindSerialData(si)) {
-                    return s->Stop();
-                }
-                AERROR << "find UART IMU stop error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->joystick_dev().size(); i++) {
-            if(&chs_conf_->joystick_dev(i).sn_ind() == si) {
-                /*
-                if (auto j = _FindJoyData(si)) {
-                    return j->Stop();
-                }
-                */
-                AERROR << "find JoyStick stop error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if(&chs_conf_->aud_dev(i).sn_ind() == si) {
-                // audio driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop audio driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
-            if(&chs_conf_->wireless_dev(i).sn_ind() == si) {
-                // wireless driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop wireless driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
-            if(&chs_conf_->camera_dev(i).sn_ind() == si) {
-                // camera driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop camera driver error!";
-        }
-#endif
         AWARN << "Stop TODO for\n" << si->DebugString();
 
         return -1;
@@ -223,81 +124,6 @@ namespace parser {
             return drv_base_itf->Resume(si);
         }
 
-        //return soc_data_->Resume(si);
-
-#if 0
-        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
-            if(&chs_conf_->servo_dev(i).sn_ind() == si) {
-                //return s->Resume();
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
-            if(&chs_conf_->linelaser_dev(i).sn_ind() == si) {
-                //CAN driver resume
-                if (auto s = _FindSerialData(si)) {
-                    return s->Resume();
-                }
-                AERROR << "find UART linerlaser resume error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
-            if(&chs_conf_->imu_dev(i).sn_ind() == si) {
-                //UART IMU driver resume
-                if (auto s = _FindSerialData(si)) {
-                    return s->Resume();
-                }
-                AERROR << "find UART linerlaser resume error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
-            if(&chs_conf_->lidar_dev(i).sn_ind() == si) {
-                //UART lidar driver resume
-                if (auto s = _FindSerialData(si)) {
-                    return s->Resume();
-                }
-                AERROR << "find UART lidar resume error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->joystick_dev().size(); i++) {
-            if(&chs_conf_->joystick_dev(i).sn_ind() == si) {
-                /*
-                if(auto j = _FindJoyData(si)) {
-                    return j->Resume();
-                }
-                */
-                AERROR << "find JoyStick resume error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if(&chs_conf_->aud_dev(i).sn_ind() == si) {
-                // audio driver Resume
-                return soc_data_->Resume(si);
-            }
-            AERROR << "Resume audio driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
-            if(&chs_conf_->wireless_dev(i).sn_ind() == si) {
-                // wireless driver Resume
-                return soc_data_->Resume(si);
-            }
-            AERROR << "Resume wireless driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
-            if(&chs_conf_->camera_dev(i).sn_ind() == si) {
-                // camera driver Resume
-                return soc_data_->Resume(si);
-            }
-            AERROR << "Resume camera driver error!";
-        }
-
-#endif
         AWARN << "Resume TODO for\n" << si->DebugString();
 
         return -1;
@@ -313,89 +139,17 @@ namespace parser {
             return drv_base_itf->Close(si);
         }
 
-        //return soc_data_->Close(si);
-#if 0
-        for (int i = 0; i < chs_conf_->servo_dev().size(); i++) {
-            if(&chs_conf_->servo_dev(i).sn_ind() == si) {
-                AINFO << "close servo motor CAN";
-                dev_can_data_->Close();
-                return 0;
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->linelaser_dev().size(); i++) {
-            if(&chs_conf_->linelaser_dev(i).sn_ind() == si) {
-                if (auto s = _FindSerialData(si)) {
-                    s->Close();
-                    return 0;
-                }
-                AERROR << "find UART linelaser close error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->lidar_dev().size(); i++) {
-            if(&chs_conf_->lidar_dev(i).sn_ind() == si) {
-                if (auto s = _FindSerialData(si)) {
-                    s->Close();
-                    return 0;
-                }
-                AERROR << "find UART lidar close error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->imu_dev().size(); i++) {
-            if(&chs_conf_->imu_dev(i).sn_ind() == si) {
-                if (auto s = _FindSerialData(si)) {
-                    s->Close();
-                    return 0;
-                }
-                AERROR << "find UART IMU close error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->joystick_dev().size(); i++) {
-            if(&chs_conf_->joystick_dev(i).sn_ind() == si) {
-                /*
-                if(auto j = _FindJoyData(si)) {
-                    j->Close();
-                    return 0;
-                }
-                */
-                AERROR << "find Joy Stick close error!";
-            }
-        }
-
-        for (int i = 0; i < chs_conf_->aud_dev().size(); i++) {
-            if(&chs_conf_->aud_dev(i).sn_ind() == si) {
-                // audio driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop audio driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->wireless_dev().size(); i++) {
-            if(&chs_conf_->wireless_dev(i).sn_ind() == si) {
-                // wireless driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop wireless driver error!";
-        }
-
-        for (int i = 0; i < chs_conf_->camera_dev().size(); i++) {
-            if(&chs_conf_->camera_dev(i).sn_ind() == si) {
-                // camera driver stop
-                return soc_data_->Stop(si);
-            }
-            AERROR << "stop camera driver error!";
-        }
-#endif
-
         AWARN << "Close TODO for\n" << si->DebugString();
 
         return -1;
     }
 
     //write data downwards
+    bool ParseDrvLink::WriteSoc(const SensorIndicator* si,
+            const Message& info) {
+        return soc_data_->SocWrite(si, info);
+    }
+
     size_t ParseDrvLink::WriteUart(const SensorIndicator* si,
             const uint8_t* info,
             const size_t len) {
@@ -454,11 +208,6 @@ namespace parser {
     }
 
     //on receive data upwards
-    bool ParseDrvLink::WriteSoc(const Message& info) {
-        //return soc_data_->SocWrite(info);
-        return 0;
-    }
-
     void ParseDrvLink::OnRecvCan(const SensorIndicator* si,
             const uint8_t* buf, const size_t len) {
         _CanMessageHandle(si, buf, len);
@@ -479,7 +228,7 @@ namespace parser {
             const uint8_t* buf,
             const size_t len) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "receive soc data: " << msg.DebugString();
+        //AINFO << "receive soc data: " << msg.DebugString();
 #endif
         _SocMessageHandle(si, msg, buf, len);
     }

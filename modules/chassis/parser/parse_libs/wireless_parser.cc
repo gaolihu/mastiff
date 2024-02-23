@@ -60,6 +60,13 @@ namespace parser {
         return ParseDrvLink::Instance()->Close(s_idc_);
     }
 
+    int WirelessParser::WriteSocMessage(const Message& m) {
+#ifdef CHSS_PKG_DBG
+        //AINFO << "write soc message\n" << m.DebugString();
+#endif
+        return ParseDrvLink::Instance()->WriteSoc(s_idc_, m);
+    }
+
     int WirelessParser::ParseSocMsg(const
             SensorIndicator* si, const Message& msg) {
         if(frame_processor_){

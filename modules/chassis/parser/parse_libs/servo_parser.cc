@@ -344,7 +344,8 @@ namespace parser {
             ", omg: " << omg << "rad/s";
 #endif
         return frame_processor_sp_(std::make_shared
-                <ventura::common_msgs::nav_msgs::Odometry>(odom));
+                <ventura::common_msgs::nav_msgs::Odometry>(odom),
+                CommonItf::Instance()->GetTopic1(s_idc_));
     }
 
 } //namespace parser

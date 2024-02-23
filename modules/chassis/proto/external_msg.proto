@@ -18,3 +18,10 @@ import "modules/aventurier_common_msgs/proto/ros_msgs/diagnostic_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/rosgraph_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/std_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/trajectory_msgs.proto";
+
+message CameraPopDatas {
+    int32 camera_id = 1;
+    ventura.common_msgs.sensor_msgs.Image rgb = 2;
+    ventura.common_msgs.sensor_msgs.Image depth = 3;
+    ventura.common_msgs.sensor_msgs.PointCloud2 pcl = 4;
+}

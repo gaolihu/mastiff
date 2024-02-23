@@ -52,9 +52,20 @@ namespace parser {
             const AudioConfig* GetDevAudConf(const
                     SensorIndicator*) const;
 
+            const std::string GetCommPort(const
+                    SensorIndicator*) const;
+
             const bool IsLacateSoc(const
                     SensorIndicator*) const;
 
+            const std::string GetTopic1(const
+                    SensorIndicator*) const;
+
+            const std::string GetTopic2(const
+                    SensorIndicator*) const;
+
+            const std::string GetTopic3(const
+                    SensorIndicator*) const;
 
         private:
             std::shared_ptr<ChassisConfig> chss_conf_ {};

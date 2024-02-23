@@ -25,6 +25,13 @@ namespace device {
 #endif
     }
 
+    int DeviceWireless::SetMisc(const ChsSocMiscCtrl& m) {
+        if (m.has_wifi()) {
+            return data_parser_->WriteSocMessage(m);
+        }
+        return -1;
+    }
+
 } //namespace device
 } //namespace chss
 } //namespace mstf

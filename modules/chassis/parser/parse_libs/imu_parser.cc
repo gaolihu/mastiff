@@ -307,7 +307,8 @@ namespace parser {
         imu_proto.mutable_orientation()->CopyFrom(q);
 
         return frame_processor_sp_(std::make_shared
-                <ventura::common_msgs::sensor_msgs::Imu>(imu_proto));
+                <ventura::common_msgs::sensor_msgs::Imu>(imu_proto),
+                CommonItf::Instance()->GetTopic1(s_idc_));
     }
 
 } //namespace parser

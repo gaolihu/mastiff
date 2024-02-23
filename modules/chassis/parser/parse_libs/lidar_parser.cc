@@ -1232,7 +1232,8 @@ namespace parser {
         point_cloud_last_ = this_time;
 
         return frame_processor_sp_(std::make_shared
-                <ventura::common_msgs::sensor_msgs::PointCloud>(pcs));
+                <ventura::common_msgs::sensor_msgs::PointCloud>(pcs),
+                CommonItf::Instance()->GetTopic1(s_idc_));
     }
 
 } //namespace parser
