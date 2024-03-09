@@ -45,21 +45,24 @@ namespace driver {
                 if (!dev_.empty())
                     dev_ = dev;
 
-                if (loop_cycle_ms <= 0)
-                    loop_cycle_ms_ = 200;
+                if (loop_cycle_ms < 0)
+                    loop_moderate_cycle_ms_ = 101;
 
 #ifdef USE_CYBER_TIMER
                 AINFO << "timer for <" <<
                     dev << "> getting low layer data!";
                 tim_.reset(new apollo::cyber::Timer(
-                            loop_cycle_ms_,
+                            loop_moderate_cycle_ms_,
                             [this] () {
                                 PollingDriveRutine();
                             },
                             false));
 #else
                 AINFO << "thread for <" <<
-                    dev << "> getting low layer data!";
+                    dev << "> getting low layer data, " <<
+                    "block cycle: " << loop_block_cycle_ms_ <<
+                    "ms, moderate cycle: " << loop_moderate_cycle_ms_ <<
+                    "ms";
 #endif
                 return 0;
             }
@@ -69,9 +72,10 @@ namespace driver {
                     AWARN << "driver base already started!";
                     return -1;
                 }
-                AINFO << "capture " << dev_ <<
-                    " thread " << loop_cycle_ms_ <<
-                    "ms, start!";
+                AINFO << "capture thread: " << dev_ <<
+                    ", block cycle: " << loop_block_cycle_ms_ <<
+                    "ms, moderate cycle: " << loop_moderate_cycle_ms_ <<
+                    "ms";
 #ifdef USE_CYBER_TIMER
                 if (tim_)
                     tim_->Start();
@@ -87,14 +91,16 @@ namespace driver {
                             while (!terminate_) {
                                 if (running_) {
                                     PollingDriveRutine();
-                                    std::this_thread::sleep_for(
-                                            std::chrono
-                                            ::milliseconds(loop_cycle_ms_ / 10));
+                                    if (loop_moderate_cycle_ms_) {
+                                        std::this_thread::sleep_for(
+                                                std::chrono::milliseconds(
+                                                    loop_moderate_cycle_ms_));
+                                    }
                                 } else {
                                     //AINFO << "stop & wait resume " << dev_;
                                     std::this_thread::sleep_for(
                                             std::chrono
-                                            ::milliseconds(loop_cycle_ms_));
+                                            ::milliseconds(loop_block_cycle_ms_));
                                 }
                             }
                             AWARN << "terminate & exit capture " << dev_;
@@ -238,7 +244,8 @@ namespace driver {
         protected:
             size_t once_read_size_ = 256;
             uint8_t* once_read_buf_ {};
-            size_t loop_cycle_ms_ = 2048;   //blocking
+            size_t loop_block_cycle_ms_ = 1000; //blocking
+            size_t loop_moderate_cycle_ms_ = 0; //moderating
 
             std::atomic<bool> readable_ { false };
             std::atomic<bool> writable_ { false };

@@ -31,24 +31,9 @@ namespace brain {
 
                 sys_processor_ =
                     std::make_unique<SysProcessor>(cc);
-                /*
-                //visual
-                visualize_ = std::make_unique<Visualization>(
-                &conf->frg_module_conf().visual_ops());
-
-                //data base
-                database_ = std::make_unique<DatabaseClient>(
-                &conf->frg_module_conf().sql_ops());
-
-                //message pool
-                process_eng_ = std::make_unique<ProcessEngine>(
-                [&]() { database_->DbNotifyModification(); },
-                conf->frg_module_conf().director_ops().
-                scheduler_xml());
 #ifdef CAMB_PKG_DBG
-                AINFO << "sub-components construction finish!";
+                AINFO << "sub-bot-components finish!";
 #endif
-*/
             }
 
             virtual ~BotItfImpl() {
@@ -58,31 +43,31 @@ namespace brain {
             }
 
             //common
-            virtual void Init() {
-                AINFO << "BotItfImpl init";
+            virtual void Init(const BaseMsgCaller& ex) {
+#ifdef CAMB_PKG_DBG
+                AINFO << "register data export handles";
+                //=&Transactor::OnTransferMessageOut()
+                msg_publish_ = ex;
+#endif
                 BuildUpwardDataChannel();
                 terminate_ = false;
 #if USE_CYBER_TIMER
                 tim_.reset(new cyber::Timer(cmb_conf_.lock()->
                         cmb_module_conf().modeule_entry_freq(),
                         [&]()->void {
-                            BizLogicRoutine();
-                            VisualizeRoutine();
-                            DataBaseRoutine();
+                            CambrianRoutine();
                         },
                         cmb_conf_.lock()->cmb_module_conf().
                         modeule_entry_once()));
 #else
                 main_routine_thread_ = std::thread(
                         [this] () {
+                        AINFO << "cambrain main thread start!";
                         while (!terminate_) {
-                            //AINFO << "main thread start!";
                             if (running_) {
-                                BizLogicRoutine();
-                                VisualizeRoutine();
-                                DataBaseRoutine();
+                                CambrianRoutine();
                             } else {
-                                AINFO << "stop & wait resume!";
+                                AINFO << "cambrain stop & wait resume!";
                             }
                             std::this_thread::sleep_for(
                                     std::chrono::milliseconds(
@@ -90,31 +75,8 @@ namespace brain {
                                         cmb_module_conf().
                                         modeule_entry_freq()));
                         }
-                        AWARN << "main thread terminate!";
+                        AWARN << "cambrian main thread terminate!";
                 });
-#endif
-#if 0
-                if (database_.get() != nullptr) {
-                    database_->DatabaseInit();
-                } else {
-                    AWARN << "database NULL!";
-                }
-
-                if (visualize_.get() != nullptr) {
-                    visualize_->Init();
-                    HandleQueryVolatileInfo(nullptr);
-                    HandleQuerySystemInfo(nullptr);
-                    HandleQueryModeStatus(nullptr);
-                    HandleQueryZones(nullptr);
-                } else {
-                    AWARN << "visualization NULL!";
-                }
-
-                if (process_eng_.get() != nullptr) {
-                    process_eng_->Init();
-                } else {
-                    AWARN << "process engine NULL!";
-                }
 #endif
                 sys_processor_->Init();
                 is_inited_ = true;
@@ -129,13 +91,6 @@ namespace brain {
                 running_ = true;
                 terminate_ = false;
 #endif
-#if 0
-                if (visualize_.get() != nullptr) {
-                    visualize_->Start();
-                } else {
-                    AWARN << "visualization NULL!";
-                }
-#endif
                 if (sys_processor_)
                     sys_processor_->Start();
             }
@@ -148,20 +103,6 @@ namespace brain {
 #else
                 running_ = false;
 #endif
-#if 0
-                if (process_eng_.get() != nullptr) {
-                    process_eng_->Stop();
-                } else {
-                    AWARN << "process engine null!";
-                }
-
-                if (visualize_.get() != nullptr) {
-                    visualize_->Stop();
-                } else {
-                    AWARN << "visualization NULL!";
-                }
-#endif
-                sys_processor_->Stop();
             }
 
             virtual void Resume() {
@@ -190,56 +131,48 @@ namespace brain {
             }
 
             //routines
-            virtual void BizLogicRoutine() {
-                //AINFO << "business logic routine";
-#if 1
-                //tesing !!!!!!!!!
+            virtual void CambrianRoutine() {
+                //AINFO << "biz logic routine cambrian";
+#if 0
+                //testing
                 loop_cnt_++;
-                auto x = std::make_shared<ventura::common_msgs::nav_msgs::OccupancyGrid>();
-                x->mutable_header()->set_seq(loop_cnt_);
-                export_(x);
+                auto x = std::make_shared<
+                    //ventura::common_msgs::nav_msgs::OccupancyGrid>();
+                //x->mutable_header()->set_seq(loop_cnt_);
+
+                //simulate receiving chassis info
+                    ChassisMiscInfo>();
+                msg_publish_(x);
 #endif
             }
 
-            virtual void VisualizeRoutine() {
-                //AINFO << "visualization routine";
-            }
-
-            virtual void DataBaseRoutine() {
-                //AINFO << "storage routine";
-            }
-
-            //virtual void RobotHealth() {}
-            //virtual void BotStorage() {}
-
-
-            // >>>>> POUR IN >>>>>
-            // cambrian subsribed messages comming
-            // then distribute to sub modules
+            /*
+             * cambrian subsribed messages comming in
+             * then distribute to sub modules
+             */
+            // >>>>> Subscribe Topic ITF >>>>>
             template <typename MessageT>
             int MsgsInpouring(const std::shared_ptr<MessageT>&);
 
-            // <<<<<< POUR OUT <<<<<
-            //cambrian messages to be send for publishing
+            /*
+             * cambrian messages to be send for publishing
+             */
+            // <<<<<< Service ITF <<<<<
+            // TODO
             template <typename RequestT, typename ResponseT>
             int MsgOutpouring(const std::shared_ptr<RequestT>&,
                     std::shared_ptr<ResponseT> = nullptr);
 
-            void RegisterDataExport(const
-                    std::function<int(const std::shared_ptr<Message>&)>&);
-
         private:
             void BuildUpwardDataChannel() {
 #ifdef CAMB_PKG_DBG
-                AINFO << "Build upstream msg channel";
+                AINFO << "Build upward msgs channel";
 #endif
                 auto vs = [this](const std::shared_ptr
                         <Message>& msg)->int {
-#if 0
 #ifdef CAMB_PKG_DBG
-                    AINFO << "Fringe publish message: " <<
+                    AINFO << "Cambrian publish message: " <<
                         msg->GetTypeName();
-#endif
 #endif
                     if (msg.get() == nullptr) {
                         AWARN << "publish null message!";
@@ -276,7 +209,7 @@ namespace brain {
                     return -1;
                 };
 
-                sys_processor_->ImplementHub::RegisterPublishHandle(vs,
+                sys_processor_->ImplementHub::RegisterMsgsDistributer(vs,
                         std::bind(&BotItfImpl::HandleDriveSlam, this,
                             std::placeholders::_1, std::placeholders::_2),
                         std::bind(&BotItfImpl::HandleDriveNavi, this,
@@ -284,7 +217,7 @@ namespace brain {
                         );
             }
 
-        protected:
+        private:
             int loop_cnt_ = 0;
 #if USE_CYBER_TIMER
             std::unique_ptr<cyber::Timer> tim_ = nullptr;
@@ -298,24 +231,20 @@ namespace brain {
             std::weak_ptr<CambrianConfig> cmb_conf_ {};
             std::unique_ptr<SysProcessor> sys_processor_;
 
-            std::function<int(const std::shared_ptr<Message>&)> export_ {};
+        protected:
+            // <<<<<< Msg Publish ITF <<<<<
+            BaseMsgCaller msg_publish_ {};
 
             //chassis ctrl
-            //FringeOutChsCtrlRelease frg_out_chs_rls_;
-            //FringeSimulateHcrRelease sim_hcr_rls_;
-
             typedef int (BotItfImpl::*HandleRemoteMessage)( \
                     std::shared_ptr<Message>);
-
-            template <typename MessageT>
-            void RegisterRemoteMsgHandle(HandleRemoteMessage);
-                    //ImplementHub::HandleRemoteFunc,
-                    //Visualization::HandleRemoteFunc);
-
-            //for remote message entry
+            //remote message entry
             std::unordered_map<std::string, HandleRemoteMessage>
                 remote_msg_handle_pair_;
+            template <typename MessageT>
+            void RegisterRemoteMsgHandle(HandleRemoteMessage);
 
+            //1, querys
             int HandleQuerySystemInfo(std::shared_ptr<Message>);
             int HandleQueryPeriphInfo(std::shared_ptr<Message>);
             int HandleQueryVolatileInfo(std::shared_ptr<Message>);
@@ -328,17 +257,14 @@ namespace brain {
             int HandleQueryMapID(std::shared_ptr<Message>);
             int HandleQueryZones(std::shared_ptr<Message>);
 
+            //2, controls
             int HandleMissionCommand(std::shared_ptr<Message>);
             int HandleAppointmentTask(std::shared_ptr<Message>);
             int HandleChassisCtrl(std::shared_ptr<Message>);
-            int HandleMotionCtrl(std::shared_ptr<Message>);
-
-            //?
-            int HandleSettingAudio(std::shared_ptr<Message>);
             int HandleSettingBother(std::shared_ptr<Message>);
             int HandleSettingConsumable(std::shared_ptr<Message>);
 
-            //services
+            //3, services
             int HandleDriveSlam(const std::shared_ptr<DriveSlam>&,
                     std::shared_ptr<SlamDriveAck>&);
             int HandleDriveNavi(const std::shared_ptr<DriveNavigation>&,
@@ -347,46 +273,17 @@ namespace brain {
 
     //message entrance
     template <typename MessageT>
-    int BotItfImpl::MsgsInpouring(const std::shared_ptr<MessageT>& msg) {
+    int BotItfImpl::MsgsInpouring(const
+            std::shared_ptr<MessageT>& msg) {
 #ifdef CAMB_PKG_DBG
-        AINFO << "inpour msg: " <<
-            cyber::message::GetMessageName<MessageT>();
+        //AINFO << "inpour msg: " <<
+            //cyber::message::GetMessageName<MessageT>();
 #endif
-        sys_processor_->GetMessagePool()->EnqueueMessage<MessageT>(msg);
-#if 0
-        //visualize_->Fresh();
-        //TODO
-
-        if (p == nullptr || p->GetTypeName() ==
-                GetMessageType<FrgNullMsg>()) {
-            if (p == nullptr) {
-#ifdef CAMB_PKG_DBG
-                AWARN << "null message enqueued!" <<
-                    cyber::message::GetMessageName<MessageT>();
-#endif
-            }
-
-            return;
-        }
-
-        //upload remote side
-        if (MessageTrait::Instance()->MsgTypeIsHcr<MessageT>()) {
-            //hcr->ppi
-            visualize_->HandleUpstreamMesages<PeriphInformation>(p);
-        } else if (visualize_->HandleUpstreamMesages<MessageT>(p) < 0) {
-#ifdef CAMB_PKG_DBG
-            /*
-            AWARN << "visual update message : " <<
-                GetMessageType<MessageT>() << " failed!" <<
-                ", p type: " << p->GetTypeName();
-                */
-#endif
-        }
-#endif
-        return 0;
+        return sys_processor_->PushInMessage(msg);
     }
 
-    //message exit cambrian
+    //services for cambrian
+    //TODO
     template <typename RequestT, typename ResponseT>
     int BotItfImpl::MsgOutpouring(const
             std::shared_ptr<RequestT>& msg,
@@ -399,7 +296,8 @@ namespace brain {
 
 #ifdef CAMB_PKG_DBG
         AWARN << "[" << __func__ << "]" <<
-            " no handler for " << cyber::message::GetMessageName<RequestT>();
+            " no handler for " <<
+            cyber::message::GetMessageName<RequestT>();
 #endif
 
         return -1;

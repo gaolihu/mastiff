@@ -40,7 +40,7 @@ namespace brain {
 #ifdef CAMB_PKG_DBG
 		AINFO << "start InferMachine";
 #endif
-        RequestChassisInfo();
+        InferQueryInfos();
         UpdataInferMachine();
     }
 
@@ -173,6 +173,12 @@ namespace brain {
             break;
         case E_CMD_FROM_H5:
             str = "Drive: { from: WEB H5, ";
+            break;
+        case E_CMD_FROM_LOGIC:
+            str = "Drive: { from: Robot Logic, ";
+            break;
+        case E_CMD_FROM_SIMKEY:
+            str = "Drive: { from: Simulate Key, ";
             break;
         default:
             os << "Drive: { from UNKNOWN(";
@@ -895,36 +901,34 @@ namespace brain {
         sm_mode_stat_->set_exec(exec_);
         sm_mode_stat_->set_mission_new(job_new_);
 
-        PlanWorkingFlowPath();
+        InferPlanWorkingFlow();
     }
 
     bool InferMachine::DriveRobotWorking(const
             MissionCommand& mc) {
-#if 0
+#if 1
         AINFO << "drive robot mission, command:\n" <<
             mc.DebugString();
 #endif
         if (!mc.has_mzp()) {
+            //update mzp
             AWARN << "invalid mission:\n" <<
                 mc.DebugString();
             return false;
         }
 
-        bool ret = DriveRobotWorking(mc.cmd(), mc.key(),
-                mc.mode(), mc.user());
+        //remote mzp update
+        InferUpdateMultiZones();
 
-        //for remote mzp update
-        if (ret)
-            //drive working OK
-            UpdateMultiZonesParam();
-
-        return ret;
+        //drive working
+        return DriveRobotWorking(mc.cmd(), mc.key(),
+                    mc.mode(), mc.user());
     }
 
     bool InferMachine::DriveRobotShiftWork(const
             std::shared_ptr<Message>& msg) {
 #ifdef CAMB_PKG_DBG
-        AINFO << "InferMachine switch robot work status";
+        AINFO << "switch robot mission";
 #endif
         //if (MessageTrait::Instance()->
                 //MsgTypeUpModeStatus<Message>(msg)) {
@@ -933,7 +937,7 @@ namespace brain {
                     RobotModeStatus>(msg)->task_shift().ctrl(),
                     E_KEY_ACT_NULL, work_mode_,
                     E_CMD_FROM_LOGIC);
-            PlanWorkingFlowPath();
+            InferPlanWorkingFlow();
             return 0;
         } else {
             AERROR << "shift fault?!";
@@ -949,7 +953,7 @@ namespace brain {
         battery_ = bat;
         if (bat != 100)
             full_ = false;
-        PlanWorkingFlowPath();
+        InferPlanWorkingFlow();
     }
 
     void InferMachine::UpdataFan(const uint32_t fan) {
@@ -957,7 +961,7 @@ namespace brain {
         AINFO << "InferMachine update fan: " << fan;
 #endif
         fan_ = fan;
-        PlanWorkingFlowPath();
+        InferPlanWorkingFlow();
     }
 
     void InferMachine::UpdataFlow(const uint32_t flow) {
@@ -965,7 +969,7 @@ namespace brain {
         AINFO << "InferMachine update flow: " << flow;
 #endif
         flow_ = flow;
-        PlanWorkingFlowPath();
+        InferPlanWorkingFlow();
     }
 
     void InferMachine::UpdataBoost(const uint32_t boost) {
@@ -973,7 +977,7 @@ namespace brain {
         AINFO << "InferMachine update boost: " << boost;
 #endif
         boost_ = boost;
-        PlanWorkingFlowPath();
+        InferPlanWorkingFlow();
     }
 
 } //namespace brain

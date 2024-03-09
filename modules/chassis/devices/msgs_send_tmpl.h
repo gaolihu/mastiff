@@ -50,11 +50,17 @@ namespace device {
 
             inline int MessagePublish(const
                     std::shared_ptr<Message>& msg) override {
-#ifdef CHSS_PKG_DBG
+#if 0
+//#ifdef CHSS_PKG_DBG
                 AINFO << "[" << this <<
                     "] publishing msg: \"" <<
                     cyber::message::GetMessageName<MessageT>() << "\"" <<
-                    ", by ch: " << topic_;
+                    ", by ch: " << topic_ <<
+#if 0
+                    "\n" << msg->DebugString();
+#else
+                    ", len: " << msg->ByteSizeLong();
+#endif
 #endif
                 if (writable_)
                     return writer_->Write(std::

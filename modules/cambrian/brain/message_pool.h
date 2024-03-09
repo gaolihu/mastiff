@@ -12,18 +12,6 @@ namespace mstf {
 namespace camb {
 namespace brain {
 
-    using namespace ventura::common_msgs::nav_msgs;
-    using namespace ventura::common_msgs::sensor_msgs;
-    using namespace ventura::common_msgs::geometry_msgs;
-
-    using namespace apollo;
-    using namespace /*mstf::camb::*/proto;
-    using namespace /*mstf::*/chss::proto;
-    using namespace google::protobuf;
-
-    using DatabaseNotifyHook = std::function<void()>;
-    //using ImplementorNotifyHook = std::function<void()>;
-
     class MessagePool :
         public SignalsKick,
         public DataFeedback {
@@ -34,7 +22,7 @@ namespace brain {
 
             // enqueue msg
             template <typename MessageT>
-            void EnqueueMessage(const
+            int EnqueueMessage(const
                     std::shared_ptr<MessageT>&);
 
             // dequeue msg
@@ -43,7 +31,7 @@ namespace brain {
 
             //random events write
             inline void ClearRandomEvents() {
-                rnd_evts_->Clear();
+                //rnd_evts_->Clear();
                 random_events_trigered_ = false;
             }
 
@@ -57,63 +45,26 @@ namespace brain {
 
         private:
             //slam
-            void _EnqueueMessage(const std::shared_ptr<OccupancyGrid>&);
-            void _EnqueueMessage(const std::shared_ptr<PoseStamped>&);
+            int _EnqueueMessage(const std::shared_ptr<OccupancyGrid>&);
+            int _EnqueueMessage(const std::shared_ptr<PoseStamped>&);
 
             //chassis raw
-            void _EnqueueMessage(const std::shared_ptr<Imu>&);
-            void _EnqueueMessage(const std::shared_ptr<PointCloud>&);
-            void _EnqueueMessage(const std::shared_ptr<Odometry>&);
-            void _EnqueueMessage(const std::shared_ptr<Image>&);
-            void _EnqueueMessage(const std::shared_ptr<PointCloud2>&);
+            int _EnqueueMessage(const std::shared_ptr<Imu>&);
+            int _EnqueueMessage(const std::shared_ptr<PointCloud>&);
+            int _EnqueueMessage(const std::shared_ptr<Odometry>&);
+            int _EnqueueMessage(const std::shared_ptr<Image>&);
+            int _EnqueueMessage(const std::shared_ptr<PointCloud2>&);
 
             //chassis misc
-            void _EnqueueMessage(const std::shared_ptr<ChassisMixData>&);
-            void _EnqueueMessage(const std::shared_ptr<HfChassisRaw>&);
+            int _EnqueueMessage(const std::shared_ptr<ChassisMiscInfo>&);
 
         public:
             //lock
             std::mutex mutex_;
-
-            //slam data
-            std::shared_ptr<OccupancyGrid> grid_map_ {};
-            std::shared_ptr<PoseStamped> rt_pose_ {};
-            std::shared_ptr<Path> robot_path_ {};
-
-            //chassis
-            std::shared_ptr<ChassisRawData> chs_raw_ {};
-            std::shared_ptr<Odometry> odom_data_ {};
-            std::shared_ptr<PointCloud> pcl_data_ {};
-            std::shared_ptr<Imu> imu_data_ {};
-            std::shared_ptr<Image> img_data_ {};
-            std::shared_ptr<PointCloud2> llsr_data_ {};
-
-            //chassis parse misc
-            std::shared_ptr<ChassisMixData> misc_data_ {};
-            std::shared_ptr<HfChassisRaw> hfrq_data_ {};
-
-            //chassis periph
-            std::shared_ptr<PeriphInformation> pph_info_ {};
-            std::shared_ptr<RandomEvents> rnd_evts_ {};
-
-            //biz & system info
-            std::shared_ptr<SystemInformation> sys_info_;
-            std::shared_ptr<VolatileInformation> vola_info_ {};
-            std::shared_ptr<RobotModeStatus> mode_stat_ {};
-            std::shared_ptr<AppointmentTask> app_ {};
-            std::shared_ptr<MultiZonesParam> mzps_ {};
-            std::shared_ptr<FrgNullMsg> msg_null_ {};
-
-            //notify hook
-            DatabaseNotifyHook db_notify_hook_ = nullptr;
-            //ImplementorNotifyHook dr_notify_hook_ = nullptr;
-
-            //random events comming
-            bool random_events_trigered_ = false;
     };
 
     template <typename MessageT>
-    void MessagePool::EnqueueMessage(const
+    int MessagePool::EnqueueMessage(const
             std::shared_ptr<MessageT>& msg) {
 #if 1
         AERROR << "in message: \"" <<
@@ -122,49 +73,58 @@ namespace brain {
         auto s = cyber::message::GetMessageName<MessageT>();
 
         if (s.find("OccupancyGrid") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<OccupancyGrid>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    OccupancyGrid>(msg));
         }
 
         if (s.find("PoseStamped") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<PoseStamped>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    PoseStamped>(msg));
         }
 
         if (s.find("Odometry") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<Odometry>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    Odometry>(msg));
         }
 
         if (s.find("PointCloud") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<PointCloud>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    PointCloud>(msg));
         }
 
         if (s.find("Imu") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<Imu>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    Imu>(msg));
         }
 
         if (s.find("Image") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<Image>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    Image>(msg));
         }
 
         if (s.find("PointCloud2") != std::string::npos) {
-            _EnqueueMessage(reinterpret_cast<const
-                    std::shared_ptr<PointCloud2>&>(msg));
-            return;
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    PointCloud2>(msg));
+        }
+
+        //chassis infos
+        if (s.find("ChassisMiscInfo") != std::string::npos) {
+            return _EnqueueMessage(
+                    std::dynamic_pointer_cast<
+                    ChassisMiscInfo>(msg));
         }
 
         AERROR << "enqueue unsupported message \"" <<
             cyber::message::GetMessageName<MessageT>() << "\"";
+
+        return -1;
     }
 
     template <typename MessageT>

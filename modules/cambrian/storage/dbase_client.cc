@@ -29,7 +29,7 @@ namespace dbase {
 
     void DbaseClient::DatabaseInit() {
 #ifdef CAMB_PKG_DBG
-        AINFO << "Data base init start!";
+        AINFO << "DataBase init start!";
 #endif
         database_need_update_.store(false);
 
@@ -80,7 +80,7 @@ namespace dbase {
 
     void DbaseClient::DataBaseExit() {
 #ifdef CAMB_PKG_DBG
-        AINFO << "Data base exit!\n";
+        AINFO << "DataBase exit!\n";
 #endif
         sql_->SqlExit();
     }

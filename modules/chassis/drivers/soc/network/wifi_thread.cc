@@ -38,7 +38,7 @@ void WiFiThread::SetWiFiCtrl(const proto::WifiSetting& ctrl) {
 void WiFiThread::PollingNetworkRutine(WifiInfo& rsp) {
     if (set_ctrl_cmd_) {
         auto result   = wifi_tool_->WiFiOperate(wifi_ctrl_);
-        rsp.set_wifi_result(result);
+        rsp.mutable_wifi_result()->set_value(result);
         set_ctrl_cmd_ = false;
     }
 

@@ -31,7 +31,7 @@ http_archive(
     #commit: 5aca728f72766c013b4e451775b89b16ffd7bdc5, 2023/8/8
     strip_prefix = "upb-5aca728f72766c013b4e451775b89b16ffd7bdc5",
     urls = [
-        "@REMOTE_HTTP_SERVER@/upb/3511f8acf9ea095c1c872343d2e725ed90217414.zip",
+        "@REMOTE_HTTP_SERVER@/upb/5aca728f72766c013b4e451775b89b16ffd7bdc5.zip",
         #"http://172.17.0.2/third_party/upb/5aca728f72766c013b4e451775b89b16ffd7bdc5.zip",
     ],
 )
@@ -289,8 +289,8 @@ http_archive(
     sha256 = "4f26c2dd10151353641189ba3dc815653689701c1a28f1aa531731a44550baeb",
     strip_prefix = "minicoro-8673ca62ed938c0b436bc2a548f172865f65bf1d",
     urls = [
-        "@REMOTE_HTTP_SERVER@/minicoro/a45ca4f58c8af2fc4d4d6042e68aa68bfea422c9.zip",
-        #"http://172.17.0.2/third_party/minicoro/a45ca4f58c8af2fc4d4d6042e68aa68bfea422c9.zip",
+        "@REMOTE_HTTP_SERVER@/minicoro/8673ca62ed938c0b436bc2a548f172865f65bf1d.zip",
+        #"http://172.17.0.2/third_party/minicoro/8673ca62ed938c0b436bc2a548f172865f65bf1d.zip",
     ],
     build_file = "@//3rd_party/minicoro:mc.BUILD",
 )
@@ -393,6 +393,126 @@ http_archive(
         "https://github.com/redis/redis/archive/068051e378ceaea85a7fb011f1271587a17bd0e7.zip"
     ],
     build_file = "@//3rd_party/amalgamation:sq3.BUILD",
+)
+
+http_archive(
+    name = "luxonis_depthai",
+    sha256 = "6572d91f886fbd4bdbf1d964932a3d5ed006a5ed7c949a5867c9c69f5607332d",
+    strip_prefix = "depthai-core-6628488ef8956f73f1c7bf4c8f1da218ad327a6f",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_depthai/6628488ef8956f73f1c7bf4c8f1da218ad327a6f.zip",
+    ],
+    build_file = "@//3rd_party/depthai_camera:depthai_cmr.BUILD",
+)
+
+http_archive(
+    name = "luxonis_xlink",
+    sha256 = "2cdf4389407983fca6c9cee6c21d10ddfb1557f283cf65bf279c5d701ca85579",
+    strip_prefix = "XLink-e9eb1ef38030176ad70cddd3b545d5e6c509f1e1",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_xlink/e9eb1ef38030176ad70cddd3b545d5e6c509f1e1.tar.gz",
+    ],
+    build_file = "@//3rd_party/xlink:xl.BUILD",
+)
+
+http_archive(
+    name = "luxonis_shared",
+    sha256 = "3edf5d2877d2c9020a6758eab29ec9adf050da5f5a6c9bf9a12687a7200d4131",
+    strip_prefix = "depthai-shared-a73b58b5d0c7798633309d3b0ce4d40c096014ca",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_shared/a73b58b5d0c7798633309d3b0ce4d40c096014ca.zip",
+    ],
+    build_file = "@//3rd_party/lx_shared:lxshd.BUILD",
+)
+
+http_archive(
+    name = "luxonis_shared_bootloader",
+    sha256 = "145ba501357ceed0037d97456b653662aaba9b5cc8baa4b44c3f2c011b8a0bb9",
+    strip_prefix = "depthai-bootloader-shared-b287ecbacd3b0c963b5dfcf95767123b0c143b57",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_shared_bootloader/b287ecbacd3b0c963b5dfcf95767123b0c143b57.zip",
+    ],
+    build_file = "@//3rd_party/lx_shared_bootloader:lxshd_btldr.BUILD",
+)
+
+http_archive(
+    name = "libnop",
+    sha256 = "78eac518427fea35bab867bb32297b30c5ff730b6d327b6587597e8d6ba810af",
+    strip_prefix = "libnop-ab842f51dc2eb13916dc98417c2186b78320ed10",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/libnop/ab842f51dc2eb13916dc98417c2186b78320ed10.tar.gz",
+    ],
+    build_file = "@//3rd_party/libnop:lnp.BUILD",
+)
+
+http_archive(
+    name = "spdlog",
+    sha256 = "e20e6bd8f57e866eaf25a5417f0a38a116e537f1a77ac7b5409ca2b180cec0d5",
+    strip_prefix = "spdlog-1.8.2",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/spdlog/v1.8.2.tar.gz",
+    ],
+    build_file = "@//3rd_party/spdlog:spdl.BUILD",
+)
+
+http_archive(
+    name = "luxonis_fp16",
+    sha256 = "25b008633932a33374364bddaca6e67fd00f6a77f0943bc751efbcd825d6eee3",
+    strip_prefix = "FP16-c911175d2717e562976e606c6e5f799bf40cf94e",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_fp16/c911175d2717e562976e606c6e5f799bf40cf94e.zip",
+    ],
+    build_file = "@//3rd_party/fp16:fp.BUILD",
+)
+
+http_archive(
+    name = "luxonis_archive",
+    sha256 = "781822375b7f83a36b191eaab8c5fba6eca60e8504ddc5fbe3bcf3effd6c6368",
+    strip_prefix = "libarchive-45baa3a3e57104519e1165bcd5ac29c3bd8c9f3a",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_archive/45baa3a3e57104519e1165bcd5ac29c3bd8c9f3a.tar.gz",
+    ],
+    build_file = "@//3rd_party/lx_archive:lx_achv.BUILD",
+)
+
+http_archive(
+    name = "luxonis_archive_binary",
+    sha256 = "a75c3b5532673f85ff76c24fc6b057a79970a56da71d77392c392801f8155ba4",
+    strip_prefix = "libarchive-45baa3a3e57104519e1165bcd5ac29c3bd8c9f3a",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_archive/libarchive-45baa3a3e57104519e1165bcd5ac29c3bd8c9f3a.tgz",
+    ],
+    build_file = "@//3rd_party/lx_archive:lx_achv.BUILD",
+)
+
+http_archive(
+    name = "luxonis_libusb",
+    sha256 = "40dbbdc550c1a88fdcc078def08838a06ba00bb6a9c5a3862c6b428a8d8a8184",
+    strip_prefix = "libusb-b7e4548958325b18feb73977163ad44398099534",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/luxonis_libusb/b7e4548958325b18feb73977163ad44398099534.tar.gz",
+    ],
+    build_file = "@//3rd_party/lx_lusb:lx_lusb.BUILD",
+)
+
+http_archive(
+    name = "backward_cpp",
+    sha256 = "c654d0923d43f1cea23d086729673498e4741fb2457e806cfaeaea7b20c97c10",
+    strip_prefix = "backward-cpp-1.6",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/backward/v1.6.tar.gz",
+    ],
+    build_file = "@//3rd_party/backward:bw.BUILD",
+)
+
+http_archive(
+    name = "bzip2",
+    sha256 = "b803cdb2d044a53bde3b89cbbe811486035c885994e75f2879116ca7be0f613b",
+    strip_prefix = "bzip2-1ea1ac188ad4b9cb662e3f8314673c63df95a589",
+    urls = [
+        "@REMOTE_HTTP_SERVER@/bzip2/1ea1ac188ad4b9cb662e3f8314673c63df95a589.zip",
+    ],
+    build_file = "@//3rd_party/bzip2:bz.BUILD",
 )
 
 # valgrind build

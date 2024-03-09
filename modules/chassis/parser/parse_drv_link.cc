@@ -10,10 +10,12 @@ namespace parser {
 #ifdef CHSS_PKG_DBG
         AINFO << "ParseDrvLink sigleton construct";
 #endif
-        soc_data_ = std::make_shared<SocData>
-            (std::bind(&ParseDrvLink::OnRecvSoc,
-                       this, ::_1, ::_2, ::_3, ::_4),
-             CommonItf::Instance()->GetChasisConfig());
+        if (CommonItf::Instance()->HasSocDevice()) {
+            soc_data_ = std::make_shared<SocData>
+                (std::bind(&ParseDrvLink::OnRecvSoc,
+                           this, ::_1, ::_2, ::_3, ::_4),
+                 CommonItf::Instance()->GetChasisConfig());
+        }
     }
 
     ParseDrvLink::~ParseDrvLink() {

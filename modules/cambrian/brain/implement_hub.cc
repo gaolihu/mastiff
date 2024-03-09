@@ -11,17 +11,6 @@ namespace brain {
         AINFO << "ImplementHub construct ~ 0\n" <<
             iops->DebugString();
 #endif
-        /*
-        business_center_ = std::make_unique
-            <BusinessCenter>(p);
-        business_center_->SetPsHandle(std::bind(
-                    &ImplementHub::DispachMessage,
-                    this, std::placeholders::_1),
-                std::bind(&ImplementHub::DispachDrvSlam, this,
-                    std::placeholders::_1, std::placeholders::_2),
-                std::bind(&ImplementHub::DispachDrvNavi, this,
-                    std::placeholders::_1, std::placeholders::_2));
-                    */
     }
 
     ImplementHub::~ImplementHub() {
@@ -33,7 +22,7 @@ namespace brain {
 
     void ImplementHub::Init() {
 #ifdef CAMB_PKG_DBG
-        AINFO << "hub init stat-machine & biz-logic";
+        AINFO << "impl-hub init biz-logic";
 #endif
         //business_center_->Prepare();
         InferMachine::Init();
@@ -63,56 +52,7 @@ namespace brain {
         //InferMachine::Close();
     }
 
-    void ImplementHub::Loop(const int loop_cnt) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "ImplementHub loop";
-#endif
-        //update volatile info
-        if (LoopCount()  % loop_cnt == 0) { //200 * 300 ms = 60s
-            SyncRemoteData();
-            //NotifyMapUpdate();
-        }
-
-        /*
-        if (business_center_.get() != nullptr) {
-            business_center_->Recycle();
-        }
-        */
-    }
-
-    void ImplementHub::RegisterPublishHandle(const
-            ImplementorRvs& dr,
-            const SlamDrvRvs& slam_rvs,
-            const NaviDrvRvs& navi_rvs) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "upward info flow register";
-#endif
-        //to upper channel: abstract robot
-        //= &BotItfImpl::lamada, find Message - Handles
-        director_rvs_ = dr;
-        //= &BotItfImpl::HandleDriveSlam
-        navi_rvs_ = navi_rvs;
-        //= &BotItfImpl::HandleDriveNavi
-        slam_rvs_ = slam_rvs;
-    }
-
-    void ImplementHub::SetRandomEvents(const
-            std::shared_ptr<Message>& r) {
-        random_evts_ = std::dynamic_pointer_cast<RandomEvents>(r);
-#ifdef CAMB_PKG_DBG
-        AINFO << "bind shared random events" <<
-            ", use_count: " << random_evts_.use_count() <<
-            ", content p: " << random_evts_.lock() <<
-            ", is expired: " << (random_evts_.expired() ? "YES" : "NO");
-#endif
-    }
-
-    void ImplementHub::PushRandomEvents() {
-        //business_center_->ImportRandomEvents(random_evts_.lock());
-    }
-
-    //infer machine override 1
-    void ImplementHub::RequestChassisInfo() {
+    void ImplementHub::InferQueryInfos() {
 #ifdef CAMB_PKG_DBG
         AINFO << "check chassis infomation";
 #endif
@@ -120,33 +60,29 @@ namespace brain {
         //business_center_->Query();
     }
 
-    //infer machine override 2
-    void ImplementHub::PlanWorkingFlowPath() {
+    void ImplementHub::InferPlanWorkingFlow() {
 #ifdef CAMB_PKG_DBG
         AINFO << "plan working flow path";
 #endif
-        ACHECK(sm_mode_stat_.get() != nullptr) << "fault sm!";
-        //ACHECK(business_center_.get() != nullptr) << "fault bc!";
-
-        /*
-        if (sm_mode_stat_->exec())
-            business_center_->ExecRobotWork(sm_mode_stat_);
+        if (InferMachine::IsNeedExecJob())
+            BizlogicItf::ExecRobotWork(
+                    InferMachine::GetCurrentMode(),
+                    InferMachine::GetCurrentStat(),
+                    InferMachine::IsNewJob());
         //else
             //ignore exec
-            */
 
         InferMachine::RestoreJobState();
 
         //update mode & status in remote side
-        DispachMessage(std::make_shared<QueryModeStatus>());
+        SyncLocalStat();
     }
 
-    //infer machine override 3
-    void ImplementHub::UpdateMultiZonesParam() {
+    void ImplementHub::InferUpdateMultiZones() {
 #ifdef CAMB_PKG_DBG
         AINFO << "update multi zones";
 #endif
-        DispachMessage(std::make_shared<QueryZones>());
+        //DispachMessage(std::make_shared<QueryZones>());
     }
 
 } //namespace brain

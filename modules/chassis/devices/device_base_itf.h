@@ -93,6 +93,8 @@ namespace device {
 
             int InitSensor(const SensorIndicator* si) {
                 if (si != sensor_ind_) {
+                    AWARN << "si: " << si <<
+                        ", sensor_ind_: " << sensor_ind_;
                     AWARN << "DeviceBase indicator err\n" <<
                         si->DebugString() <<
                         " :\n" << sensor_ind_->DebugString();

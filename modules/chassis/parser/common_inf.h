@@ -55,6 +55,8 @@ namespace parser {
             const std::string GetCommPort(const
                     SensorIndicator*) const;
 
+            const bool HasSocDevice() const;
+
             const bool IsLacateSoc(const
                     SensorIndicator*) const;
 
@@ -65,6 +67,12 @@ namespace parser {
                     SensorIndicator*) const;
 
             const std::string GetTopic3(const
+                    SensorIndicator*) const;
+
+            const std::string GetTopic4(const
+                    SensorIndicator*) const;
+
+            const std::string GetTopic5(const
                     SensorIndicator*) const;
 
         private:

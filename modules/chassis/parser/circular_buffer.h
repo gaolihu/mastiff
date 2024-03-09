@@ -151,7 +151,8 @@ namespace parser {
                 UniqueLock lg(mutex_);
                 if (capacity_free_ < len) {
                     // no space for writing
-                    AWARN << "cbuf space not enough!!!";
+                    AWARN << "cbuf space not enough, len: " << len <<
+                        ", capacity free: " << capacity_free_;
                     Restore(len - capacity_free_);
                     if (!write_cond_var_.wait_for(lg,
                         std::chrono::milliseconds(20),
@@ -327,7 +328,8 @@ namespace parser {
             }
 
             bool Restore(int len) {
-                LockGuard lg(mutex_);
+                //LockGuard lg(mutex_);
+                //Glh, 2024/3/4 13:44
                 if (len == capacity_cbuf_ - capacity_free_ + 1) {
                     tail_ = head_ = 0;
                     capacity_free_ = capacity_cbuf_;
@@ -336,8 +338,9 @@ namespace parser {
                 } else if (len > (capacity_cbuf_ - capacity_free_)) {
                     ShowCbuf("Restore error", len);
                     AWARN << "Restore: " << len <<
-                        ", more than circular possess?!" <<
-                        capacity_cbuf_ - capacity_free_;
+                        ", more than circular possess(" <<
+                        capacity_cbuf_ - capacity_free_ <<
+                        ")!?";
                     tail_ = head_ = 0;
                     capacity_free_ = capacity_cbuf_;
                     write_cond_var_.notify_all();

@@ -18,11 +18,9 @@ namespace brain {
         AINFO << "SysProcessor construct";
 #endif
         cmb_conf_ = cc;
-        /*
-        GetMessagePool()->db_notify_hook_ = db_hook;
+        GetMessagePool()->HookImplementor(std::bind(
+                    &SysProcessor::ParseChssMisc, this));
 
-        mcu_param_ = std::make_shared<McuSensorParamCtrl>();
-        */
         visualize_ = std::make_unique<VisualClient>(
                 &cc->cmb_module_conf().visual_ops());
         database_ = std::make_unique<DbaseClient>(
@@ -30,15 +28,9 @@ namespace brain {
     }
 
     SysProcessor::~SysProcessor() {
-        /*
 #ifdef CAMB_PKG_DBG
         AINFO << "SysProcessor de-construct";
-        AERROR << "volatile" <<
-            //"\nsp:" << GetMessagePool()->vola_info_->DebugString() <<
-            ", local sp: " << GetMessagePool()->vola_info_ <<
-            ", use_count: " << GetMessagePool()->vola_info_.use_count();
 #endif
-*/
     }
 
     void SysProcessor::Init() {
@@ -46,20 +38,7 @@ namespace brain {
         AINFO << "SysProcessor init";
 #endif
         //firstly update system load
-        //UpdateSystemLoad();
-
-        /*
-        ExposeRandomEventsPtr();
-        time_whl_pulse_last_ = std::chrono::steady_clock::now();
-        time_whl_speed_last_ = std::chrono::steady_clock::now();
-        time_drop_last_ = std::chrono::steady_clock::now();
-        time_drop_adc_last_ = std::chrono::steady_clock::now();
-        time_mid_scan_last_ = std::chrono::steady_clock::now();
-        time_whl_current_last_ = std::chrono::steady_clock::now();
-        time_tof_last_ = std::chrono::steady_clock::now();
-        time_dock_sig_last_ = std::chrono::steady_clock::now();
-        time_slave_time_ms_last_ = std::chrono::steady_clock::now();
-        */
+        UpdateSystemLoad();
 
         ImplementHub::Init();
         visualize_->Init();
@@ -100,210 +79,12 @@ namespace brain {
         database_->DataBaseExit();
     }
 
-    void SysProcessor::Loop(const int loop_cnt) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "SysProcessor Loop";
-#endif
-        LoopIncrease();
-        ImplementHub::Loop(loop_cnt);
-
-        if ((LoopCount() % (loop_cnt * 2)) == 0)
-            UpdateSystemLoad();
-    }
-
-    void SysProcessor::PushRandomEvents(const
-            EE_RANDOM_EVENTS_TRIGER evt, const int val) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "import random event: " << evt <<
-            //", value: " << val;
-#endif
-        switch (evt) {
-        case E_EVT_TOGGLE_BUTTON:
-            GetMessagePool()->rnd_evts_->mutable_tog()->set_value(val);
-            break;
-        case E_EVT_SHORT_PWR:
-            GetMessagePool()->rnd_evts_->mutable_spwr()->set_value(val);
-            break;
-        case E_EVT_LONG_PWR:
-            GetMessagePool()->rnd_evts_->mutable_lpwr()->set_value(val);
-            break;
-        case E_EVT_SHORT_HOME:
-            GetMessagePool()->rnd_evts_->mutable_shome()->set_value(val);
-            break;
-        case E_EVT_LONG_HOME:
-            GetMessagePool()->rnd_evts_->mutable_lhome()->set_value(val);
-            break;
-        case E_EVT_NO_WATER:
-            GetMessagePool()->rnd_evts_->mutable_no_wt()->set_value(val);
-            break;
-        case E_EVT_FULL_WATER:
-            GetMessagePool()->rnd_evts_->mutable_fl_wt()->set_value(val);
-            break;
-        case E_EVT_DUST_BOX:
-            GetMessagePool()->rnd_evts_->mutable_dbox()->set_value(val);
-            break;
-        case E_EVT_WATER_TANK:
-            GetMessagePool()->rnd_evts_->mutable_tank()->set_value(val);
-            break;
-        case E_EVT_LEFT_PALLETE:
-            GetMessagePool()->rnd_evts_->mutable_lplt()->set_value(val);
-            break;
-        case E_EVT_RIGHT_PALLETE:
-            GetMessagePool()->rnd_evts_->mutable_rplt()->set_value(val);
-            break;
-        case E_EVT_LEFT_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_lbump()->set_value(val);
-            break;
-        case E_EVT_RIGHT_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_rbump()->set_value(val);
-            break;
-        case E_EVT_LLEFT_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_ld_lb()->set_value(val);
-            break;
-        case E_EVT_LRIGHT_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_ld_rb()->set_value(val);
-            break;
-        case E_EVT_LFRONT_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_ld_fb()->set_value(val);
-            break;
-        case E_EVT_LTOP_BUMP:
-            GetMessagePool()->rnd_evts_->mutable_ld_tb()->set_value(val);
-            break;
-        case E_EVT_LWHL_LIFT:
-            GetMessagePool()->rnd_evts_->mutable_llift()->set_value(val);
-            break;
-        case E_EVT_RWHL_LIFT:
-            GetMessagePool()->rnd_evts_->mutable_rlift()->set_value(val);
-            break;
-        case E_EVT_ALONG_WALL:
-            GetMessagePool()->rnd_evts_->mutable_awall()->set_value(val);
-            break;
-        case E_EVT_LEFT_DROP:
-            GetMessagePool()->rnd_evts_->mutable_ldrop()->set_value(val);
-            break;
-        case E_EVT_MLEFT_DROP:
-            GetMessagePool()->rnd_evts_->mutable_mldrop()->set_value(val);
-            break;
-        case E_EVT_MRIGHT_DROP:
-            GetMessagePool()->rnd_evts_->mutable_mrdrop()->set_value(val);
-            break;
-        case E_EVT_RIGHT_DROP:
-            GetMessagePool()->rnd_evts_->mutable_rdrop()->set_value(val);
-            break;
-        case E_EVT_LEFT_REAR_DROP:
-            GetMessagePool()->rnd_evts_->mutable_lrdrop()->set_value(val);
-            break;
-        case E_EVT_RIGHT_REAR_DROP:
-            GetMessagePool()->rnd_evts_->mutable_rrdrop()->set_value(val);
-            break;
-        case E_EVT_TOUCH_DOCK:
-            GetMessagePool()->rnd_evts_->mutable_tch_dk()->set_value(val);
-            break;
-        case E_EVT_CHARGE_ON_DOCK:
-            GetMessagePool()->rnd_evts_->mutable_charge()->set_value(val);
-            break;
-        case E_EVT_FINISH_CHARGE:
-            GetMessagePool()->rnd_evts_->mutable_chrg_ok()->set_value(val);
-            break;
-        default:
-            AERROR << "random event error: " << evt <<
-                ", value: " << val;
-            break;
-        }
-
-        GetMessagePool()->SetRandomTriger();
-    }
-
-    void SysProcessor::SetSystemInfoPtr(const
-            std::shared_ptr<Message>& sys) {
-        GetMessagePool()->sys_info_.reset(dynamic_cast<SystemInformation*>(sys.get()),
-                [&](SystemInformation*){});
-#ifdef CAMB_PKG_DBG
-        AINFO << "import system info: " << sys <<
-            ", use_count: " << sys.use_count() <<
-            ", local sp: " << GetMessagePool()->sys_info_ <<
-            ", use_count: " << GetMessagePool()->sys_info_.use_count() <<
-            ", content p: " << GetMessagePool()->sys_info_.get();
-#endif
-    }
-
-    void SysProcessor::SetModeStatusPtr(const
-            std::shared_ptr<Message>& ms) {
-        GetMessagePool()->mode_stat_.reset(dynamic_cast<RobotModeStatus*>(ms.get()),
-                [&](RobotModeStatus*){});
-#ifdef CAMB_PKG_DBG
-        AINFO << "import mode & status: " << ms <<
-            ", use_count: " << ms.use_count() <<
-            ", local sp: " << GetMessagePool()->mode_stat_ <<
-            ", use_count: " << GetMessagePool()->mode_stat_.use_count() <<
-            ", content p: " << GetMessagePool()->mode_stat_.get();
-#endif
-    }
-
-    void SysProcessor::SetVolatileInfoPtr(const
-            std::shared_ptr<Message>& vola) {
-        GetMessagePool()->vola_info_ = std::shared_ptr<VolatileInformation>(
-                dynamic_cast<VolatileInformation*>(vola.get()),
-                [&](VolatileInformation* /*p*/){
-                /*AINFO << "ignore deleter: " << p;*/
-                });
-#ifdef CAMB_PKG_DBG
-        AINFO << "import vola sp: " << vola <<
-            ", use_count: " << vola.use_count() <<
-            ", local sp: " << GetMessagePool()->vola_info_ <<
-            ", use_count: " << GetMessagePool()->vola_info_.use_count() <<
-            ", content p: " << GetMessagePool()->vola_info_.get();
-#endif
-    }
-
-    void SysProcessor::SetMultiZonesPtr(const
-            std::shared_ptr<Message>& mzp) {
-        GetMessagePool()->mzps_.reset(dynamic_cast<MultiZonesParam*>(mzp.get()),
-                [&](MultiZonesParam*){});
-#ifdef CAMB_PKG_DBG
-        AINFO << "import mzp sp: " << mzp <<
-            ", use_count: " << mzp.use_count() <<
-            ", local sp: " << GetMessagePool()->mzps_ <<
-            ", use_count: " << GetMessagePool()->mzps_.use_count() <<
-            ", content p: " << GetMessagePool()->mzps_.get();
-#endif
-    }
-
-    void SysProcessor::ExposeRandomEventsPtr() {
-        ImplementHub::SetRandomEvents(GetMessagePool()->rnd_evts_);
-#ifdef CAMB_PKG_DBG
-        AINFO << "expose random events" <<
-            ", local sp: " << GetMessagePool()->rnd_evts_ <<
-            ", use_count: " << GetMessagePool()->rnd_evts_.use_count() <<
-            ", content p: " << GetMessagePool()->rnd_evts_.get();
-#endif
-    }
-
-    void SysProcessor::ConfigChsParam(const
-            McuSensorParamCtrl& mcu_param) {
-        mcu_param_->CopyFrom(mcu_param);
-//#ifdef CAMB_PKG_DBG
-#if 0
-        AINFO << "mcu param" <<
-            ", tof: " << mcu_param_->tof_param().freq().value() <<
-            ", wc: " << mcu_param_->whl_current().freq().value() <<
-            ", dk: " << mcu_param_->dock_signal().freq().value() <<
-            ", im: " << mcu_param_->imu_param().freq().value() <<
-            ", el: " << mcu_param_->euler_param().freq().value() <<
-            ", wp: " << mcu_param_->whl_pulse().freq().value() <<
-            ", pd: " << mcu_param_->pose_param().freq().value() <<
-            ", st: " << mcu_param_->slave_sys().freq().value() <<
-            ", aw: " << mcu_param_->wdrop_adc().freq().value() <<
-            ", ws: " << mcu_param_->speed_param().freq().value();
-#endif
-    }
-
     void SysProcessor::UpdateSystemLoad() {
         auto load = cyber::common::GetSysLoad();
-        GetMessagePool()->vola_info_->mutable_brief_stat()->
-            set_sys_load(std::get<0>(load));
-//#ifdef DB_DATA_DBG
+        //GetMessagePool()->vola_info_->mutable_brief_stat()->
+            //set_sys_load(std::get<0>(load));
 #if 1
+//#ifdef CAMB_PKG_DBG
         AINFO << "system load in last"
             " 2 mins: " << (100 * std::get<0>(load)) << "%"
             ", 5 mins: " << (100 * std::get<1>(load)) << "%"
@@ -311,1296 +92,1397 @@ namespace brain {
 #endif
     }
 
-    //toggle button
-    void SysProcessor::SetToggleButton(const bool button) {
+    void SysProcessor::ParseChssMisc() {
+        auto msg = GetMessagePool()->FeedbkChassisMisc();
 #ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_toggle_button() ||
-                button != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                toggle_button().value())
-            AINFO << "toggle button: " <<
-                (button ? "ON" : "OFF");
+        AINFO << "paser chassis misc data!\n" <<
+            msg->DebugString();
 #endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_toggle_button()->set_value(button);
-        } else {
-            AWARN << "empty ppi info!";
+        //liquid
+        if (msg->has_liquid_level()) {
+            //clean tank
+            if (msg->liquid_level().has_clean_tank()) {
+                if (msg->liquid_level().clean_tank().has_dev())
+                    CleanTankName(msg->liquid_level().clean_tank().dev().value());
+                if (msg->liquid_level().clean_tank().has_en())
+                    CleanTankStat(msg->liquid_level().clean_tank().en().value());
+                if (msg->liquid_level().clean_tank().has_level())
+                    CleanTankLevel(msg->liquid_level().clean_tank().level().value());
+                if (msg->liquid_level().clean_tank().has_empty())
+                    CleanTankEmpty(msg->liquid_level().clean_tank().empty().value());
+                if (msg->liquid_level().clean_tank().has_low())
+                    CleanTankLow(msg->liquid_level().clean_tank().low().value());
+                if (msg->liquid_level().clean_tank().has_full())
+                    CleanTankFull(msg->liquid_level().clean_tank().full().value());
+                if (msg->liquid_level().clean_tank().has_update_freq_ms())
+                    CleanTankUpdataFreqms(msg->liquid_level().clean_tank().update_freq_ms().value());
+            }
+            //dirty tank
+            if (msg->liquid_level().has_dirty_tank()) {
+                if (msg->liquid_level().dirty_tank().has_dev())
+                    DirtyTankName(msg->liquid_level().dirty_tank().dev().value());
+                if (msg->liquid_level().dirty_tank().has_en())
+                    DirtyTankStat(msg->liquid_level().dirty_tank().en().value());
+                if (msg->liquid_level().dirty_tank().has_level())
+                    DirtyTankLevel(msg->liquid_level().dirty_tank().level().value());
+                if (msg->liquid_level().dirty_tank().has_empty())
+                    DirtyTankEmpty(msg->liquid_level().dirty_tank().empty().value());
+                if (msg->liquid_level().dirty_tank().has_low())
+                    DirtyTankLow(msg->liquid_level().dirty_tank().low().value());
+                if (msg->liquid_level().dirty_tank().has_full())
+                    DirtyTankFull(msg->liquid_level().dirty_tank().full().value());
+                if (msg->liquid_level().dirty_tank().has_update_freq_ms())
+                    DirtyTankUpdateFreqms(msg->liquid_level().dirty_tank().update_freq_ms().value());
+            }
+            //dust box
+            if (msg->liquid_level().has_dust_box()) {
+                if (msg->liquid_level().dust_box().has_dev())
+                    DustBoxName(msg->liquid_level().dust_box().dev().value());
+                if (msg->liquid_level().dust_box().has_en())
+                    DustBoxStat(msg->liquid_level().dust_box().en().value());
+                if (msg->liquid_level().dust_box().has_level())
+                    DustBoxLevel(msg->liquid_level().dust_box().level().value());
+                if (msg->liquid_level().dust_box().has_empty())
+                    DustBoxEmpty(msg->liquid_level().dust_box().empty().value());
+                if (msg->liquid_level().dust_box().has_low())
+                    DustBoxLow(msg->liquid_level().dust_box().low().value());
+                if (msg->liquid_level().dust_box().has_full())
+                    DustBoxFull(msg->liquid_level().dust_box().full().value());
+                if (msg->liquid_level().dust_box().has_update_freq_ms())
+                    DustBoxUpdataFreqms(msg->liquid_level().dust_box().update_freq_ms().value());
+            }
+            //detergent tank
+            if (msg->liquid_level().has_detergent_tank()) {
+                if (msg->liquid_level().detergent_tank().has_dev())
+                    DetergentTankName(msg->liquid_level().detergent_tank().dev().value());
+                if (msg->liquid_level().detergent_tank().has_en())
+                    DetergentTankStat(msg->liquid_level().detergent_tank().en().value());
+                if (msg->liquid_level().detergent_tank().has_level())
+                    DetergentTankLevel(msg->liquid_level().detergent_tank().level().value());
+                if (msg->liquid_level().detergent_tank().has_empty())
+                    DetergentTankEmpty(msg->liquid_level().detergent_tank().empty().value());
+                if (msg->liquid_level().detergent_tank().has_low())
+                    DetergentTankLow(msg->liquid_level().detergent_tank().low().value());
+                if (msg->liquid_level().detergent_tank().has_full())
+                    DetergentTankFull(msg->liquid_level().detergent_tank().full().value());
+                if (msg->liquid_level().detergent_tank().has_update_freq_ms())
+                    DetergentTankUpdataFreqms(msg->liquid_level().detergent_tank().update_freq_ms().value());
+            }
         }
 
-        PushRandomEvents(E_EVT_TOGGLE_BUTTON, button);
-    }
-
-    //keys
-    void SysProcessor::SetShortKeyPower(const bool key) {
-#ifdef CAMB_PKG_DBG
-        //AWARN << "short power key: " << key;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_key_power()->set_value(key);
-        } else {
-            AWARN << "empty ppi info!";
+        //adc
+        if (msg->has_periph_adc()) {
+            //left disc brush
+            if (msg->periph_adc().has_disc_brush_left()) {
+                if (msg->periph_adc().disc_brush_left().has_dev())
+                    DiscBrushLeftName(msg->periph_adc().disc_brush_left().dev().value());
+                if (msg->periph_adc().disc_brush_left().has_en())
+                    DiscBrushLeftStat(msg->periph_adc().disc_brush_left().en().value());
+                if (msg->periph_adc().disc_brush_left().has_voltage_mv())
+                    DiscBrushLeftVoltmv(msg->periph_adc().disc_brush_left().voltage_mv().value());
+                if (msg->periph_adc().disc_brush_left().has_current_ma())
+                    DiscBrushLeftCurrentma(msg->periph_adc().disc_brush_left().current_ma().value());
+                if (msg->periph_adc().disc_brush_left().has_temperature())
+                    DiscBrushLeftTemperature(msg->periph_adc().disc_brush_left().temperature().value());
+                if (msg->periph_adc().disc_brush_left().has_update_freq_ms())
+                    DiscBrushLeftUpdateFreqms(msg->periph_adc().disc_brush_left().update_freq_ms().value());
+            }
+            //right disc brush
+            if (msg->periph_adc().has_disc_brush_right()) {
+                if (msg->periph_adc().disc_brush_right().has_dev())
+                    DiscBrushRightName(msg->periph_adc().disc_brush_right().dev().value());
+                if (msg->periph_adc().disc_brush_right().has_en())
+                    DiscBrushRightStat(msg->periph_adc().disc_brush_right().en().value());
+                if (msg->periph_adc().disc_brush_right().has_voltage_mv())
+                    DiscBrushRightVoltmv(msg->periph_adc().disc_brush_right().voltage_mv().value());
+                if (msg->periph_adc().disc_brush_right().has_current_ma())
+                    DiscBrushRightCurrentma(msg->periph_adc().disc_brush_right().current_ma().value());
+                if (msg->periph_adc().disc_brush_right().has_temperature())
+                    DiscBrushRightTemperature(msg->periph_adc().disc_brush_right().temperature().value());
+                if (msg->periph_adc().disc_brush_right().has_update_freq_ms())
+                    DiscBrushRightUpdateFreqms(msg->periph_adc().disc_brush_right().update_freq_ms().value());
+            }
+            //front roll brush
+            if (msg->periph_adc().has_roll_brush_front()) {
+                if (msg->periph_adc().roll_brush_front().has_dev())
+                    RollBrushFrontName(msg->periph_adc().roll_brush_front().dev().value());
+                if (msg->periph_adc().roll_brush_front().has_en())
+                    RollBrushFrontStat(msg->periph_adc().roll_brush_front().en().value());
+                if (msg->periph_adc().roll_brush_front().has_voltage_mv())
+                    RollBrushFrontVoltmv(msg->periph_adc().roll_brush_front().voltage_mv().value());
+                if (msg->periph_adc().roll_brush_front().has_current_ma())
+                    RollBrushFrontCurrentma(msg->periph_adc().roll_brush_front().current_ma().value());
+                if (msg->periph_adc().roll_brush_front().has_temperature())
+                    RollBrushFrontTemperature(msg->periph_adc().roll_brush_front().temperature().value());
+                if (msg->periph_adc().roll_brush_front().has_update_freq_ms())
+                    RollBrushFrontUpdateFreqms(msg->periph_adc().roll_brush_front().update_freq_ms().value());
+            }
+            //rear roll brush
+            if (msg->periph_adc().has_roll_brush_rear()) {
+                if (msg->periph_adc().roll_brush_rear().has_dev())
+                    RollBrushRearName(msg->periph_adc().roll_brush_rear().dev().value());
+                if (msg->periph_adc().roll_brush_rear().has_en())
+                    RollBrushRearStat(msg->periph_adc().roll_brush_rear().en().value());
+                if (msg->periph_adc().roll_brush_rear().has_voltage_mv())
+                    RollBrushRearVoltmv(msg->periph_adc().roll_brush_rear().voltage_mv().value());
+                if (msg->periph_adc().roll_brush_rear().has_current_ma())
+                    RollBrushRearCurrentma(msg->periph_adc().roll_brush_rear().current_ma().value());
+                if (msg->periph_adc().roll_brush_rear().has_temperature())
+                    RollBrushRearTemperature(msg->periph_adc().roll_brush_rear().temperature().value());
+                if (msg->periph_adc().roll_brush_rear().has_update_freq_ms())
+                    RollBrushRearUpdateFreqms(msg->periph_adc().roll_brush_rear().update_freq_ms().value());
+            }
+            //suck fan 1
+            if (msg->periph_adc().has_suck_fan_1()) {
+                if (msg->periph_adc().suck_fan_1().has_dev())
+                    SuckFanName(msg->periph_adc().suck_fan_1().dev().value());
+                if (msg->periph_adc().suck_fan_1().has_en())
+                    SuckFanStat(msg->periph_adc().suck_fan_1().en().value());
+                if (msg->periph_adc().suck_fan_1().has_voltage_mv())
+                    SuckFanVoltmv(msg->periph_adc().suck_fan_1().voltage_mv().value());
+                if (msg->periph_adc().suck_fan_1().has_current_ma())
+                    SuckFanCurrentma(msg->periph_adc().suck_fan_1().current_ma().value());
+                if (msg->periph_adc().suck_fan_1().has_temperature())
+                    SuckFanTemperature(msg->periph_adc().suck_fan_1().temperature().value());
+                if (msg->periph_adc().suck_fan_1().has_update_freq_ms())
+                    SuckFanUpdateFreqms(msg->periph_adc().suck_fan_1().update_freq_ms().value());
+            }
+            //wheel left
+            if (msg->periph_adc().has_wheel_left()) {
+                if (msg->periph_adc().wheel_left().has_dev())
+                    WheelLeftName(msg->periph_adc().wheel_left().dev().value());
+                if (msg->periph_adc().wheel_left().has_en())
+                    WheelLeftStat(msg->periph_adc().wheel_left().en().value());
+                if (msg->periph_adc().wheel_left().has_voltage_mv())
+                    WheelLeftVoltmv(msg->periph_adc().wheel_left().voltage_mv().value());
+                if (msg->periph_adc().wheel_left().has_current_ma())
+                    WheelLeftCurrentma(msg->periph_adc().wheel_left().current_ma().value());
+                if (msg->periph_adc().wheel_left().has_temperature())
+                    WheelLeftTemperature(msg->periph_adc().wheel_left().temperature().value());
+                if (msg->periph_adc().wheel_left().has_update_freq_ms())
+                    WheelLeftUpdateFreqms(msg->periph_adc().wheel_left().update_freq_ms().value());
+            }
+            //wheel right
+            if (msg->periph_adc().has_wheel_right()) {
+                if (msg->periph_adc().wheel_right().has_dev())
+                    WheelRightName(msg->periph_adc().wheel_right().dev().value());
+                if (msg->periph_adc().wheel_right().has_en())
+                    WheelRightStat(msg->periph_adc().wheel_right().en().value());
+                if (msg->periph_adc().wheel_right().has_voltage_mv())
+                    WheelRightVoltmv(msg->periph_adc().wheel_right().voltage_mv().value());
+                if (msg->periph_adc().wheel_right().has_current_ma())
+                    WheelRightCurrentma(msg->periph_adc().wheel_right().current_ma().value());
+                if (msg->periph_adc().wheel_right().has_temperature())
+                    WheelRightTemperature(msg->periph_adc().wheel_right().temperature().value());
+                if (msg->periph_adc().wheel_right().has_update_freq_ms())
+                    WheelRightUpdateFreqms(msg->periph_adc().wheel_right().update_freq_ms().value());
+            }
+            //battery
+            if (msg->periph_adc().has_battery_config()) {
+                if (msg->periph_adc().battery_config().has_dev())
+                    BatteryName(msg->periph_adc().battery_config().dev().value());
+                if (msg->periph_adc().battery_config().has_en())
+                    BatteryStat(msg->periph_adc().battery_config().en().value());
+                if (msg->periph_adc().battery_config().has_voltage_mv())
+                    BatteryVoltmv(msg->periph_adc().battery_config().voltage_mv().value());
+                if (msg->periph_adc().battery_config().has_current_ma())
+                    BatteryCurrentma(msg->periph_adc().battery_config().current_ma().value());
+                if (msg->periph_adc().battery_config().has_temperature())
+                    BatteryTemperature(msg->periph_adc().battery_config().temperature().value());
+                if (msg->periph_adc().battery_config().has_update_freq_ms())
+                    BatteryUpdateFreqms(msg->periph_adc().battery_config().update_freq_ms().value());
+            }
         }
-
-        ImplementHub::InferMachine::PushPowerKey(E_CMD_FROM_KEY);
-
-        //notifiy business
-        PushRandomEvents(E_EVT_SHORT_PWR, key);
-    }
-
-    void SysProcessor::SetShortKeyHome(const bool key) {
-#ifdef CAMB_PKG_DBG
-        //AWARN << "short home key: " << key;
-#endif
-        ImplementHub::InferMachine::PushHomeKey(E_CMD_FROM_KEY);
-
-        PushRandomEvents(E_EVT_SHORT_HOME, key);
-    }
-
-    void SysProcessor::SetLongKeyPower(const bool key) {
-#ifdef CAMB_PKG_DBG
-        //AWARN << "long power key: " << key;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_key_power_l()->set_value(key);
-        } else {
-            AWARN << "empty ppi info!";
+        //pwm
+        if (msg->has_periph_pwm()) {
+            //disc brush left
+            if (msg->periph_pwm().has_disc_brush_left()) {
+                if (msg->periph_pwm().disc_brush_left().has_dev())
+                    PwmDiscBrushLeftName(msg->periph_pwm().disc_brush_left().dev().value());
+                if (msg->periph_pwm().disc_brush_left().has_en())
+                    PwmDiscBrushLeftStat(msg->periph_pwm().disc_brush_left().en().value());
+                if (msg->periph_pwm().disc_brush_left().has_duty())
+                    PwmDiscBrushLeftDuty(msg->periph_pwm().disc_brush_left().duty().value());
+                if (msg->periph_pwm().disc_brush_left().has_cycle_ns())
+                    PwmDiscBrushLeftCyclens(msg->periph_pwm().disc_brush_left().cycle_ns().value());
+                if (msg->periph_pwm().disc_brush_left().has_positive_ns())
+                    PwmDiscBrushLeftPositivens(msg->periph_pwm().disc_brush_left().positive_ns().value());
+                if (msg->periph_pwm().disc_brush_left().has_update_freq_ms())
+                    PwmDiscBrushLeftUpdateFreqms(msg->periph_pwm().disc_brush_left().update_freq_ms().value());
+            }
+            //disc brush right
+            if (msg->periph_pwm().has_disc_brush_right()) {
+                if (msg->periph_pwm().disc_brush_right().has_dev())
+                    PwmDiscBrushRightName(msg->periph_pwm().disc_brush_right().dev().value());
+                if (msg->periph_pwm().disc_brush_right().has_en())
+                    PwmDiscBrushRightStat(msg->periph_pwm().disc_brush_right().en().value());
+                if (msg->periph_pwm().disc_brush_right().has_duty())
+                    PwmDiscBrushRightDuty(msg->periph_pwm().disc_brush_right().duty().value());
+                if (msg->periph_pwm().disc_brush_right().has_cycle_ns())
+                    PwmDiscBrushRightCyclens(msg->periph_pwm().disc_brush_right().cycle_ns().value());
+                if (msg->periph_pwm().disc_brush_right().has_positive_ns())
+                    PwmDiscBrushRightPositivens(msg->periph_pwm().disc_brush_right().positive_ns().value());
+                if (msg->periph_pwm().disc_brush_right().has_update_freq_ms())
+                    PwmDiscBrushRightUpdateFreqms(msg->periph_pwm().disc_brush_right().update_freq_ms().value());
+            }
+            //roll brush front
+            if (msg->periph_pwm().has_roll_brush_front()) {
+                if (msg->periph_pwm().roll_brush_front().has_dev())
+                    PwmRollBrushFrontName(msg->periph_pwm().roll_brush_front().dev().value());
+                if (msg->periph_pwm().roll_brush_front().has_en())
+                    PwmRollBrushFrontStat(msg->periph_pwm().roll_brush_front().en().value());
+                if (msg->periph_pwm().roll_brush_front().has_duty())
+                    PwmRollBrushFrontDuty(msg->periph_pwm().roll_brush_front().duty().value());
+                if (msg->periph_pwm().roll_brush_front().has_cycle_ns())
+                    PwmRollBrushFrontCyclens(msg->periph_pwm().roll_brush_front().cycle_ns().value());
+                if (msg->periph_pwm().roll_brush_front().has_positive_ns())
+                    PwmRollBrushFrontPositivens(msg->periph_pwm().roll_brush_front().positive_ns().value());
+                if (msg->periph_pwm().roll_brush_front().has_update_freq_ms())
+                    PwmRollBrushFrontUpdateFreqms(msg->periph_pwm().roll_brush_front().update_freq_ms().value());
+            }
+            //roll brush rear
+            if (msg->periph_pwm().has_roll_brush_rear()) {
+                if (msg->periph_pwm().roll_brush_rear().has_dev())
+                    PwmRollBrushRearName(msg->periph_pwm().roll_brush_rear().dev().value());
+                if (msg->periph_pwm().roll_brush_rear().has_en())
+                    PwmRollBrushRearStat(msg->periph_pwm().roll_brush_rear().en().value());
+                if (msg->periph_pwm().roll_brush_rear().has_duty())
+                    PwmRollBrushRearDuty(msg->periph_pwm().roll_brush_rear().duty().value());
+                if (msg->periph_pwm().roll_brush_rear().has_cycle_ns())
+                    PwmRollBrushRearCyclens(msg->periph_pwm().roll_brush_rear().cycle_ns().value());
+                if (msg->periph_pwm().roll_brush_rear().has_positive_ns())
+                    PwmRollBrushRearPositivens(msg->periph_pwm().roll_brush_rear().positive_ns().value());
+                if (msg->periph_pwm().roll_brush_rear().has_update_freq_ms())
+                    PwmRollBrushRearUpdateFreqms(msg->periph_pwm().roll_brush_rear().update_freq_ms().value());
+            }
+            //suck fan 1
+            if (msg->periph_pwm().has_suck_fan_1()) {
+                if (msg->periph_pwm().suck_fan_1().has_dev())
+                    PwmSuckFanName(msg->periph_pwm().suck_fan_1().dev().value());
+                if (msg->periph_pwm().suck_fan_1().has_en())
+                    PwmSuckFanStat(msg->periph_pwm().suck_fan_1().en().value());
+                if (msg->periph_pwm().suck_fan_1().has_duty())
+                    PwmSuckFanDuty(msg->periph_pwm().suck_fan_1().duty().value());
+                if (msg->periph_pwm().suck_fan_1().has_cycle_ns())
+                    PwmSuckFanCyclens(msg->periph_pwm().suck_fan_1().cycle_ns().value());
+                if (msg->periph_pwm().suck_fan_1().has_positive_ns())
+                    PwmSuckFanPositivens(msg->periph_pwm().suck_fan_1().positive_ns().value());
+                if (msg->periph_pwm().suck_fan_1().has_update_freq_ms())
+                    PwmSuckFanUpdateFreqms(msg->periph_pwm().suck_fan_1().update_freq_ms().value());
+            }
+            //pwm charge batery
+            if (msg->periph_pwm().has_battery_charge()) {
+                if (msg->periph_pwm().battery_charge().has_dev())
+                    PwmBatteryName(msg->periph_pwm().battery_charge().dev().value());
+                if (msg->periph_pwm().battery_charge().has_en())
+                    PwmBatteryStat(msg->periph_pwm().battery_charge().en().value());
+                if (msg->periph_pwm().battery_charge().has_duty())
+                    PwmBatteryDuty(msg->periph_pwm().battery_charge().duty().value());
+                if (msg->periph_pwm().battery_charge().has_cycle_ns())
+                    PwmBatteryCyclens(msg->periph_pwm().battery_charge().cycle_ns().value());
+                if (msg->periph_pwm().battery_charge().has_positive_ns())
+                    PwmBatteryPositivens(msg->periph_pwm().battery_charge().positive_ns().value());
+                if (msg->periph_pwm().battery_charge().has_update_freq_ms())
+                    PwmBatteryUpdateFreqms(msg->periph_pwm().battery_charge().update_freq_ms().value());
+            }
         }
-
-        ImplementHub::InferMachine::PushPowerKeyLong(E_CMD_FROM_KEY);
-
-        PushRandomEvents(E_EVT_LONG_PWR, key);
-    }
-
-    void SysProcessor::SetLongKeyHome(const bool key) {
-#ifdef CAMB_PKG_DBG
-        //AWARN << "long home key: " << key;
-#endif
-
-        ImplementHub::InferMachine::PushHomeKeyLong(E_CMD_FROM_KEY);
-
-        PushRandomEvents(E_EVT_LONG_HOME, key);
-    }
-
-    //water status
-    void SysProcessor::SetNoWater(const bool nw) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_no_water() ||
-                nw != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                no_water().value())
-            AINFO << "no-water status: " <<
-                (nw == 0 ? "NO WATER" : "HAVE WATER");
-#endif
-        //1, set ppi
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_no_water()->set_value(nw);
-        } else {
-            AWARN << "empty ppi info!";
+        //gpio
+        if (msg->has_periph_gpio()) {
+            //emergency stop
+            if (msg->periph_gpio().has_emergency_stop()) {
+                if (msg->periph_gpio().emergency_stop().has_dev())
+                    GpioEmergencyStopName(msg->periph_gpio().emergency_stop().dev().value());
+                if (msg->periph_gpio().emergency_stop().has_en())
+                    GpioEmergencyStopStat(msg->periph_gpio().emergency_stop().en().value());
+                if (msg->periph_gpio().emergency_stop().has_gear())
+                    GpioEmergencyStopGear(msg->periph_gpio().emergency_stop().gear().value());
+                if (msg->periph_gpio().emergency_stop().has_on_ms())
+                    GpioEmergencyStopOnms(msg->periph_gpio().emergency_stop().on_ms().value());
+                if (msg->periph_gpio().emergency_stop().has_off_ms())
+                    GpioEmergencyStopOffms(msg->periph_gpio().emergency_stop().off_ms().value());
+                if (msg->periph_gpio().emergency_stop().has_update_freq_ms())
+                    GpioEmergencyStopUpdateFreqms(msg->periph_gpio().emergency_stop().update_freq_ms().value());
+            }
+            //emergency break
+            if (msg->periph_gpio().has_emergency_break()) {
+                if (msg->periph_gpio().emergency_break().has_dev())
+                    GpioEmergencyBreakName(msg->periph_gpio().emergency_break().dev().value());
+                if (msg->periph_gpio().emergency_break().has_en())
+                    GpioEmergencyBreakStat(msg->periph_gpio().emergency_break().en().value());
+                if (msg->periph_gpio().emergency_break().has_gear())
+                    GpioEmergencyBreakGear(msg->periph_gpio().emergency_break().gear().value());
+                if (msg->periph_gpio().emergency_break().has_on_ms())
+                    GpioEmergencyBreakOnms(msg->periph_gpio().emergency_break().on_ms().value());
+                if (msg->periph_gpio().emergency_break().has_off_ms())
+                    GpioEmergencyBreakOffms(msg->periph_gpio().emergency_break().off_ms().value());
+                if (msg->periph_gpio().emergency_break().has_update_freq_ms())
+                    GpioEmergencyBreakUpdateFreqms(msg->periph_gpio().emergency_break().update_freq_ms().value());
+            }
+            //veichle key
+            if (msg->periph_gpio().has_veichle_key()) {
+                if (msg->periph_gpio().veichle_key().has_dev())
+                    GpioKeyName(msg->periph_gpio().veichle_key().dev().value());
+                if (msg->periph_gpio().veichle_key().has_en())
+                    GpioKeyStat(msg->periph_gpio().veichle_key().en().value());
+                if (msg->periph_gpio().veichle_key().has_gear())
+                    GpioKeyGear(msg->periph_gpio().veichle_key().gear().value());
+                if (msg->periph_gpio().veichle_key().has_on_ms())
+                    GpioKeyOnms(msg->periph_gpio().veichle_key().on_ms().value());
+                if (msg->periph_gpio().veichle_key().has_off_ms())
+                    GpioKeyOffms(msg->periph_gpio().veichle_key().off_ms().value());
+                if (msg->periph_gpio().veichle_key().has_update_freq_ms())
+                    GpioKeyUpdateFreqms(msg->periph_gpio().veichle_key().update_freq_ms().value());
+            }
+            //gear adjust
+            if (msg->periph_gpio().has_gear_adjust()) {
+                if (msg->periph_gpio().gear_adjust().has_dev())
+                    GpioGearName(msg->periph_gpio().gear_adjust().dev().value());
+                if (msg->periph_gpio().gear_adjust().has_en())
+                    GpioGearStat(msg->periph_gpio().gear_adjust().en().value());
+                if (msg->periph_gpio().gear_adjust().has_gear())
+                    GpioGearGear(msg->periph_gpio().gear_adjust().gear().value());
+                if (msg->periph_gpio().gear_adjust().has_on_ms())
+                    GpioGearOnms(msg->periph_gpio().gear_adjust().on_ms().value());
+                if (msg->periph_gpio().gear_adjust().has_off_ms())
+                    GpioGearOffms(msg->periph_gpio().gear_adjust().off_ms().value());
+                if (msg->periph_gpio().gear_adjust().has_update_freq_ms())
+                    GpioGearUpdateFreqms(msg->periph_gpio().gear_adjust().update_freq_ms().value());
+            }
+            //logo led
+            if (msg->periph_gpio().has_logo_led()) {
+                if (msg->periph_gpio().logo_led().has_dev())
+                    GpioLogoLedName(msg->periph_gpio().logo_led().dev().value());
+                if (msg->periph_gpio().logo_led().has_en())
+                    GpioLogoLedStat(msg->periph_gpio().logo_led().en().value());
+                if (msg->periph_gpio().logo_led().has_gear())
+                    GpioLogoLedGear(msg->periph_gpio().logo_led().gear().value());
+                if (msg->periph_gpio().logo_led().has_on_ms())
+                    GpioLogoLedOnms(msg->periph_gpio().logo_led().on_ms().value());
+                if (msg->periph_gpio().logo_led().has_off_ms())
+                    GpioLogoLedOffms(msg->periph_gpio().logo_led().off_ms().value());
+                if (msg->periph_gpio().logo_led().has_update_freq_ms())
+                    GpioLogoLedUpdateFreqms(msg->periph_gpio().logo_led().update_freq_ms().value());
+            }
+            //turn left led
+            if (msg->periph_gpio().has_turn_left_led()) {
+                if (msg->periph_gpio().turn_left_led().has_dev())
+                    GpioTurnLeftLedName(msg->periph_gpio().turn_left_led().dev().value());
+                if (msg->periph_gpio().turn_left_led().has_en())
+                    GpioTurnLeftLedStat(msg->periph_gpio().turn_left_led().en().value());
+                if (msg->periph_gpio().turn_left_led().has_gear())
+                    GpioTurnLeftLedGear(msg->periph_gpio().turn_left_led().gear().value());
+                if (msg->periph_gpio().turn_left_led().has_on_ms())
+                    GpioTurnLeftLedOnms(msg->periph_gpio().turn_left_led().on_ms().value());
+                if (msg->periph_gpio().turn_left_led().has_off_ms())
+                    GpioTurnLeftLedOffms(msg->periph_gpio().turn_left_led().off_ms().value());
+                if (msg->periph_gpio().turn_left_led().has_update_freq_ms())
+                    GpioTurnLeftLedUpdateFreqms(msg->periph_gpio().turn_left_led().update_freq_ms().value());
+            }
+            //turn right led
+            if (msg->periph_gpio().has_turn_right_led()) {
+                if (msg->periph_gpio().turn_right_led().has_dev())
+                    GpioTurnRightLedName(msg->periph_gpio().turn_right_led().dev().value());
+                if (msg->periph_gpio().turn_right_led().has_en())
+                    GpioTurnRightLedStat(msg->periph_gpio().turn_right_led().en().value());
+                if (msg->periph_gpio().turn_right_led().has_gear())
+                    GpioTurnRightLedGear(msg->periph_gpio().turn_right_led().gear().value());
+                if (msg->periph_gpio().turn_right_led().has_on_ms())
+                    GpioTurnRightLedOnms(msg->periph_gpio().turn_right_led().on_ms().value());
+                if (msg->periph_gpio().turn_right_led().has_off_ms())
+                    GpioTurnRightLedOffms(msg->periph_gpio().turn_right_led().off_ms().value());
+                if (msg->periph_gpio().turn_right_led().has_update_freq_ms())
+                    GpioTurnRightLedUpdateFreqms(msg->periph_gpio().turn_right_led().update_freq_ms().value());
+            }
+            //head lamp led
+            if (msg->periph_gpio().has_headlight_led()) {
+                if (msg->periph_gpio().headlight_led().has_dev())
+                    GpioHeadLightLedName(msg->periph_gpio().headlight_led().dev().value());
+                if (msg->periph_gpio().headlight_led().has_en())
+                    GpioHeadLightLedStat(msg->periph_gpio().headlight_led().en().value());
+                if (msg->periph_gpio().headlight_led().has_gear())
+                    GpioHeadLightLedGear(msg->periph_gpio().headlight_led().gear().value());
+                if (msg->periph_gpio().headlight_led().has_on_ms())
+                    GpioHeadLightLedOnms(msg->periph_gpio().headlight_led().on_ms().value());
+                if (msg->periph_gpio().headlight_led().has_off_ms())
+                    GpioHeadLightLedOffms(msg->periph_gpio().headlight_led().off_ms().value());
+                if (msg->periph_gpio().headlight_led().has_update_freq_ms())
+                    GpioHeadLightLedUpdateFreqms(msg->periph_gpio().headlight_led().update_freq_ms().value());
+            }
+            //drain valve
+            if (msg->periph_gpio().has_drain_valve()) {
+                if (msg->periph_gpio().drain_valve().has_dev())
+                    GpioDrainValveName(msg->periph_gpio().drain_valve().dev().value());
+                if (msg->periph_gpio().drain_valve().has_en())
+                    GpioDrainValveStat(msg->periph_gpio().drain_valve().en().value());
+                if (msg->periph_gpio().drain_valve().has_gear())
+                    GpioDrainValveGear(msg->periph_gpio().drain_valve().gear().value());
+                if (msg->periph_gpio().drain_valve().has_on_ms())
+                    GpioDrainValveOnms(msg->periph_gpio().drain_valve().on_ms().value());
+                if (msg->periph_gpio().drain_valve().has_off_ms())
+                    GpioDrainValveOffms(msg->periph_gpio().drain_valve().off_ms().value());
+                if (msg->periph_gpio().drain_valve().has_update_freq_ms())
+                    GpioDrainValveUpdateFreqms(msg->periph_gpio().drain_valve().update_freq_ms().value());
+            }
+            //water fill
+            if (msg->periph_gpio().has_water_fill_valve()) {
+                if (msg->periph_gpio().water_fill_valve().has_dev())
+                    GpioFillValveName(msg->periph_gpio().water_fill_valve().dev().value());
+                if (msg->periph_gpio().water_fill_valve().has_en())
+                    GpioFillValveStat(msg->periph_gpio().water_fill_valve().en().value());
+                if (msg->periph_gpio().water_fill_valve().has_gear())
+                    GpioFillValveGear(msg->periph_gpio().water_fill_valve().gear().value());
+                if (msg->periph_gpio().water_fill_valve().has_on_ms())
+                    GpioFillValveOnms(msg->periph_gpio().water_fill_valve().on_ms().value());
+                if (msg->periph_gpio().water_fill_valve().has_off_ms())
+                    GpioFillValveOffms(msg->periph_gpio().water_fill_valve().off_ms().value());
+                if (msg->periph_gpio().water_fill_valve().has_update_freq_ms())
+                    GpioFillValveUpdateFreqms(msg->periph_gpio().water_fill_valve().update_freq_ms().value());
+            }
+            //water spray
+            if (msg->periph_gpio().has_water_spray_valve()) {
+                if (msg->periph_gpio().water_spray_valve().has_dev())
+                    GpioSprayValveName(msg->periph_gpio().water_spray_valve().dev().value());
+                if (msg->periph_gpio().water_spray_valve().has_en())
+                    GpioSprayValveStat(msg->periph_gpio().water_spray_valve().en().value());
+                if (msg->periph_gpio().water_spray_valve().has_gear())
+                    GpioSprayValveGear(msg->periph_gpio().water_spray_valve().gear().value());
+                if (msg->periph_gpio().water_spray_valve().has_on_ms())
+                    GpioSprayValveOnms(msg->periph_gpio().water_spray_valve().on_ms().value());
+                if (msg->periph_gpio().water_spray_valve().has_off_ms())
+                    GpioSprayValveOffms(msg->periph_gpio().water_spray_valve().off_ms().value());
+                if (msg->periph_gpio().water_spray_valve().has_update_freq_ms())
+                    GpioSprayValveUpdateFreqms(msg->periph_gpio().water_spray_valve().update_freq_ms().value());
+            }
+            //detergent tank
+            if (msg->periph_gpio().has_detergent_valve()) {
+                if (msg->periph_gpio().detergent_valve().has_dev())
+                    GpioDetergentValveName(msg->periph_gpio().detergent_valve().dev().value());
+                if (msg->periph_gpio().detergent_valve().has_en())
+                    GpioDetergentValveStat(msg->periph_gpio().detergent_valve().en().value());
+                if (msg->periph_gpio().detergent_valve().has_gear())
+                    GpioDetergentValveGear(msg->periph_gpio().detergent_valve().gear().value());
+                if (msg->periph_gpio().detergent_valve().has_on_ms())
+                    GpioDetergentValveOnms(msg->periph_gpio().detergent_valve().on_ms().value());
+                if (msg->periph_gpio().detergent_valve().has_off_ms())
+                    GpioDetergentValveOffms(msg->periph_gpio().detergent_valve().off_ms().value());
+                if (msg->periph_gpio().detergent_valve().has_update_freq_ms())
+                    GpioDetergentValveUpdateFreqms(msg->periph_gpio().detergent_valve().update_freq_ms().value());
+            }
+            //water scrape
+            if (msg->periph_gpio().has_water_scrape()) {
+                if (msg->periph_gpio().water_scrape().has_dev())
+                    GpioWaterScrapeName(msg->periph_gpio().water_scrape().dev().value());
+                if (msg->periph_gpio().water_scrape().has_en())
+                    GpioWaterScrapeStat(msg->periph_gpio().water_scrape().en().value());
+                if (msg->periph_gpio().water_scrape().has_gear())
+                    GpioWaterScrapeGear(msg->periph_gpio().water_scrape().gear().value());
+                if (msg->periph_gpio().water_scrape().has_on_ms())
+                    GpioWaterScrapeOnms(msg->periph_gpio().water_scrape().on_ms().value());
+                if (msg->periph_gpio().water_scrape().has_off_ms())
+                    GpioWaterScrapeOffms(msg->periph_gpio().water_scrape().off_ms().value());
+                if (msg->periph_gpio().water_scrape().has_update_freq_ms())
+                    GpioWaterScrapeUpdateFreqms(msg->periph_gpio().water_scrape().update_freq_ms().value());
+            }
+            //bump
+            if (msg->periph_gpio().has_bump_1()) {
+                if (msg->periph_gpio().bump_1().has_dev())
+                    GpioBumpName(msg->periph_gpio().bump_1().dev().value());
+                if (msg->periph_gpio().bump_1().has_en())
+                    GpioBumpStat(msg->periph_gpio().bump_1().en().value());
+                if (msg->periph_gpio().bump_1().has_gear())
+                    GpioBumpGear(msg->periph_gpio().bump_1().gear().value());
+                if (msg->periph_gpio().bump_1().has_on_ms())
+                    GpioBumpOnms(msg->periph_gpio().bump_1().on_ms().value());
+                if (msg->periph_gpio().bump_1().has_off_ms())
+                    GpioBumpOffms(msg->periph_gpio().bump_1().off_ms().value());
+                if (msg->periph_gpio().bump_1().has_update_freq_ms())
+                    GpioBumpUpdateFreqms(msg->periph_gpio().bump_1().update_freq_ms().value());
+            }
         }
-
-        //2, set vola-brief
-        if (GetMessagePool()->vola_info_) {
-            GetMessagePool()->vola_info_->mutable_brief_stat()->
-                set_water_level(nw);
-        } else {
-            AWARN << "empty vola info!";
+        //infra red
+        if (msg->has_periph_infra()) {
+            //drop sensor
+            if (msg->periph_infra().has_drop_sensor()) {
+                if (msg->periph_infra().drop_sensor().has_dev())
+                    InfraDropName(msg->periph_infra().drop_sensor().dev().value());
+                if (msg->periph_infra().drop_sensor().has_en())
+                    InfraDropStat(msg->periph_infra().drop_sensor().en().value());
+                if (msg->periph_infra().drop_sensor().has_value())
+                    InfraDropValue(msg->periph_infra().drop_sensor().value().value());
+                if (msg->periph_infra().drop_sensor().has_update_freq_ms())
+                    InfraDropUpdateFreqms(msg->periph_infra().drop_sensor().update_freq_ms().value());
+            }
         }
-
-        PushRandomEvents(E_EVT_NO_WATER, nw);
-    }
-
-    void SysProcessor::SetFullWater(const bool fw) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_water_full() ||
-                fw != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                water_full().value())
-            AINFO << "water full status: " <<
-                (fw == 0 ? "NOT FULL" : "FULL");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_water_full()->set_value(fw);
-        } else {
-            AWARN << "empty ppi info!";
+        //soc
+        if (msg->has_periph_soc()) {
+            //camera
+            if (msg->periph_soc().camera().size()) {
+                for (auto x : msg->periph_soc().camera()) {
+                    if (x.has_dev())
+                        SocCameraDev(x.index(), x.dev().value());
+                    if (x.has_en())
+                        SocCameraStat(x.index(), x.en().value());
+                }
+            }
+            //wifi
+            if (msg->periph_soc().has_wifi()) {
+                if (msg->periph_soc().wifi().has_mode()) {
+                    SocWifiMode(msg->periph_soc().wifi().mode().value());
+                }
+                if (msg->periph_soc().wifi().has_ip()) {
+                    SocWifiIp(msg->periph_soc().wifi().ip().value());
+                }
+                if (msg->periph_soc().wifi().has_mac()) {
+                    SocWifiMac(msg->periph_soc().wifi().mac().value());
+                }
+                if (msg->periph_soc().wifi().has_dns()) {
+                    SocWifiDns(msg->periph_soc().wifi().dns().value());
+                }
+                if (msg->periph_soc().wifi().has_info()) {
+                    SocWifiInfo(msg->periph_soc().wifi().info().value());
+                }
+                if (msg->periph_soc().wifi().has_name()) {
+                    SocWifiName(msg->periph_soc().wifi().name().value());
+                }
+                if (msg->periph_soc().wifi().has_bssid()) {
+                    SocWifiBssid(msg->periph_soc().wifi().bssid().value());
+                }
+                if (msg->periph_soc().wifi().has_status()) {
+                    SocWifiStat(msg->periph_soc().wifi().status().value());
+                }
+                if (msg->periph_soc().wifi().has_scan_list()) {
+                    SocWifiScanList(msg->periph_soc().wifi().scan_list().value());
+                }
+                if (msg->periph_soc().wifi().has_ping_speed()) {
+                    SocWifiPingms(msg->periph_soc().wifi().ping_speed().value());
+                }
+                if (msg->periph_soc().wifi().has_wifi_result()) {
+                    SocWifiResult(msg->periph_soc().wifi().wifi_result().value());
+                }
+            }
+            //4g
+            if (msg->periph_soc().has_four_g()) {
+                if (msg->periph_soc().four_g().has_dev()) {
+                    Soc4GName(msg->periph_soc().four_g().dev().value());
+                }
+                if (msg->periph_soc().four_g().has_account()) {
+                    Soc4GAccount(msg->periph_soc().four_g().account().value());
+                }
+            }
+            //audio
+            if (msg->periph_soc().has_audio()) {
+                if (msg->periph_soc().audio().has_dev()) {
+                    SocAudioName(msg->periph_soc().audio().dev().value());
+                }
+                if (msg->periph_soc().audio().has_pack()) {
+                    SocAudioPack(msg->periph_soc().audio().pack().value());
+                }
+                if (msg->periph_soc().audio().has_volume()) {
+                    SocAudioVolume(msg->periph_soc().audio().volume().value());
+                }
+                if (msg->periph_soc().audio().has_mute_sw()) {
+                    SocAudioMuteSwitch(msg->periph_soc().audio().mute_sw().value());
+                }
+            }
+            //lidar
+            if (msg->periph_soc().has_lidar_info()) {
+                if (msg->periph_soc().lidar_info().has_dev()) {
+                    SocLidarName(msg->periph_soc().lidar_info().dev().value());
+                }
+                if (msg->periph_soc().lidar_info().has_en()) {
+                    SocLidarStat(msg->periph_soc().lidar_info().en().value());
+                }
+                if (msg->periph_soc().lidar_info().has_update_freq_ms()) {
+                    SocLidarFreq(msg->periph_soc().lidar_info().update_freq_ms().value());
+                }
+            }
+            //imu
+            if (msg->periph_soc().has_imu_info()) {
+                if (msg->periph_soc().imu_info().has_dev()) {
+                    SocImuName(msg->periph_soc().imu_info().dev().value());
+                }
+                if (msg->periph_soc().imu_info().has_en()) {
+                    SocImuStat(msg->periph_soc().imu_info().en().value());
+                }
+                if (msg->periph_soc().imu_info().has_update_freq_ms()) {
+                    SocImuFreq(msg->periph_soc().imu_info().update_freq_ms().value());
+                }
+            }
+            //linelaser
+            if (msg->periph_soc().has_llaser_info()) {
+                if (msg->periph_soc().llaser_info().has_dev()) {
+                    SocLlaserName(msg->periph_soc().llaser_info().dev().value());
+                }
+                if (msg->periph_soc().llaser_info().has_en()) {
+                    SocLlaserStat(msg->periph_soc().llaser_info().en().value());
+                }
+                if (msg->periph_soc().llaser_info().has_update_freq_ms()) {
+                    SocLlaserFreq(msg->periph_soc().llaser_info().update_freq_ms().value());
+                }
+            }
+            //super sonic
+            if (msg->periph_soc().has_super_sonic()) {
+                if (msg->periph_soc().super_sonic().has_dev()) {
+                    SocSsonicName(msg->periph_soc().super_sonic().dev().value());
+                }
+                if (msg->periph_soc().super_sonic().has_en()) {
+                    SocSsonicStat(msg->periph_soc().super_sonic().en().value());
+                }
+                if (msg->periph_soc().super_sonic().has_update_freq_ms()) {
+                    SocSsonicFreq(msg->periph_soc().super_sonic().update_freq_ms().value());
+                }
+            }
+            //tof
+            if (msg->periph_soc().has_tof_info()) {
+                if (msg->periph_soc().tof_info().has_dev()) {
+                    SocTofName(msg->periph_soc().tof_info().dev().value());
+                }
+                if (msg->periph_soc().tof_info().has_en()) {
+                    SocTofStat(msg->periph_soc().tof_info().en().value());
+                }
+                if (msg->periph_soc().tof_info().has_update_freq_ms()) {
+                    SocTofFreq(msg->periph_soc().tof_info().update_freq_ms().value());
+                }
+            }
+            //js
+            if (msg->periph_soc().has_joy_stick()) {
+                if (msg->periph_soc().joy_stick().has_dev()) {
+                    SocJsName(msg->periph_soc().joy_stick().dev().value());
+                }
+                if (msg->periph_soc().joy_stick().has_en()) {
+                    SocJsStat(msg->periph_soc().joy_stick().en().value());
+                }
+                if (msg->periph_soc().joy_stick().has_update_freq_ms()) {
+                    SocJsFreq(msg->periph_soc().joy_stick().update_freq_ms().value());
+                }
+            }
         }
-
-        //water level
-        if (GetMessagePool()->vola_info_) {
-            GetMessagePool()->vola_info_->mutable_brief_stat()->
-                set_water_level(fw);
-        } else {
-            AWARN << "empty vola info!";
-        }
-
-        PushRandomEvents(E_EVT_FULL_WATER, fw);
-    }
-
-    //dust box
-    void SysProcessor::SetDustBox(const bool box) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_dust_box() ||
-                box != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                dust_box().value())
-            AINFO << "dust box status: " <<
-                ((box & 0x1) ? "MISS" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_dust_box()->set_value(box);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_DUST_BOX, box);
-    }
-
-    //water tank
-    void SysProcessor::SetWaterTank(const bool tank) {
-#ifdef CAMB_PKG_DBG
-        AWARN << "water tank status: " << std::hex << tank <<
-            ", " << ((tank & 0x1) ? "MISS" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_water_tank()->set_value(tank);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_WATER_TANK, tank);
-    }
-
-    //pallet
-    void SysProcessor::SetLeftPallet(const bool pa) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_left_pallet() ||
-                pa != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                left_pallet().value())
-            AINFO << "left pallet status: " <<
-                (pa == 0 ? "OK" : "MISS");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_left_pallet()->set_value(pa);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LEFT_PALLETE, pa);
-    }
-
-    void SysProcessor::SetRightPallet(const bool pa) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_right_pallet() ||
-                pa != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                right_pallet().value())
-        AINFO << "right pallet status: " <<
-            (pa == 0 ? "OK" : "MISS");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_right_pallet()->set_value(pa);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_RIGHT_PALLETE, pa);
-    }
-
-    //bump
-    void SysProcessor::SetLeftBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_bump_left() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                bump_left().value())
-            AINFO << "left bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_bump_left()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LEFT_BUMP, bump);
-    }
-
-    void SysProcessor::SetRightBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_bump_right() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                bump_right().value())
-            AINFO << "right bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_bump_right()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_RIGHT_BUMP, bump);
-    }
-
-    void SysProcessor::SetLidarLeftBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_lbump_left() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                lbump_left().value())
-            AINFO << "left lidar bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lbump_left()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LLEFT_BUMP, bump);
-    }
-
-    void SysProcessor::SetLidarRightBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_lbump_right() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                lbump_right().value())
-            AINFO << "right lidar bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lbump_right()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LRIGHT_BUMP, bump);
-    }
-
-    void SysProcessor::SetLidarFrontBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_lbump_front() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                lbump_front().value())
-            AINFO << "front lidar bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lbump_front()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LFRONT_BUMP, bump);
-    }
-
-    void SysProcessor::SetLidarTopBump(const bool bump) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_lbump_top() ||
-                bump != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                lbump_top().value())
-            AINFO << "top lidar bump status: " <<
-                (bump ? "TRIG" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lbump_top()->set_value(bump);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LTOP_BUMP, bump);
-    }
-
-    //wheel lift off ground
-    void SysProcessor::SetWheelLeftLift(const bool lift) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_wheel_lift_left() ||
-                lift != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                wheel_lift_left().value())
-            AINFO << "left wheel lift: " <<
-                (lift ? "LIFT" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_wheel_lift_left()->set_value(lift);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LWHL_LIFT, lift);
-    }
-
-    void SysProcessor::SetWheelRightLift(const bool lift) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_wheel_lift_right() ||
-                lift != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                wheel_lift_right().value())
-            AINFO << "right wheel lift: " <<
-                (lift ? "LIFT" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_wheel_lift_right()->set_value(lift);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_RWHL_LIFT, lift);
-    }
-
-    //along wall signal
-    void SysProcessor::SetAlongWallTrig(const bool aw) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_gpio().has_along_wall_trg() ||
-                aw != GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                along_wall_trg().value())
-            AINFO << "along wall triger: " << aw;
-#endif
-
-#ifdef CAMB_PKG_DBG
-        AINFO << "wall status: " << std::hex << aw <<
-            ", signal come: " <<
-            ((aw & 0x1) ? "YES" : "NO") <<
-            ", signal gone: " <<
-            ((aw & 0x2) ? "YES" : "NO");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_along_wall_trg()->set_value(aw);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_ALONG_WALL, aw);
-    }
-
-    //imu, periodically 4
-    //eluer, periodically 5
-    //odom, periodically 7
-    //
-    //wheel pulse, periodically 6
-    void SysProcessor::SetWheelLeftPulse(const uint32_t wp) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_whl_pulse_last_).count();
-        time_whl_pulse_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            whl_pulse().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[VI] left wheel pulse: " << wp <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                whl_pulse().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lwhl_pulse()->set_value(wp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-    }
-
-    void SysProcessor::SetWheelRightPulse(const uint32_t wp) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right wheel pulse: " << wp;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_rwhl_pulse()->set_value(wp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-    }
-
-    //speed, periodically 10
-    void SysProcessor::SetWheelLeftSpeed(const float sp) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_whl_speed_last_).count();
-        time_whl_speed_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            speed_param().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[X] left wheel speed: " << sp << "m/s" <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                speed_param().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_lwhl_speed()->set_value(sp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-    }
-
-    void SysProcessor::SetWheelRightSpeed(const float sp) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right wheel speed: " << sp;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_gpio()->
-                mutable_rwhl_speed()->set_value(sp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-    }
-
-    //if drop
-    void SysProcessor::SetDropLeft(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_drop_last_).count();
-        time_drop_last_ = time_now;
-
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_left() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_left().value())
-            AINFO << "left drop, " <<
-                "pass: " << pass << "ms, " <<
-                (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_left()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LEFT_DROP, drop);
-    }
-
-    void SysProcessor::SetDropMidLeft(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_mleft() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_mleft().value())
-            AINFO << "middle left drop: " <<
-                (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_mleft()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_MLEFT_DROP, drop);
-    }
-
-    void SysProcessor::SetDropMidRight(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_mright() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_mright().value())
-            AINFO << "middle right drop: " <<
-                (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_mright()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_MRIGHT_DROP, drop);
-    }
-
-    void SysProcessor::SetDropRight(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_right() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_right().value())
-            AINFO << "right drop: " <<
-                (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_right()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_RIGHT_DROP, drop);
-    }
-
-    void SysProcessor::SetDropLeftRear(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_left_rear() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_left_rear().value())
-            AINFO << "left drop rear: " <<
-                (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_left_rear()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_LEFT_REAR_DROP, drop);
-    }
-
-    void SysProcessor::SetDropRightRear(const bool drop) {
-#ifdef CAMB_PKG_DBG
-        if (!GetMessagePool()->pph_info_->pp_adc().has_ground_signal_right_rear() ||
-                drop != GetMessagePool()->pph_info_->mutable_pp_adc()->
-                ground_signal_right_rear().value())
-        AINFO << "right drop rear: " <<
-            (drop ? "YES DROP" : "OK");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_ground_signal_right_rear()->
-                set_value(drop);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        PushRandomEvents(E_EVT_RIGHT_REAR_DROP, drop);
-    }
-
-
-    //drop ADC, periodically 9
-    void SysProcessor::SetDropLeftAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_drop_adc_last_).count();
-        time_drop_adc_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            wdrop_adc().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[IX] left drop adc: " << adc <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                wdrop_adc().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_l()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
+        //respose control messages
         //TODO
-    }
-
-    void SysProcessor::SetDropMidLeftAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "middle left drop adc: " << adc;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_l_front()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        //TODO
-    }
-
-    void SysProcessor::SetDropMidRightAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "middle right drop adc: " << adc;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_r_front()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        //TODO
-    }
-
-    void SysProcessor::SetDropRightAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right drop adc: " << adc;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_r()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        //TODO
-    }
-
-    void SysProcessor::SetDropLeftRearAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "left rear drop adc: " << adc;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_l_rear()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        //TODO
-    }
-
-    void SysProcessor::SetDropRightRearAdc(const uint32_t adc) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right rear drop adc: " << adc;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_ground_r_rear()->
-                set_value(adc);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        //TODO
-    }
-
-    //charge
-    void SysProcessor::SetChargeTouchDock(const bool dock) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "touch dock signal: " <<
-            (dock ? "YES TOUCH" : "NO");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_charge_touch_dock()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        ImplementHub::InferMachine::EventOnDock(dock);
-        PushRandomEvents(E_EVT_TOUCH_DOCK, dock);
-    }
-
-    void SysProcessor::SetChargeOnDock(const bool dock) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "charging on dock: " <<
-            (dock ? "YES DOCK" : "NO");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_charge_status_charging()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        ImplementHub::InferMachine::EventOnDock(dock);
-        PushRandomEvents(E_EVT_CHARGE_ON_DOCK, dock);
-    }
-
-    void SysProcessor::SetChargeFinished(const bool dock) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "charge finished: " <<
-            (dock ? "YES FINISHED" : "NO");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_charge_status_finish()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        ImplementHub::InferMachine::EventChargeFull(dock);
-        PushRandomEvents(E_EVT_FINISH_CHARGE, dock);
-    }
-
-    //mid-scan
-    void SysProcessor::SetMidScanDetect(const bool ms) {
-        //true: carpet, false: normal
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_mid_scan_last_).count();
-        time_mid_scan_last_ = time_now;
-
-        AWARN << "middle scan detect: " << ms <<
-            ", host elapse: " << pass << "ms";
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_middle_scan_current()->
-                set_value(ms);
-        } else {
-            AWARN << "empty ppi info!";
+        if (msg->has_response()) {
         }
     }
 
-    //super_sonic???
-
-    //low power & dock
-    void SysProcessor::SetLowPowerDocking(const bool lp) {
-#ifdef CAMB_PKG_DBG
-        AWARN << "lower power docking: " << lp;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_low_power_charge()->
-                set_value(lp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    ///1, Liquid info
+    void SysProcessor::CleanTankName(const std::string&) {
     }
 
-    void SysProcessor::SetLowPowerPoweroff(const bool lp) {
-#ifdef CAMB_PKG_DBG
-        AWARN << "lower power to be power off: " << lp;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_low_power_off()->
-                set_value(lp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankStat(const bool) {
     }
 
-    //wheel current, periodically 2
-    void SysProcessor::SetWheelLeftCurrent(const float current) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_whl_current_last_).count();
-        time_whl_current_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            whl_current().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[II] left wheel current: " << current <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                whl_current().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_leftw_current_ma()->
-                set_value(current);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankLevel(const uint32_t) {
     }
 
-    void SysProcessor::SetWheelRightCurrent(const float current) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right wheel current: " << current;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_adc()->
-                mutable_rightw_current_ma()->
-                set_value(current);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankEmpty(const uint32_t) {
     }
 
-    //tof distance in mm, periodically 1
-    void SysProcessor::SetTofDistance(uint32_t tof) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_tof_last_).count();
-        time_tof_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            tof_param().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AERROR << "[I] tof distance: " << tof << "mm" <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                tof_param().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_tof_distance()->
-                set_value(tof);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankLow(const uint32_t) {
     }
 
-    //dock signal, periodically 3
-    void SysProcessor::SetDockLeftSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_dock_sig_last_).count();
-        time_dock_sig_last_ = time_now;
-        auto off = pass - (float)(mcu_param_->
-            dock_signal().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[III] left dock signal: " << dock <<
-                ", host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                dock_signal().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_l()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankFull(const uint32_t) {
     }
 
-    void SysProcessor::SetDockMidLeftSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "middle left dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_ml()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::CleanTankUpdataFreqms(const uint32_t) {
     }
 
-    void SysProcessor::SetDockMidRightSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "middle right dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_mr()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankName(const std::string&) {
     }
 
-    void SysProcessor::SetDockRightFrontSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right front dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_front_r()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankStat(const bool) {
     }
 
-    void SysProcessor::SetDockRightSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_r()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankLevel(const uint32_t) {
     }
 
-    void SysProcessor::SetDockLeftFrontSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "left front dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_front_l()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankEmpty(const uint32_t) {
     }
 
-    void SysProcessor::SetDockRearMidLeftSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "left middle rear dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_rear_ml()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankLow(const uint32_t) {
     }
 
-    void SysProcessor::SetDockRearMidRightSignal(uint32_t dock) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "right middle rear dock signal: " << dock;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_infra()->
-                mutable_dock_rear_mr()->
-                set_value(dock);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DirtyTankFull(const uint32_t) {
     }
 
-    //battery
-    void SysProcessor::SetBatteryLevel(const uint32_t bat) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "battery level(%), (last: " <<
-            GetMessagePool()->vola_info_->brief_stat().battery() <<
-            " -> current: " << bat << ")";
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_battery()->
-                set_value(bat);
-        } else {
-            AWARN << "empty ppi info!";
-        }
-
-        if (GetMessagePool()->vola_info_) {
-            GetMessagePool()->vola_info_->mutable_brief_stat()->
-                set_battery(bat);
-        } else {
-            AWARN << "empty vola info!";
-        }
-
-        if (GetMessagePool()->mode_stat_) {
-            GetMessagePool()->mode_stat_->set_battery(bat);
-        } else {
-            AWARN << "empty mode stat!";
-        }
-
-        //infer machine & remote side update
-        UpdataBattery(bat);
-
-        //update SQL automatically;
-        if (GetMessagePool()->db_notify_hook_)
-            GetMessagePool()->db_notify_hook_();
+    void SysProcessor::DirtyTankUpdateFreqms(const uint32_t) {
     }
 
-    void SysProcessor::SetBatteryTemp(const uint32_t temp) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "battery temperature: " <<
-            temp << R"(℃)";
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_bat_temp()->
-                set_value(temp);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxName(const std::string&) {
     }
 
-    //mcu online
-    void SysProcessor::SetOnlineResult(const uint32_t res) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "mcu online result: " <<
-            (res ? "NG" : "OK");
-#endif
-        if (res == 0) {
-            chs_online_ = true;
-        } else if (res == 1) {
-            AWARN << "mcu online faile, can't recognize message";
-        } else if (res == 2) {
-            AWARN << "mcu online faile, protocol version not support";
-        } else if (res == 3) {
-            AWARN << "mcu online faile, device type not support";
-        }
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_online_result()->
-                set_value(res);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxStat(const bool) {
     }
 
-    void SysProcessor::SetOnlineVersion(const uint32_t version) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "mcu online version: " << version;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_proto_ver()->
-                set_value(version);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxLevel(const uint32_t) {
     }
 
-    void SysProcessor::SetOnlineHeartBeat(const uint32_t hb) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "mcu online heartbeat: " <<
-            (hb ? "NG" : "OK");
-#endif
-        if (hb == 0) {
-            chs_online_ = true;
-        } else if (hb == 1) {
-            AWARN << "mcu heart beat fail: " << hb;
-            chs_online_ = false;
-        }
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_heart_beat_result()->
-                set_value(hb);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxEmpty(const uint32_t) {
     }
 
-    //mcu info
-    void SysProcessor::SetMcuSn(const std::string sn) {
-        AINFO << "mcu sn: " << sn;
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_mcu_sn()->
-                set_value(sn);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxLow(const uint32_t) {
     }
 
-    void SysProcessor::SetMcuVersion(const std::string version) {
-        AINFO << "mcu version: " << version;
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_mcu_ver()->
-                set_value(version);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxFull(const uint32_t) {
     }
 
-    void SysProcessor::SetMcuCompileTime(const std::string time) {
-        AINFO << "compile time: " << time;
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_mcu_comp_time()->
-                set_value(time);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DustBoxUpdataFreqms(const uint32_t) {
     }
 
-    void SysProcessor::SetMcuSensorEnStat(
-            const bool wall_en,
-            const bool drop_en,
-            const bool tof_en,
-            const bool whls_pwr,
-            const bool fan_pwr,
-            const bool mbrush_pwr,
-            const bool sbrush_pwr,
-            const bool pump_pwr,
-            const bool charge_en,
-            const bool bot_pwr,
-            const bool pump_en,
-            const bool pallet_en) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "wall:" << (wall_en ? "YES" : "NO") <<
-            ", drop: " << (drop_en ? "YES" : "NO");
-        AINFO << "tof: " << (tof_en ? "YES" : "NO") <<
-            ", wheels power: " << (whls_pwr ? "YES" : "NO");
-        AINFO << "fan power: " << (fan_pwr ? "YES" : "NO") <<
-            ", mbrush power: " << (mbrush_pwr ? "YES" : "NO");
-        AINFO << "sbrush power: " << (sbrush_pwr ? "YES" : "NO") <<
-            ", pump power: " << (pump_pwr ? "YES" : "NO");
-        AINFO << "charge: " << (charge_en ? "YES" : "NO") <<
-            ", robot power: " << (bot_pwr ? "YES" : "NO");
-        AINFO << "pump: " << (pump_en ? "YES" : "NO") <<
-            ", pallet: " << (pallet_en ? "YES" : "NO");
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_wall_en()->set_value(wall_en);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_drop_en()->set_value(drop_en);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_tof_en()->set_value(tof_en);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_wheels_power()->set_value(whls_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_fan_power()->set_value(fan_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_main_brush_power()->set_value(mbrush_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_side_brush_power()->set_value(sbrush_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_pump_motor_power()->set_value(pump_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_charge_en()->set_value(charge_en);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_robot_power()->set_value(bot_pwr);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_pump_en()->set_value(pump_en);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_sensor_en_stat()->
-                mutable_pallet_en()->set_value(pallet_en);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DetergentTankName(const std::string&) {
     }
 
-    //ctrl result
-    void SysProcessor::SetCtrlSlaveResult(const uint32_t res,
-            const uint32_t cmd) {
-#ifdef CAMB_PKG_DBG
-        //AINFO << "control slave cmd: 0x0" << std::hex << cmd <<
-            //", ctrl result: " << (res == 0 ? "OK" : "NG");
-#endif
-
-        if (res != 0) {
-            AWARN << "control slave cmd: " << std::hex << cmd <<
-                ", result: " << res << ", control fail!";
-        }
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_ctrl_chass_result()->
-                mutable_ctrl_result()->
-                set_value(res);
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_ctrl_chass_result()->
-                mutable_ctrl_ack_type()->
-                set_value(cmd);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DetergentTankStat(const bool) {
     }
 
-    //flip camera result
-    void SysProcessor::SetFlipCameraStatus(const uint32_t stat) {
-#ifdef CAMB_PKG_DBG
-        std::string str;
-        if (stat == 0)
-            str = "MID";
-        if (stat == 1)
-            str = "FOLD";
-        if (stat == 2)
-            str = "OPEN";
-        AINFO << "flip camera status: " << str;
-#endif
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_camera_flip()->
-                set_value(stat);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DetergentTankLevel(const uint32_t) {
     }
 
-    //error code
-    void SysProcessor::SetSlaveErrorCode(const uint32_t error) {
-#ifdef CAMB_PKG_DBG
-        AWARN << "slave report error: " << error;
-#endif
-        //TODO
-        // 
+    void SysProcessor::DetergentTankEmpty(const uint32_t) {
     }
 
-    //slave time, in: 0.1ms, periodically 8
-    void SysProcessor::SetSlaveSysTime(const uint32_t time) {
-#ifdef CAMB_PKG_DBG
-        auto time_now = std::chrono::steady_clock::now();
-        auto pass = std::chrono::duration<double, std::milli>(
-                        time_now - time_slave_time_ms_last_).count();
-
-        uint32_t slave_sys_pass = 0;
-        if (slave_sysms_last_ != 0)
-            slave_sys_pass = time - slave_sysms_last_;
-
-        auto off = pass - (float)(mcu_param_->
-            slave_sys().freq().value()
-            * MCU_SEND_CYCLE_MS); //ms
-        time_slave_time_ms_last_ = time_now;
-
-        if (std::abs(off) >= MCU_SEND_TOLERANCE_MS) {
-            AINFO << "[VIII] slave time: " << time / 10000 <<
-                "s+" << std::setw(3) << std::setfill('0') <<
-                time % 10000 / 10 <<
-                "." << time % 10 << "ms" <<
-                ", last: " << slave_sysms_last_ / 10000 <<
-                "s_" << std::setw(3) << std::setfill('0') <<
-                slave_sysms_last_ % 10000 / 10 <<
-                "." << slave_sysms_last_ % 10 << "ms" <<
-                ", pass: " << slave_sys_pass / 10 << "ms" <<
-                ". host elapse: " << pass << "ms" <<
-                ", dest: " << (mcu_param_->
-                slave_sys().freq().value()
-                * MCU_SEND_CYCLE_MS) << "ms" <<
-                ", Δ: " << off << "ms";
-        }
-#endif
-        slave_sysms_last_ = time;
-
-        if (GetMessagePool()->pph_info_) {
-            GetMessagePool()->pph_info_->mutable_pp_extra()->
-                mutable_slave_10th1_ms()->
-                set_value(time);
-        } else {
-            AWARN << "empty ppi info!";
-        }
+    void SysProcessor::DetergentTankLow(const uint32_t) {
     }
+
+    void SysProcessor::DetergentTankFull(const uint32_t) {
+    }
+
+    void SysProcessor::DetergentTankUpdataFreqms(const uint32_t) {
+    }
+
+    ///2, ADC info
+    void SysProcessor::DiscBrushLeftName(const std::string&) {
+	}
+
+    void SysProcessor::DiscBrushLeftStat(const bool) {
+	}
+
+    void SysProcessor::DiscBrushLeftVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushLeftCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushLeftTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushLeftUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushRightName(const std::string&) {
+	}
+
+    void SysProcessor::DiscBrushRightStat(const bool) {
+	}
+
+    void SysProcessor::DiscBrushRightVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushRightCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushRightTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::DiscBrushRightUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushFrontName(const std::string&) {
+	}
+
+    void SysProcessor::RollBrushFrontStat(const bool) {
+	}
+
+    void SysProcessor::RollBrushFrontVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushFrontCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushFrontTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushFrontUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushRearName(const std::string&) {
+	}
+
+    void SysProcessor::RollBrushRearStat(const bool) {
+	}
+
+    void SysProcessor::RollBrushRearVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushRearCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushRearTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::RollBrushRearUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::SuckFanName(const std::string&) {
+	}
+
+    void SysProcessor::SuckFanStat(const bool) {
+	}
+
+    void SysProcessor::SuckFanVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::SuckFanCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::SuckFanTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::SuckFanUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::WheelLeftName(const std::string&) {
+	}
+
+    void SysProcessor::WheelLeftStat(const bool) {
+	}
+
+    void SysProcessor::WheelLeftVoltmv(const uint32_t) {
+	}
+
+    void SysProcessor::WheelLeftCurrentma(const uint32_t) {
+	}
+
+    void SysProcessor::WheelLeftTemperature(const uint32_t) {
+	}
+
+    void SysProcessor::WheelLeftUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::WheelRightName(const std::string&) {
+	}
+
+    void SysProcessor::WheelRightStat(const bool) {
+    }
+
+    void SysProcessor::WheelRightVoltmv(const uint32_t) {
+    }
+
+    void SysProcessor::WheelRightCurrentma(const uint32_t) {
+    }
+
+    void SysProcessor::WheelRightTemperature(const uint32_t) {
+    }
+
+    void SysProcessor::WheelRightUpdateFreqms(const uint32_t) {
+    }
+
+    void SysProcessor::BatteryName(const std::string&) {
+    }
+
+    void SysProcessor::BatteryStat(const bool) {
+    }
+
+    void SysProcessor::BatteryVoltmv(const uint32_t) {
+    }
+
+    void SysProcessor::BatteryCurrentma(const uint32_t) {
+    }
+
+    void SysProcessor::BatteryTemperature(const uint32_t) {
+    }
+
+    void SysProcessor::BatteryUpdateFreqms(const uint32_t) {
+    }
+
+    ///3, PWM info
+    void SysProcessor::PwmDiscBrushLeftName(const std::string&) {
+	}
+
+    void SysProcessor::PwmDiscBrushLeftStat(const bool) {
+	}
+
+    void SysProcessor::PwmDiscBrushLeftDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushLeftCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushLeftPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushLeftUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightName(const std::string&) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightStat(const bool) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmDiscBrushRightUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontName(const std::string&) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontStat(const bool) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushFrontUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushRearName(const std::string&) {
+	}
+
+    void SysProcessor::PwmRollBrushRearStat(const bool) {
+	}
+
+    void SysProcessor::PwmRollBrushRearDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushRearCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushRearPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmRollBrushRearUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::PwmSuckFanName(const std::string&) {
+	}
+
+    void SysProcessor::PwmSuckFanStat(const bool) {
+	}
+
+    void SysProcessor::PwmSuckFanDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmSuckFanCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmSuckFanPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmSuckFanUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::PwmBatteryName(const std::string&) {
+	}
+
+    void SysProcessor::PwmBatteryStat(const bool) {
+	}
+
+    void SysProcessor::PwmBatteryDuty(const uint32_t) {
+	}
+
+    void SysProcessor::PwmBatteryCyclens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmBatteryPositivens(const uint32_t) {
+	}
+
+    void SysProcessor::PwmBatteryUpdateFreqms(const uint32_t) {
+	}
+
+    ///4, GPIO info
+    void SysProcessor::GpioEmergencyStopName(const std::string&) {
+	}
+
+    void SysProcessor::GpioEmergencyStopStat(const bool) {
+	}
+
+    void SysProcessor::GpioEmergencyStopGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyStopOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyStopOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyStopUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakName(const std::string&) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakStat(const bool) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioEmergencyBreakUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioKeyName(const std::string&) {
+	}
+
+    void SysProcessor::GpioKeyStat(const bool) {
+	}
+
+    void SysProcessor::GpioKeyGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioKeyOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioKeyOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioKeyUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioGearName(const std::string&) {
+	}
+
+    void SysProcessor::GpioGearStat(const bool) {
+	}
+
+    void SysProcessor::GpioGearGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioGearOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioGearOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioGearUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioLogoLedName(const std::string&) {
+	}
+
+    void SysProcessor::GpioLogoLedStat(const bool) {
+	}
+
+    void SysProcessor::GpioLogoLedGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioLogoLedOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioLogoLedOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioLogoLedUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedName(const std::string&) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedStat(const bool) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnLeftLedUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnRightLedName(const std::string&) {
+	}
+
+    void SysProcessor::GpioTurnRightLedStat(const bool) {
+	}
+
+    void SysProcessor::GpioTurnRightLedGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnRightLedOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnRightLedOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioTurnRightLedUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioHeadLightLedName(const std::string&) {
+	}
+
+    void SysProcessor::GpioHeadLightLedStat(const bool) {
+	}
+
+    void SysProcessor::GpioHeadLightLedGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioHeadLightLedOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioHeadLightLedOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioHeadLightLedUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDrainValveName(const std::string&) {
+	}
+
+    void SysProcessor::GpioDrainValveStat(const bool) {
+	}
+
+    void SysProcessor::GpioDrainValveGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDrainValveOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDrainValveOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDrainValveUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioFillValveName(const std::string&) {
+	}
+
+    void SysProcessor::GpioFillValveStat(const bool) {
+	}
+
+    void SysProcessor::GpioFillValveGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioFillValveOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioFillValveOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioFillValveUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioSprayValveName(const std::string&) {
+	}
+
+    void SysProcessor::GpioSprayValveStat(const bool) {
+	}
+
+    void SysProcessor::GpioSprayValveGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioSprayValveOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioSprayValveOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioSprayValveUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDetergentValveName(const std::string&) {
+	}
+
+    void SysProcessor::GpioDetergentValveStat(const bool) {
+	}
+
+    void SysProcessor::GpioDetergentValveGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDetergentValveOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDetergentValveOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioDetergentValveUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioWaterScrapeName(const std::string&) {
+	}
+
+    void SysProcessor::GpioWaterScrapeStat(const bool) {
+	}
+
+    void SysProcessor::GpioWaterScrapeGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioWaterScrapeOnms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioWaterScrapeOffms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioWaterScrapeUpdateFreqms(const uint32_t) {
+	}
+
+    void SysProcessor::GpioBumpName(const std::string&) {
+	}
+
+    void SysProcessor::GpioBumpStat(const bool) {
+	}
+
+    void SysProcessor::GpioBumpGear(const uint32_t) {
+	}
+
+    void SysProcessor::GpioBumpOnms(const uint32_t) {
+    }
+
+    void SysProcessor::GpioBumpOffms(const uint32_t) {
+    }
+
+    void SysProcessor::GpioBumpUpdateFreqms(const uint32_t) {
+    }
+
+    ///5, INFRA info
+    void SysProcessor::InfraDropName(const std::string&) {
+    }
+
+    void SysProcessor::InfraDropStat(const bool) {
+    }
+
+    void SysProcessor::InfraDropValue(const uint32_t) {
+    }
+
+    void SysProcessor::InfraDropUpdateFreqms(const uint32_t) {
+    }
+
+    ///6, SOC info
+    void SysProcessor::SocCameraDev(const uint32_t, const std::string&) {
+	}
+
+    void SysProcessor::SocCameraStat(const uint32_t, const bool) {
+	}
+
+    void SysProcessor::SocWifiMode(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiIp(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiMac(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiDns(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiInfo(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiName(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiBssid(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiStat(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiScanList(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiIsOnline(const std::string&) {
+	}
+
+    void SysProcessor::SocWifiPingms(const uint32_t) {
+	}
+
+    void SysProcessor::SocWifiResult(const std::string&) {
+	}
+
+    void SysProcessor::Soc4GName(const std::string&) {
+	}
+
+    void SysProcessor::Soc4GAccount(const uint32_t) {
+	}
+
+    void SysProcessor::SocAudioName(const std::string&) {
+	}
+
+    void SysProcessor::SocAudioPack(const std::string&) {
+	}
+
+    void SysProcessor::SocAudioVolume(const uint32_t) {
+	}
+
+    void SysProcessor::SocAudioMuteSwitch(const bool) {
+	}
+
+    void SysProcessor::SocLidarName(const std::string&) {
+	}
+
+    void SysProcessor::SocLidarStat(const bool) {
+	}
+
+    void SysProcessor::SocLidarFreq(const uint32_t) {
+	}
+
+    void SysProcessor::SocImuName(const std::string&) {
+	}
+
+    void SysProcessor::SocImuStat(const bool) {
+	}
+
+    void SysProcessor::SocImuFreq(const uint32_t) {
+	}
+
+    void SysProcessor::SocLlaserName(const std::string&) {
+	}
+
+    void SysProcessor::SocLlaserStat(const bool) {
+	}
+
+    void SysProcessor::SocLlaserFreq(const uint32_t) {
+	}
+
+    void SysProcessor::SocSsonicName(const std::string&) {
+	}
+
+    void SysProcessor::SocSsonicStat(const bool) {
+	}
+
+    void SysProcessor::SocSsonicFreq(const uint32_t) {
+	}
+
+    void SysProcessor::SocTofName(const std::string&) {
+	}
+
+    void SysProcessor::SocTofStat(const bool) {
+	}
+
+    void SysProcessor::SocTofFreq(const uint32_t) {
+	}
+
+    void SysProcessor::SocJsName(const std::string&) {
+	}
+
+    void SysProcessor::SocJsStat(const bool) {
+	}
+
+    void SysProcessor::SocJsFreq(const uint32_t) {
+	}
+
 
 } //namespace brain
 } //namespace camb

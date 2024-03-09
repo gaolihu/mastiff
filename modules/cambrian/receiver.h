@@ -4,7 +4,7 @@
 #include "cyber/message/message_traits.h"
 
 #include "modules/cambrian/proto/cambrian_arch.pb.h"
-#include "modules/chassis/proto/external_msg.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 #include "modules/cambrian/brain/msgs_recv_tmpl.h"
 
@@ -36,7 +36,11 @@ namespace camb {
                         /*ventura::common_msgs::geometry_msgs::*/PoseStamped>(
                                 cc->cmb_topic_conf().
                                 input_slam_path_name().value());
-#if 0
+
+                    ReceiverGenerate<ChassisMiscInfo>(
+                                cc->cmb_topic_conf().
+                                input_chs_misc_name().value());
+#if 1
                     //testing
                     ReceiverGenerate<       //speed
                         /*ventura::common_msgs::geometry_msgs::*/Twist>(
@@ -149,8 +153,8 @@ namespace camb {
     ReceiveMsg::OnMessageReceive(const
             std::shared_ptr<MessageT>& msg) {
 #ifdef CAMB_PKG_DBG
-        AINFO << "receive message \"" <<
-            cyber::message::GetMessageName<MessageT>() << "\"";
+        //AINFO << "receive message \"" <<
+            //cyber::message::GetMessageName<MessageT>() << "\"";
 #endif
         for (auto x : msg_reader_manager_pair_) {
             if (x.first == cyber::message::GetMessageName<MessageT>()) {

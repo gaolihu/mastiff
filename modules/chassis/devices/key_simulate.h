@@ -26,13 +26,13 @@ namespace device {
             SimulateProtoHandle upper_handler_ = nullptr;
 
             //audio
-            void AudioPlay(std::shared_ptr<ImportChassisCtrl>&, const int);
-            void AudioCtrl(std::shared_ptr<ImportChassisCtrl>&, const int);
+            void AudioPlay(std::shared_ptr<MiscChassisCtrl>&, const int);
+            void AudioCtrl(std::shared_ptr<MiscChassisCtrl>&, const int);
 
-            void DeviceManageSim(std::shared_ptr<ImportChassisCtrl>&, const int);
+            void DeviceManageSim(std::shared_ptr<MiscChassisCtrl>&, const int);
 
-            void WirelessKeySim(std::shared_ptr<ImportChassisCtrl>&, const int);
-            void CameraKeySim(std::shared_ptr<ImportChassisCtrl>&, const int);
+            void WirelessKeySim(std::shared_ptr<MiscChassisCtrl>&, const int);
+            void CameraKeySim(std::shared_ptr<MiscChassisCtrl>&, const int);
     };
 
 

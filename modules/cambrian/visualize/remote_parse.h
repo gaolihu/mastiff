@@ -4,7 +4,7 @@
 #include "cyber/cyber.h"
 
 #include "modules/cambrian/proto/cambrian_arch.pb.h"
-#include "modules/chassis/proto/external_msg.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 
 #define WEB_ACT 6
 
@@ -70,7 +70,7 @@ namespace visual {
 
             //query
             std::shared_ptr<Message> DoQuerySystemInfo(Message* = nullptr);
-            std::shared_ptr<Message> DoQueryPeriphInfo(Message* = nullptr);
+            //std::shared_ptr<Message> DoQueryPeriphInfo(Message* = nullptr);
             std::shared_ptr<Message> DoQueryVolatileInfo(Message* = nullptr);
             std::shared_ptr<Message> DoQueryChassisRaw(Message* = nullptr);
             std::shared_ptr<Message> DoQueryModeStatus(Message* = nullptr);
@@ -84,7 +84,7 @@ namespace visual {
 
             //ack
             std::shared_ptr<Message> DoAckSystemInfo(Message* = nullptr);
-            std::shared_ptr<Message> DoAckPeriphInfo(Message* = nullptr);
+            //std::shared_ptr<Message> DoAckPeriphInfo(Message* = nullptr);
             std::shared_ptr<Message> DoAckVolatileInfo(Message* = nullptr);
             std::shared_ptr<Message> DoAckChassisRaw(Message* = nullptr);
             std::shared_ptr<Message> DoAckModeStatus(Message* = nullptr);

@@ -44,18 +44,31 @@ namespace chss {
                     /*ventura::common_msgs::sensor_msgs::*/Imu>(
                             cc_.lock()->chs_topic_conf().
                             output_imu_topic_name());
+                //rgb image
                 DispatcherGenerate<
                     /*ventura::common_msgs::sensor_msgs::*/Image>(
                             cc_.lock()->chs_topic_conf().
                             output_irgb_topic_name());
+                //depth image
                 DispatcherGenerate<
                     /*ventura::common_msgs::sensor_msgs::*/Image>(
                             cc_.lock()->chs_topic_conf().
                             output_idep_topic_name());
+                //image pcl
                 DispatcherGenerate<
                     /*ventura::common_msgs::sensor_msgs::*/PointCloud2>(
                             cc_.lock()->chs_topic_conf().
                             output_ipa_topic_name());
+                //mono left image
+                DispatcherGenerate<
+                    /*ventura::common_msgs::sensor_msgs::*/Image>(
+                            cc_.lock()->chs_topic_conf().
+                            output_imonol_topic_name());
+                //mono left image
+                DispatcherGenerate<
+                    /*ventura::common_msgs::sensor_msgs::*/Image>(
+                            cc_.lock()->chs_topic_conf().
+                            output_imonor_topic_name());
 #if 0
                 //TODO
                 DispatcherGenerate<

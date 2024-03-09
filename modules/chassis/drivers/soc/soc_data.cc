@@ -15,7 +15,6 @@ namespace driver {
         //chs_conf_ = cc;
         DriveDataItf::Init("SOC-Drive", -1);
         DriveDataItf::Start();
-
     }
 
     SocData::~SocData() {
@@ -55,9 +54,19 @@ namespace driver {
         }
 
         if(si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.first = si;
-            camera_ctrl_.second = std::make_shared<AsCameraCtrl>(si->ihi().name());
-            //camera_ctrl_->Init();
+            camera_itf_.first = si;
+
+            if (si->ihi().type().find("Angstrong") != std::string::npos) {
+                camera_itf_.second =
+                    std::make_shared<AsCameraCtrl>(si->ihi().name());
+                camera_itf_.second->Init();
+            } else if (si->ihi().type().find("Oak") != std::string::npos) {
+                camera_itf_.second =
+                    std::make_shared<LuxonisCamera>(si->ihi().name());
+                camera_itf_.second->Init();
+            } else {
+                AWARN << "no supported cameras!";
+            }
         }
 
         return 0;
@@ -83,8 +92,8 @@ namespace driver {
             wifi_working_ = true;
         }
 
-        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.second->Start();
+        if(camera_itf_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_itf_.second->Start();
             camera_working_ = true;
         }
 
@@ -111,8 +120,8 @@ namespace driver {
             wifi_working_ = false;
         }
 
-        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.second->Stop();
+        if(camera_itf_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_itf_.second->Stop();
             camera_working_ = false;
         }
 
@@ -139,8 +148,8 @@ namespace driver {
             wifi_working_ = false;
         }
 
-        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.second->Close();
+        if(camera_itf_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_itf_.second->Close();
             camera_working_ = false;
         }
 
@@ -164,8 +173,8 @@ namespace driver {
             //wifi_ctrl_.second->Resume();
         }
 
-        if(camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
-            //camera_ctrl_.second->Resume();
+        if(camera_itf_.first && si->type() == E_DEVICE_CAMERA) {
+            //camera_itf_.second->Resume();
         }
 
         return 0;
@@ -189,8 +198,8 @@ namespace driver {
                     ChsSocMiscCtrl&>(msg).wifi());
         }
 
-        if (camera_ctrl_.first && si->type() == E_DEVICE_CAMERA) {
-            camera_ctrl_.second->SetCameraCtrl(dynamic_cast<const
+        if (camera_itf_.first && si->type() == E_DEVICE_CAMERA) {
+            camera_itf_.second->SetCameraCtrl(dynamic_cast<const
                     ChsSocMiscCtrl&>(msg).camera());
         }
 
@@ -232,10 +241,10 @@ namespace driver {
         }
 
         //camera TODO
-        if (camera_ctrl_.first && camera_working_) {
+        if (camera_itf_.first && camera_working_) {
             CameraPopDatas cam;
-            if (camera_ctrl_.second->PollingCameraRutine(cam))
-                soc_listner_(camera_ctrl_.first, cam, nullptr, 0);
+            if (camera_itf_.second->PollingCameraRutine(cam))
+                soc_listner_(camera_itf_.first, cam, nullptr, 0);
         }
 
 

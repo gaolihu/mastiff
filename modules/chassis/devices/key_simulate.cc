@@ -29,7 +29,7 @@ namespace device {
                     std::hex << cmd <<
                     ", value: " << val;
 
-                std::shared_ptr<ImportChassisCtrl> chassis_ctrl = std::make_shared<ImportChassisCtrl>();
+                std::shared_ptr<MiscChassisCtrl> chassis_ctrl = std::make_shared<MiscChassisCtrl>();
 
                 switch (cmd) {
                 case 0x0001: {
@@ -182,7 +182,7 @@ namespace device {
         tty_register_handle("Key Control <<< Downstream", fc, 50);
     }
 
-    void KeySimulate::DeviceManageSim(std::shared_ptr<ImportChassisCtrl>&
+    void KeySimulate::DeviceManageSim(std::shared_ptr<MiscChassisCtrl>&
             chassis_ctrl, const int val) {
 #if 0
         switch (val) {
@@ -427,7 +427,7 @@ namespace device {
 #endif
     }
 
-void KeySimulate::WirelessKeySim(std::shared_ptr<ImportChassisCtrl>& chassis_ctrl, const int val)
+void KeySimulate::WirelessKeySim(std::shared_ptr<MiscChassisCtrl>& chassis_ctrl, const int val)
 {
     EE_WIFI_FUNCTIONS get_type = E_WIFI_GET_IP;
     switch (val)
@@ -495,11 +495,11 @@ void KeySimulate::WirelessKeySim(std::shared_ptr<ImportChassisCtrl>& chassis_ctr
     chassis_ctrl->mutable_misc_ctrl()->mutable_wifi()->set_wifi_func(get_type);
 }
 
-void KeySimulate::AudioPlay(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val) {
+void KeySimulate::AudioPlay(std::shared_ptr<MiscChassisCtrl>& ctrl, const int val) {
     ctrl->mutable_misc_ctrl()->mutable_audio()->mutable_play()->set_sound_id(val);
 }
 
-void KeySimulate::AudioCtrl(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val) {
+void KeySimulate::AudioCtrl(std::shared_ptr<MiscChassisCtrl>& ctrl, const int val) {
     switch (val) {
         case 0:
             //set mute
@@ -531,7 +531,7 @@ void KeySimulate::AudioCtrl(std::shared_ptr<ImportChassisCtrl>& ctrl, const int 
     }
 }
 
-void KeySimulate::CameraKeySim(std::shared_ptr<ImportChassisCtrl>& ctrl, const int val)
+void KeySimulate::CameraKeySim(std::shared_ptr<MiscChassisCtrl>& ctrl, const int val)
 {
 #if 0
     switch (val)

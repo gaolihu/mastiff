@@ -39,18 +39,13 @@ namespace brain {
         //handle commands
         RegisterRemoteMsgHandle<MissionCommand>
             (&AbstractBot::HandleMissionCommand);
-        /*
-        RegisterRemoteMsgHandle<ChassisCtrl>
+
+        //chassis control
+        RegisterRemoteMsgHandle<MiscChassisCtrl>
             (&AbstractBot::HandleChassisCtrl);
-                */
-        //TODO
-        RegisterRemoteMsgHandle<MotionCtrl>
-            (&AbstractBot::HandleMotionCtrl);
 
         //??
         /*
-        RegisterRemoteMsgHandle<SettingAudio>
-            (&AbstractBot::HandleSettingAudio);
         RegisterRemoteMsgHandle<SettingBother>
             (&AbstractBot::HandleSettingBother);
         RegisterRemoteMsgHandle<SettingConsumable>
@@ -68,11 +63,12 @@ namespace brain {
     }
 
     //common
-    void AbstractBot::Init() {
+    void AbstractBot::Init(const
+            BaseMsgCaller& ex) {
 #ifdef CAMB_PKG_DBG
         AINFO << "AbstractBot Initialize";
 #endif
-        BotItfImpl::Init();
+        BotItfImpl::Init(ex);
     }
 
     void AbstractBot::Start() {
@@ -101,16 +97,6 @@ namespace brain {
         AINFO << "AbstractBot Close";
 #endif
         BotItfImpl::Close();
-    }
-
-    void AbstractBot::BotItfImpl::RegisterDataExport(const
-            std::function<int(const
-                std::shared_ptr<Message>&)>& ex) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "register data export handles";
-#endif
-        //=&Transactor::OnTransferMessageOut()
-        export_ = ex;
     }
 
     template <typename MessageT>
@@ -374,30 +360,27 @@ namespace brain {
         return 0;
     }
 
-    ///////control
     int AbstractBot::BotItfImpl::HandleMissionCommand(
             const std::shared_ptr<Message> msg) {
-#if 0
 #ifdef CAMB_PKG_DBG
-        AINFO << "HandleMissionCommand:\n" <<
+        AINFO << "HandleMissionCommand: " <<
 #if 0
             msg->DebugString();
 #else
-            "";
+            msg->GetTypeName();
 #endif
 #endif
         //update sql mzp
         auto mzp = (dynamic_cast<MissionCommand*>(msg.get()))->mzp();
         if (mzp.szp().size() && mzp.szp(0).plane_shape().size()) {
-            database_->DbStoreMltimZones(mzp);
+            //TODO
+            //save multi-zones
+            //database_->DbStoreMltimZones(mzp);
         }
 
         //drive robot
-        sys_processor_->DriveRobotWorking(*dynamic_cast
-                <MissionCommand*>(msg.get()));
-
-#endif
-        return 0;
+        return sys_processor_->InferMachine::DriveRobotWorking
+            (*dynamic_cast<MissionCommand*>(msg.get()));
     }
 
     int AbstractBot::BotItfImpl::HandleAppointmentTask(
@@ -409,12 +392,9 @@ namespace brain {
         return 0;
     }
 
-    //subscribe
     int AbstractBot::BotItfImpl::HandleChassisCtrl(
             std::shared_ptr<Message> msg) {
-#if 0
 #ifdef CAMB_PKG_DBG
-#if 0
         AINFO << "HandleChassisCtrl:\n" <<
 #if 1
             msg->DebugString();
@@ -422,66 +402,7 @@ namespace brain {
             "";
 #endif
 #endif
-#endif
-        auto ctrl = dynamic_cast<ChassisCtrl*>(msg.get());
-        if (ctrl->has_mcu_param()) {
-            sys_processor_->ConfigChsParam(ctrl->mcu_param());
-        }
-
-        return FrgMsgChsRelease<ChassisCtrl, FrgNullMsg>
-            //(reinterpret_cast<const std::shared_ptr<ChassisCtrl>&>(msg));
-            (std::dynamic_pointer_cast<ChassisCtrl>(msg));
-#endif
-        return 0;
-    }
-
-    int AbstractBot::BotItfImpl::HandleMotionCtrl(
-            std::shared_ptr<Message> msg) {
-#if 0
-#ifdef CAMB_PKG_DBG
-        AINFO << "HandleMotionCtrl: " <<
-            msg->DebugString();
-#endif
-        auto chs_ctrl = std::make_shared<ChassisCtrl>();
-        //judge motion
-        auto motion = dynamic_cast<MotionCtrl*>(msg.get());
-        if(motion->type() != 0){
-            if(motion->type() == EE_MOTION_CTRL_TYPE::E_MC_TERMINATE){
-                chs_ctrl->mutable_speed_ctrl()->set_linear(0);
-            }else if(motion->type() == EE_MOTION_CTRL_TYPE::E_MC_STRAIGHT_F){
-                chs_ctrl->mutable_speed_ctrl()->set_linear(0.15);
-            }else if(motion->type() == EE_MOTION_CTRL_TYPE::E_MC_STRAIGHT_B){
-                chs_ctrl->mutable_speed_ctrl()->set_linear(-0.15);
-            }else{
-                chs_ctrl->mutable_speed_ctrl()->set_angular(0);
-                AWARN<<"Wrong Remote Control Type,STOP!";
-            }
-        }else{
-            chs_ctrl->mutable_speed_ctrl()->set_linear(0);
-        }
-        if(motion->direction() != 0){
-            if(motion->direction() == EE_MOTION_CTRL_DIR::E_MC_DIR_LEFT){
-                chs_ctrl->mutable_speed_ctrl()->set_angular(1.0);
-            }else{
-                chs_ctrl->mutable_speed_ctrl()->set_angular(-1.0);
-            }
-        }else{
-            chs_ctrl->mutable_speed_ctrl()->set_angular(0);
-        }
-        AINFO<<chs_ctrl->DebugString();
-        return FrgMsgChsRelease<ChassisCtrl, FrgNullMsg>
-            (reinterpret_cast<const std::shared_ptr<ChassisCtrl>&>(chs_ctrl));
-#endif
-        return 0;
-    }
-
-    int AbstractBot::BotItfImpl::HandleSettingAudio(
-            std::shared_ptr<Message> msg) {
-#ifdef CAMB_PKG_DBG
-        AINFO << "HandleSettingAudio: " <<
-            msg->DebugString();
-#endif
-        return 0;
+        return msg_publish_(msg);
     }
 
     int AbstractBot::BotItfImpl::HandleSettingBother(

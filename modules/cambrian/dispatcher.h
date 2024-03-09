@@ -28,20 +28,19 @@ namespace camb {
                 cc_ = cc;
                 publish_node_ = cyber::CreateNode(cc_.lock()->
                         cmb_topic_conf().writer_node_name());
-                //data writer
-                if (cc_.lock()->cmb_topic_conf().has_input_slam_grid_name()) {
 #if 1
-                    //for testing
-                    DispatcherGenerate<
-                        /*ventura::common_msgs::nav_msgs::*/OccupancyGrid>(
-                                cc_.lock()->cmb_topic_conf().
-                                input_slam_grid_name().value());
-
-                    DispatcherGenerate<
-                        /*ventura::common_msgs::geometry_msgs::*/PoseStamped>(
-                                cc_.lock()->cmb_topic_conf().
-                                input_slam_path_name().value());
+                if (cc_.lock()->cmb_topic_conf().has_input_slam_grid_name()) {
+                    //test publishing chassis info
+                    DispatcherGenerate<ChassisMiscInfo>(
+                            cc_.lock()->cmb_topic_conf().
+                            input_chs_misc_name().value());
+                }
 #endif
+                if (cc_.lock()->cmb_topic_conf().has_output_chs_topic_name()) {
+                    //setting chassis
+                    DispatcherGenerate<MiscChassisCtrl>(
+                            cc_.lock()->cmb_topic_conf().
+                            output_chs_topic_name().value());
                 }
             }
 

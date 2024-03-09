@@ -14,7 +14,7 @@ namespace device {
                     std::shared_ptr<Message>& m)->int {
                 return RecvChassCtrl(
                         std::dynamic_pointer_cast
-                        <ImportChassisCtrl>(m));
+                        <MiscChassisCtrl>(m));
                 });
         key_sim_->StartSimulate();
 #endif
@@ -30,7 +30,7 @@ namespace device {
 
     //downstream
     int Transactor::RecvChassCtrl(const
-            std::shared_ptr<ImportChassisCtrl>& ctrl) {
+            std::shared_ptr<MiscChassisCtrl>& ctrl) {
 //#ifdef CHSS_PKG_DBG
 #if 0
         //too much noise

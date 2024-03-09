@@ -7,7 +7,7 @@ import "google/protobuf/wrappers.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/nav_msgs.proto";
 import "modules/aventurier_common_msgs/proto/ros_msgs/sensor_msgs.proto";
 
-import "modules/chassis/proto/input_output_chs.proto";
+import "modules/chassis/proto/chss_io.proto";
 
 ////////////////////////Common////////////////////////////////
 /*
@@ -144,7 +144,8 @@ enum EE_CMD_FROM_WHO {
     E_CMD_FROM_KEY = 3;     //key presse
     E_CMD_FROM_H5 = 4;      //h5 web end
     E_CMD_FROM_LOGIC = 5;   //robot logic
-    E_CMD_FROM_NULL = 6;    //null
+    E_CMD_FROM_SIMKEY = 6;   //robot logic
+    E_CMD_FROM_NULL = 7;    //null
 }
 
 /*
@@ -549,15 +550,16 @@ message MissionSetting {
     //water
     int32 water_flow = 5;
 
-    //pallete
-    int32 left_pallet = 6;
-    int32 right_pallet = 7;
+    //water scrapte
+    int32 water_scrape = 6;
+
 
     //main brush
-    int32 m_brush = 8;
+    int32 m_brush = 7;
 
     //side brush
-    int32 s_brush = 9;
+    int32 left_disc_brush = 8;
+    int32 right_disc_brush = 9;
 
     //mission unique ID
     int32 unique_id = 10;
@@ -1692,7 +1694,7 @@ message FringeTransferMsg {
         //query peripheral info
         QueryPeriphInfo q_ppi = 4;
         //ack peripheral info
-        mstf.chss.proto.PeriphInformation a_ppi = 5;
+        //mstf.chss.proto.PeriphInformation a_ppi = 5;
 
         //query volatile info
         QueryVolatileInfo q_vli = 6;

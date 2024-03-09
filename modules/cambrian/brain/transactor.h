@@ -23,24 +23,21 @@ namespace brain {
 #ifdef CAMB_PKG_DBG
                 AINFO << "singleton transactor finish";
 #endif
-                AINFO << "Transactor stop robot !";
+                //AINFO << "Transactor stop robot!";
                 abstract_robot_->Stop();
-                AINFO << "Transactor close robot !";
+                //AINFO << "Transactor close robot!";
                 abstract_robot_->Close();
 
                 delete this;
             }
 
             void  Init(const std::shared_ptr<CambrianConfig> cc) {
-                AINFO << "Transactor system init";
+                AINFO << "Transactor init, setting robot";
                 if (!abstract_robot_) {
                     abstract_robot_ = std::make_unique<AbstractBot>(cc);
-                    AINFO << "Transactor init begin !";
-                    abstract_robot_->RegisterDataExport(
-                            std::bind(&Transactor::OnTransferMessageOut,
+                    abstract_robot_->Init(std::bind(
+                                &Transactor::OnTransferMessageOut,
                                 this, std::placeholders::_1));
-                    abstract_robot_->Init();
-                    AINFO << "Transactor start robot !";
                     abstract_robot_->Start();
                 }
             }
@@ -59,7 +56,8 @@ namespace brain {
             }
 
             int OnTransferMessageOut(const std::shared_ptr<Message>& msg) {
-#ifdef CAMB_PKG_DBG
+#if 0
+//#ifdef CAMB_PKG_DBG
                 AINFO << "transact output " << msg->GetTypeName() <<
                     "\n" << msg->DebugString();
 #endif
@@ -96,11 +94,13 @@ namespace brain {
             template <typename MessageT>
             int OnTranferMsgInCall(const
                     std::shared_ptr<MessageT>& msg) {
-                return abstract_robot_->PushMessage<MessageT>(msg);
+                return abstract_robot_->
+                    BotItfImpl::MsgsInpouring<MessageT>(msg);
             }
 
             int OnTransferMessageIn(const std::shared_ptr<Message>& msg) {
-#ifdef CAMB_PKG_DBG
+#if 0
+//#ifdef CAMB_PKG_DBG
                 AINFO << "transact input " << msg->GetTypeName() <<
                     "\n" << msg->DebugString();
 #endif

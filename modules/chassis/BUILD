@@ -863,7 +863,8 @@ cc_library(
         ":joystick_data",
         ":audio",
         ":network",
-        ":camera",
+        ":angstrong_camera",
+        ":luxonis_camera",
     ]
 )
 
@@ -919,27 +920,50 @@ cc_library(
 )
 
 cc_library(
-    name = "camera",
+    name = "camera_itf",
+    srcs = [
+    ],
+    hdrs = [
+        "drivers/soc/camera/camera_itf.h",
+    ],
+    copts = [
+        CHSS_COPTS,
+    ],
     deps = [
-        ":angstrong_camera_node",
+        "//cyber",
+        "//modules/chassis/proto:chassis_config_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ]
 )
 
 cc_library(
-    name = "angstrong_camera_node",
+    name = "angstrong_camera",
     srcs = glob([
-        "drivers/soc/camera/angstrong_camera_node/*.cc",
+        "drivers/soc/camera/angstrong_camera/*.cc",
     ]),
     hdrs = glob([
-        "drivers/soc/soc_defs.h",
-        "drivers/soc/camera/angstrong_camera_node/*.h",
+        "drivers/soc/camera/angstrong_camera/*.h",
     ]),
     deps = [
-        "//cyber",
         "@opencv4_8//:opencv4",
         "@angstrong_camera//:angstrong",
-        "//modules/chassis/proto:chassis_config_cc_proto",
-        "//modules/chassis/proto:chss_io_cc_proto",
+        ":camera_itf",
+    ]
+)
+
+cc_library(
+    name = "luxonis_camera",
+    srcs = glob([
+        "drivers/soc/camera/luxonis_camera/luxonis_camera.cc",
+    ]),
+    hdrs = glob([
+        "drivers/soc/camera/luxonis_camera/luxonis_camera.h",
+    ]),
+    deps = [
+        #"@boost//:endian",
+        "@opencv4_8//:opencv4",
+        "@luxonis_depthai//:depthai",
+        ":camera_itf",
     ]
 )
 

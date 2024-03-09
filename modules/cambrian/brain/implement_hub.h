@@ -1,7 +1,7 @@
 #pragma once
 
-#include "modules/cambrian/proto/cambrian_arch.pb.h"
 #include "modules/cambrian/proto/cambrian_data.pb.h"
+#include "modules/cambrian/proto/cambrian_arch.pb.h"
 
 #include "modules/cambrian/brain/chassis_itf.h"
 #include "modules/cambrian/brain/bizlogic_itf.h"
@@ -10,19 +10,6 @@
 namespace mstf {
 namespace camb {
 namespace brain {
-
-    using namespace /*mstf::camb::*/proto;
-
-    using ImplementorRvs = std::function<int(const
-            std::shared_ptr<Message>&)>;
-
-    using SlamDrvRvs = std::function<int(const
-            std::shared_ptr<DriveSlam>&,
-            std::shared_ptr<SlamDriveAck>&)>;
-
-    using NaviDrvRvs = std::function<int(const
-            std::shared_ptr<DriveNavigation>&,
-            std::shared_ptr<NavigationAck>&)>;
 
     class ImplementHub :
         public ChassisItf,
@@ -36,85 +23,68 @@ namespace brain {
             void Start();
             void Stop();
             void Close();
-            void Loop(const int);
 
-            void RegisterPublishHandle(const ImplementorRvs&,
-                    const SlamDrvRvs&, const NaviDrvRvs&);
-
-            void SetRandomEvents(const
-                    std::shared_ptr<Message>&);
-
-            void PushRandomEvents();
-
-            inline void SetMultiZonesParam(const
-                    std::shared_ptr<Message>& mzp) {
-                //business_center_->SetMultiZonesParam(mzp);
+            inline void RegisterMsgsDistributer(
+                    const BaseMsgCaller& base,
+                    const SlamDriveSvc& slam,
+                    const NavDriveSvc& nav) {
+#ifdef CAMB_PKG_DBG
+                AINFO << "upward info flow register";
+#endif
+                //to upper channel: abstract robot
+                //
+                //= &BotItfImpl::lamada, find Message - Handles
+                up_flow_msg_hdsl_ = base;
+                //= &BotItfImpl::HandleDriveSlam
+                up_flow_slam_svc_ = slam;
+                //= &BotItfImpl::HandleDriveNavi
+                up_flow_nav_svc_ = nav;
             }
 
-            inline void LoopIncrease() {
-                loop_cnt_++;
-            }
+            //1, overrides infer machine
+            virtual void InferQueryInfos() override;
+            virtual void InferPlanWorkingFlow() override;
+            virtual void InferUpdateMultiZones() override;
 
-            inline uint32_t LoopCount() const {
-                return loop_cnt_;
-            }
-
-            inline void NotifyMapUpdate() {
-                //business_center_->NotifyMapUpdate();
-            }
-
-            //overrides infer machine
-            virtual void RequestChassisInfo() override;
-            virtual void PlanWorkingFlowPath() override;
-            virtual void UpdateMultiZonesParam() override;
-
-
-            virtual void GlobleMapUpdated() = 0;
-
-            //publish random events
-            virtual void PublishRandomEvents() = 0;
-
-        private:
-            //handle director message
-            ImplementorRvs director_rvs_;
-            SlamDrvRvs slam_rvs_;
-            NaviDrvRvs navi_rvs_;
-
-            inline int DispachMessage(const
-                    std::shared_ptr<Message>& msg) {
-                ACHECK(director_rvs_) << "dispach channel null!";
+            //2, overrides business client
+            //TODO
+            /*
                 if (0) {
                     DriveRobotShiftWork(msg);
                 }
-                return director_rvs_(msg);
+                */
+            virtual int DispachMessage(const
+                    std::shared_ptr<Message>& msg) override {
+                return up_flow_msg_hdsl_(msg);
             }
 
-            inline int DispachDrvSlam(const
+            virtual int DispachDrvSlam(const
                     std::shared_ptr<DriveSlam>& rqs,
-                    std::shared_ptr<SlamDriveAck>& rsp) {
-                ACHECK(slam_rvs_) << "slam channel null!";
-                return slam_rvs_(rqs, rsp);
+                    std::shared_ptr<SlamDriveAck>& rsp) override {
+                return up_flow_slam_svc_(rqs, rsp);
             }
 
-            inline int DispachDrvNavi(const
+            virtual int DispachDrvNavi(const
                     std::shared_ptr<DriveNavigation>& rqs,
-                    std::shared_ptr<NavigationAck>& rsp) {
-                ACHECK(navi_rvs_) << "navi channel null!";
-                return navi_rvs_(rqs, rsp);
-            }
-
-            inline void SyncRemoteData() {
-                DispachMessage(std::make_shared<QueryVolatileInfo>());
+                    std::shared_ptr<NavigationAck>& rsp) override {
+                return up_flow_nav_svc_(rqs, rsp);
             }
 
         private:
-            int upload_raw_interval_ms_ = 250; //ms
-            std::chrono::steady_clock::time_point time_last_;
+            //helpers
+            inline void SyncRemoteData() {
+                up_flow_msg_hdsl_(std::make_shared<QueryVolatileInfo>());
+            }
+            inline void SyncLocalStat() {
+                up_flow_msg_hdsl_(std::make_shared<QueryModeStatus>());
+            }
+            //TODO
 
-            uint32_t loop_cnt_ = 0;
-
-            //peripheral values & status
-            std::weak_ptr<RandomEvents> random_evts_;
+        private:
+            //handle director message
+            BaseMsgCaller up_flow_msg_hdsl_;
+            SlamDriveSvc up_flow_slam_svc_;
+            NavDriveSvc up_flow_nav_svc_;
     };
 
 } //namespace brain

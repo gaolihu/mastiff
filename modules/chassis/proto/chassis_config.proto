@@ -144,6 +144,8 @@ message InherentInfo {
     string topic1 = 4;
     string topic2 = 5;
     string topic3 = 6;
+    string topic4 = 7;
+    string topic5 = 8;
 }
 
 message SensorIndicator {
@@ -555,13 +557,15 @@ message ChassissTopicConfig {
     string output_irgb_topic_name = 8;  //iamge rgb
     string output_idep_topic_name = 9;  //image depth
     string output_ipa_topic_name = 10;  //image pcl
-    string output_hcr_topic_name = 11;
+    string output_imonol_topic_name = 11;  //image pcl
+    string output_imonor_topic_name = 12;  //image pcl
+    string output_hcr_topic_name = 13;
 
     //read channel
-    string chassis_input_channel = 12;
+    string chassis_input_channel = 14;
     //reader, for downstream messages
-    string input_crtl_topic_name = 13;
-    string input_move_topic_name = 14;
+    string input_crtl_topic_name = 15;
+    string input_move_topic_name = 16;
 
     /*
     string output_wifi_topic_name = 13;

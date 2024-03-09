@@ -24,6 +24,7 @@ cc_binary(
     copts = [
         "-DCAMBRIAN_PKG",
         '-DPKG_NAME=\\"camb_pkg\\"',
+        CAMBRIAN_COPTS,
     ],
     deps = [
         "//cyber",
@@ -62,7 +63,6 @@ cc_library(
         "receiver.h",
     ],
     copts = [
-        #CAMBRIAN_COPTS,
     ],
     deps = [
         "//cyber",
@@ -79,7 +79,6 @@ cc_library(
         "dispatcher.h",
     ],
     copts = [
-        #CAMBRIAN_COPTS,
     ],
     deps = [
         "//modules/chassis/proto:external_msg_cc_proto",
@@ -142,7 +141,6 @@ cc_library(
         "brain/transactor.h",
     ],
     copts = [
-        #CAMBRIAN_COPTS,
     ],
     deps = [
         ":abstract_bot",
@@ -158,7 +156,6 @@ cc_library(
         "brain/bot_itf_impl.h",
     ],
     copts = [
-        CAMBRIAN_COPTS,
     ],
     deps = [
         "//cyber",
@@ -195,7 +192,6 @@ cc_library(
         CAMBRIAN_COPTS,
     ],
     deps = [
-        "//modules/cambrian/proto:cambrian_arch_cc_proto",
         ":implement_hub",
         ":visual_client",
         ":dbase_client",
@@ -215,9 +211,6 @@ cc_library(
         CAMBRIAN_COPTS,
     ],
     deps = [
-        "//modules/cambrian/proto:cambrian_arch_cc_proto",
-        "//modules/cambrian/proto:cambrian_data_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
         ":infer_machine",
         ":bizlogic_itf",
     ],
@@ -236,8 +229,9 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/cambrian/proto:cambrian_data_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        #"//modules/cambrian/proto:cambrian_data_cc_proto",
+        #"//modules/cambrian/proto:cambrian_arch_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
         ":message_pool",
     ],
 )
@@ -274,7 +268,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/cambrian/proto:cambrian_data_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ],
 )
 
@@ -292,7 +286,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/cambrian/proto:cambrian_data_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ],
 )
 
@@ -309,6 +303,7 @@ cc_library(
     ],
     deps = [
         ":bizness_client",
+        ":task_sched",
     ],
 )
 
@@ -325,8 +320,86 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "@boost//:thread",
+        "//modules/cambrian/proto:cambrian_arch_cc_proto",
+        "//modules/cambrian/proto:cambrian_data_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
+        ":key_simulate",
+        ":task_sched",
     ],
 )
+
+cc_library(
+    name = "key_simulate",
+    srcs = [
+        "brain/bizlogic/key_simulate.cc",
+    ],
+    hdrs = [
+        "brain/bizlogic/key_simulate.h",
+    ],
+    copts = [
+        CAMBRIAN_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "//modules/chassis:dev_tty",
+        "//modules/cambrian/proto:cambrian_data_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
+    ]
+)
+
+cc_library(
+    name = "task_sched",
+    srcs = [
+        "brain/bizlogic/task_sched.cc",
+    ],
+    hdrs = [
+        #"brain/bizlogic/action_set.h",
+        "brain/bizlogic/task_sched.h",
+    ],
+    copts = [
+        CAMBRIAN_COPTS,
+    ],
+    deps = [
+        "chss_elements",
+    ],
+)
+
+cc_library(
+    name = "chss_elements",
+    srcs = [
+        "brain/bizlogic/chss_elements.cc",
+    ],
+    hdrs = [
+        "brain/bizlogic/chss_elements.h",
+    ],
+    copts = [
+        CAMBRIAN_COPTS,
+    ],
+    deps = [
+        ":element_itf",
+    ],
+)
+
+cc_library(
+    name = "element_itf",
+    srcs = [
+    ],
+    hdrs = [
+        "brain/bizlogic/element_itf.h",
+    ],
+    copts = [
+        CAMBRIAN_COPTS,
+    ],
+    deps = [
+        "//cyber",
+        "@behaviour_tree//:bt",
+        "//modules/cambrian/proto:cambrian_arch_cc_proto",
+        "//modules/cambrian/proto:cambrian_data_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
+    ],
+)
+
 #### biz ####
 #### brain ####
 
@@ -463,7 +536,7 @@ cc_library(
         "//cyber",
         "//modules/cambrian/proto:cambrian_data_cc_proto",
         "//modules/cambrian/proto:cambrian_arch_cc_proto",
-        "//modules/chassis/proto:input_output_chs_cc_proto",
+        "//modules/chassis/proto:chss_io_cc_proto",
     ],
 )
 #### visualization ####
@@ -512,7 +585,7 @@ cc_library(
         "//cyber",
         "//modules/cambrian/proto:cambrian_data_cc_proto",
         "//modules/cambrian/proto:cambrian_arch_cc_proto",
-        #"//modules/chassis/proto:input_output_chs_cc_proto",
+        #"//modules/chassis/proto:chss_io_cc_proto",
         "@sqlite3//:sq3",
     ],
 )

@@ -6,7 +6,10 @@
 #include "modules/chassis/drivers/soc/js/joystick_data.h"
 #include "modules/chassis/drivers/soc/audio/audio_ctrl.h"
 #include "modules/chassis/drivers/soc/network/wifi_thread.h"
-#include "modules/chassis/drivers/soc/camera/angstrong_camera_node/as_camera_ctrl.h"
+
+#include "modules/chassis/drivers/soc/camera/camera_itf.h"
+#include "modules/chassis/drivers/soc/camera/angstrong_camera/as_camera_ctrl.h"
+#include "modules/chassis/drivers/soc/camera/luxonis_camera/luxonis_camera.h"
 
 namespace mstf {
 namespace chss {
@@ -53,7 +56,7 @@ namespace driver {
             std::pair<const SensorIndicator*,
                 std::shared_ptr<WiFiThread>> wifi_ctrl_{};
             std::pair<const SensorIndicator*,
-                std::shared_ptr<AsCameraCtrl>> camera_ctrl_{};
+                std::shared_ptr<CameraItf>> camera_itf_{};
 
             //GpioMessageListener gpio_listener_ = nullptr;
             //std::vector<GpioHw*> gpio_hws_;

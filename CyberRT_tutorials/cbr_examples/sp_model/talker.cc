@@ -22,7 +22,7 @@
 
 #if 0
 #else
-#include "modules/chassis/proto/input_output_chs.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 #endif
 
 using apollo::cyber::Rate;

@@ -23,10 +23,12 @@ namespace visual {
             return DoAckSystemInfo(msg);
         }
 
+        /*
         if (cyber::message::GetMessageName<PeriphInformation>() ==
                 msg->GetTypeName()) {
             return DoAckPeriphInfo(msg);
         }
+        */
 
         if (cyber::message::GetMessageName<VolatileInformation>() ==
                 msg->GetTypeName()) {
@@ -117,10 +119,12 @@ namespace visual {
         }
 
         //peripheral info
+        /*
         else if (msg.has_q_ppi()) {
             return DoQueryPeriphInfo(
                     dynamic_cast<Message*>(msg.mutable_q_chsr()));
         }
+        */
 
         //volatile info
         else if (msg.has_q_vli()) {
@@ -224,9 +228,10 @@ namespace visual {
         }
 
         //IGNORE raw messages frome remote
+        /*
         else if (msg.has_a_ppi()) {
             AWARN << "ignore downstream periph message!";
-        } else if (msg.has_a_sys()) {
+        }*/ else if (msg.has_a_sys()) {
             AWARN << "ignore downstream system message!";
         } else if (msg.has_a_vli()) {
             AWARN << "ignore downstream volatile message!";
@@ -330,6 +335,7 @@ namespace visual {
         return std::make_shared<QuerySystemInfo>();
     }
 
+    /*
     std::shared_ptr<Message> RemoteParser::DoQueryPeriphInfo(Message* msg) {
         std::lock_guard<std::mutex> lg(mutex_);
 
@@ -340,6 +346,7 @@ namespace visual {
             ppi->set_ppr_type(dynamic_cast<QueryPeriphInfo*>(msg)->ppr_type());
         return ppi;
     }
+    */
 
     std::shared_ptr<Message> RemoteParser::DoQueryVolatileInfo(Message* msg) {
         std::lock_guard<std::mutex> lg(mutex_);
@@ -461,6 +468,7 @@ namespace visual {
         return m;
     }
 
+    /*
     std::shared_ptr<Message> RemoteParser::DoAckPeriphInfo(Message* msg) {
         std::lock_guard<std::mutex> lg(mutex_);
 
@@ -477,6 +485,7 @@ namespace visual {
 
         return m;
     }
+    */
 
     std::shared_ptr<Message> RemoteParser::DoAckVolatileInfo(Message* msg) {
         std::lock_guard<std::mutex> lg(mutex_);

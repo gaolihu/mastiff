@@ -87,19 +87,22 @@ namespace device {
                 for (auto x : msg_publisher_pair_) {
                     if (!tpk.empty()) {
                         if (x.first.find(tpk) != std::string::npos){
-                            //=&MsgsSendTmpl::MessagePublish()
-                            /*
+#if 0
                             AINFO << "msg_publisher_pair_ size: " <<
                                 msg_publisher_pair_.size() <<
-                                ", msg: " << x.first <<
-                                ", tpk" << tpk;
-                                */
+                                ", idx: " << x.first <<
+                                ", tpk: " << tpk;
+#endif
                             return x.second(msg);
+                            //=&MsgsSendTmpl::MessagePublish()
                         }
                     } else {
-                        if (x.first.find(msg->GetTypeName())) {
-                            //=&MsgsSendTmpl::MessagePublish()
+                        if (x.first.find(msg->GetTypeName()) != std::string::npos) {
+#if 0
+                            AINFO << "no topic, idx: " << x.first;
+#endif
                             return x.second(msg);
+                            //=&MsgsSendTmpl::MessagePublish()
                         }
                     }
                 }
@@ -119,14 +122,14 @@ namespace device {
                     cyber::message::GetMessageName<MessageT>() << "\"";
 #endif
                 if (cyber::message::GetMessageName<MessageT>().
-                        find("ImportChassisCtrl") != std::string::npos) {
+                        find("MiscChassisCtrl") != std::string::npos) {
                     msgs_receiver_pair_[
                         cyber::message::GetMessageName<MessageT>()] =
                             [&](const std::shared_ptr<Message>& msg)->int {
                                 //forward msg
                                 return RecvChassCtrl(
                                         std::dynamic_pointer_cast
-                                        <ImportChassisCtrl>(msg));
+                                        <MiscChassisCtrl>(msg));
                             };
                 } else if (cyber::message::GetMessageName<MessageT>().
                         find("Twist") != std::string::npos) {
@@ -144,7 +147,8 @@ namespace device {
 
             int OnTransferMessageIn(const
                     std::shared_ptr<Message>& msg) {
-#ifdef CHSS_PKG_DBG
+#if 0
+//#ifdef CHSS_PKG_DBG
                 AINFO << "transact input " << msg->GetTypeName() <<
                     "\n" << msg->DebugString();
 #endif
@@ -189,7 +193,7 @@ namespace device {
 
         private:
             int RecvChassCtrl(const std::shared_ptr
-                    <ImportChassisCtrl>&);
+                    <MiscChassisCtrl>&);
             int RecvChassMove(const std::shared_ptr<
                     ventura::common_msgs::geometry_msgs::Twist>&);
 

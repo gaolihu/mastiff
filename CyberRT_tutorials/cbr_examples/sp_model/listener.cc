@@ -20,7 +20,7 @@
 
 #if 0
 #else
-#include "modules/chassis/proto/input_output_chs.pb.h"
+#include "modules/chassis/proto/chss_io.pb.h"
 #endif
 
 void MessageCallback(
@@ -30,7 +30,9 @@ void MessageCallback(
   AINFO << "msgcontent->" << msg->content();
 #else
     //const std::shared_ptr<ventura::common_msgs::geometry_msgs::Twist>& msg) {
-    const std::shared_ptr<ventura::common_msgs::sensor_msgs::Imu>& msg) {
+    //const std::shared_ptr<ventura::common_msgs::sensor_msgs::Imu>& msg) {
+    //const std::shared_ptr<ventura::common_msgs::sensor_msgs::PointCloud2>& msg) {
+    const std::shared_ptr<ventura::common_msgs::nav_msgs::Odometry>& msg) {
   AINFO << "msgcontent->" << msg->DebugString();
 #endif
 }
@@ -47,8 +49,10 @@ int main(int argc, char* argv[]) {
           "channel/chatter", MessageCallback);
 #else
       //listener_node->CreateReader<ventura::common_msgs::geometry_msgs::Twist>(
-      listener_node->CreateReader<ventura::common_msgs::sensor_msgs::Imu>(
-          "imu", MessageCallback);
+      //listener_node->CreateReader<ventura::common_msgs::sensor_msgs::Imu>(
+      listener_node->CreateReader<ventura::common_msgs::nav_msgs::Odometry>(
+          //"mastiff/chassis/output/chs_ipa", MessageCallback);
+          "odometry", MessageCallback);
 #endif
   apollo::cyber::WaitForShutdown();
   return 0;

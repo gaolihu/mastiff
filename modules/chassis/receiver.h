@@ -20,7 +20,7 @@ namespace chss {
                     cc->chs_topic_conf().chassis_input_channel() << "\"";
 #endif
                 //chassis control
-                ReceiverGenerate<ImportChassisCtrl>(
+                ReceiverGenerate<MiscChassisCtrl>(
                         cc->chs_topic_conf().
                         input_crtl_topic_name());
                 //speed control
@@ -28,6 +28,11 @@ namespace chss {
                         cc->chs_topic_conf().
                         input_move_topic_name());
 
+#if 0
+                ReceiverGenerate</*ventura::common_msgs::geometry_msgs::*/PointCloud2>(
+                        cc->chs_topic_conf().
+                        input_move_topic_name());
+#endif
             }
 
             virtual ~ReceiveMsg() final {
@@ -132,7 +137,8 @@ namespace chss {
     template <typename MessageT> int
     ReceiveMsg::OnMessageReceive(const
             std::shared_ptr<MessageT>& msg) {
-#ifdef CHSS_PKG_DBG
+#if 0
+//#ifdef CHSS_PKG_DBG
         AINFO << "receive message \"" <<
             cyber::message::GetMessageName<MessageT>() << "\"";
 #endif

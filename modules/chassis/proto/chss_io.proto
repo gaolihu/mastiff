@@ -6,7 +6,7 @@ import "modules/chassis/proto/internal_msg.proto";
 import "modules/chassis/proto/external_msg.proto";
 
 //////////////////// Message Input ////////////////////
-message ImportChassisCtrl {
+message MiscChassisCtrl {
     ChsMovementCtrl move_ctrl = 1;
 
     ChsPeriphAdcCtrl adc_ctrl = 2;
@@ -23,7 +23,7 @@ message ImportChassisCtrl {
 //////////////////// Message Input ////////////////////
 
 //////////////////// Message Output ////////////////////
-message ExportChassisInfo {
+message ChassisMiscInfo {
     ChsLiquidLvlInfo liquid_level = 1;
 
     ChsPeriphAdcInfo periph_adc = 2;

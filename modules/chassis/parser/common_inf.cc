@@ -308,6 +308,38 @@ namespace parser {
         }
     }
 
+    const bool CommonItf::HasSocDevice() const {
+        if (!chss_conf_)
+            return false;
+
+        for (int i = 0; i < chss_conf_->gpio_dev().size(); i++)
+            if (chss_conf_->gpio_dev(i).sn_ind().dev_main() ==
+                    EE_DEV_MAIN_SOC && chss_conf_->gpio_dev(i).used())
+                return true;
+
+        for (int i = 0; i < chss_conf_->camera_dev().size(); i++)
+            if (chss_conf_->camera_dev(i).sn_ind().dev_main() ==
+                    EE_DEV_MAIN_SOC && chss_conf_->camera_dev(i).used())
+                return true;
+
+        for (int i = 0; i < chss_conf_->aud_dev().size(); i++)
+            if (chss_conf_->aud_dev(i).sn_ind().dev_main() ==
+                    EE_DEV_MAIN_SOC && chss_conf_->aud_dev(i).used())
+                return true;
+
+        for (int i = 0; i < chss_conf_->wireless_dev().size(); i++)
+            if (chss_conf_->wireless_dev(i).sn_ind().dev_main() ==
+                    EE_DEV_MAIN_SOC && chss_conf_->wireless_dev(i).used())
+                return true;
+
+        for (int i = 0; i < chss_conf_->joystick_dev().size(); i++)
+            if (chss_conf_->joystick_dev(i).sn_ind().dev_main() ==
+                    EE_DEV_MAIN_SOC && chss_conf_->joystick_dev(i).used())
+                return true;
+
+        return false;
+    }
+
     const bool CommonItf::IsLacateSoc(const
             SensorIndicator* sidc) const {
         return (sidc->dev_main() == EE_DEV_MAIN_SOC);
@@ -326,6 +358,16 @@ namespace parser {
     const std::string CommonItf::GetTopic3(const
             SensorIndicator* sidc) const {
         return (sidc->ihi().topic3());
+    }
+
+    const std::string CommonItf::GetTopic4(const
+            SensorIndicator* sidc) const {
+        return (sidc->ihi().topic4());
+    }
+
+    const std::string CommonItf::GetTopic5(const
+            SensorIndicator* sidc) const {
+        return (sidc->ihi().topic5());
     }
 
 } //namespace parser

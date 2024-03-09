@@ -125,22 +125,22 @@ std::string WiFiTool::version() const {
 void WiFiTool::GenUpdateMsg(proto::WifiInfo& msg)
 {
     auto mode = GetCurrentMode();
-    msg.set_mode(Mode2Str(mode));
+    msg.mutable_mode()->set_value(Mode2Str(mode));
 
     if(mode != Mode::STA){
         return;
     }
 
-    msg.set_ip(GetStaIp());
-    msg.set_mac(GetStaMac());
-    msg.set_dns(GetDns());
-    msg.set_info(GetWpaInfo());
-    msg.set_name(GetWiFiName());
-    msg.set_bssid(GetRouterMac());
+    msg.mutable_ip()->set_value(GetStaIp());
+    msg.mutable_mac()->set_value(GetStaMac());
+    msg.mutable_dns()->set_value(GetDns());
+    msg.mutable_info()->set_value(GetWpaInfo());
+    msg.mutable_name()->set_value(GetWiFiName());
+    msg.mutable_bssid()->set_value(GetRouterMac());
     // status
-    msg.set_status(Status());
+    msg.mutable_status()->set_value(Status());
     // wifi list
-    msg.set_scan_list(List());
+    msg.mutable_scan_list()->set_value(List());
 
     //TODO:
     // is oneline

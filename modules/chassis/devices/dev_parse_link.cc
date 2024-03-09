@@ -284,7 +284,7 @@ namespace device {
     int DevParseLink::HandleChsMovement(const
             ChsMovementCtrl& data) {
 #ifdef CHSS_PKG_DBG
-        AINFO << "handle movement!";
+        //AINFO << "handle movement!";
 #endif
         if (_GetDevBaseByType(E_DEVICE_SERVO))
             return _GetDevBaseByType(E_DEVICE_SERVO)->SetSpeed(data);

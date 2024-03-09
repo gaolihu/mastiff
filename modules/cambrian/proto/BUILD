@@ -36,7 +36,6 @@ proto_library(
     ],
     deps = [
         "@com_google_protobuf//:wrappers_proto",
-        "//modules/chassis/proto:input_output_chs_proto",
-        "//modules/chassis/proto:external_msg_proto"
+        "//modules/chassis/proto:chss_io_proto",
     ],
 )

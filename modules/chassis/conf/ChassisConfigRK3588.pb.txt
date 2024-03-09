@@ -116,6 +116,7 @@ lidar_dev: [
                 name: "LDS-Lidar"
                 manufacture_by: "PeaceCat"
                 type: "LDS-50C-R"
+                topic1: "point_cloud"
             }
         }
         uart_configs {
@@ -140,8 +141,8 @@ lidar_dev: [
             diameter: 20
             height: 0
             set_angle: 0.1f
-            cut_from_10th1_deg: 1100
-            cut_to_10th1_deg: 2540
+            cut_from_10th1_deg: 900
+            cut_to_10th1_deg: 2700
             cut_discard_stuff: 1000
         }
         switch {
@@ -162,7 +163,7 @@ imu_dev: [
             port: E_COMM_PORT_SERIAL
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Gyro-IMU-Uart"
+                name: "Gyro-IMU-Uart-R6082V"
                 manufacture_by: "MicroInfinity"
                 type: "CruizCore-R6082V"
             }
@@ -186,6 +187,38 @@ imu_dev: [
             dev_name: "Dev-IMU-SERIAL"
         }
         used: false
+    },
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_MCU
+            type: E_DEVICE_IMU
+            port: E_COMM_PORT_SERIAL
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Gyro-IMU-Uart-ZYF143"
+                manufacture_by: "ZY"
+                type: "ZYF143"
+            }
+        }
+        uart_configs {
+            dev_setting {
+                uart_dev: "/dev/ttyS1"
+                baud: 115200
+                data_bits: 8
+                stop_bits: 1
+                parity: 110
+                once_read_size: 1024
+                serial_read_freq: 25
+                serial_read_timeout: 2000
+            }
+            buf_setting{
+                parser_freq: 700
+                circle_name: "cbf-imu-uart"
+                circlular_size: 2048
+            }
+            dev_name: "Dev-IMU-SERIAL"
+        }
+        used: true
     },
     {
         sn_ind {
@@ -235,12 +268,12 @@ camera_dev: [
             port: E_COMM_PORT_USB
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Camera-L"
-                manufacture_by: "Unknown"
-                type: "USB-camera"
-                topic1: "mastiff/chassis/output/chs_irgb"
-                topic2: "mastiff/chassis/output/chs_idep"
-                topic3: "mastiff/chassis/output/chs_ipa"
+                name: "Camera-1"
+                manufacture_by: "AngStrong"
+                type: "USB-camera-Angstrong"
+                topic1: "rgbd_rgb"
+                topic2: "rgbd_depth"
+                topic3: "rgbd_pcl"
             }
         }
         ca {
@@ -251,7 +284,7 @@ camera_dev: [
             number: 1
         }
         camera_conf {
-            dev_name: "usb-camera-left"
+            dev_name: "usb-as-camera-1"
             conf: [
                 {
                     sensor_name: "HBV-1780-2 S2.0"
@@ -264,7 +297,7 @@ camera_dev: [
                 }
             ]
         }
-        used: true
+        used: false
     },
     {
         sn_ind {
@@ -273,12 +306,12 @@ camera_dev: [
             port: E_COMM_PORT_USB
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Camera-M"
-                manufacture_by: "Unknown"
-                type: "USB-camera"
-                topic1: "mastiff/chassis/output/chs_irgb"
-                topic2: "mastiff/chassis/output/chs_idep"
-                topic3: "mastiff/chassis/output/chs_ipa"
+                name: "Camera-1"
+                manufacture_by: "AngStrong"
+                type: "USB-camera-Angstrong"
+                topic1: "rgbd_rgb"
+                topic2: "rgbd_depth"
+                topic3: "rgbd_pcl"
             }
         }
         ca {
@@ -289,7 +322,7 @@ camera_dev: [
             number: 1
         }
         camera_conf {
-            dev_name: "usb-camera-mid"
+            dev_name: "usb-as-camera-2"
             conf: [
                 {
                     sensor_name: "HBV-1780-2 S2.0"
@@ -311,12 +344,12 @@ camera_dev: [
             port: E_COMM_PORT_USB
             status: E_STATUS_UNINITIALIZED
             ihi {
-                name: "Camera-R"
-                manufacture_by: "Unknown"
-                type: "USB-camera"
-                topic1: "mastiff/chassis/output/chs_irgb"
-                topic2: "mastiff/chassis/output/chs_idep"
-                topic3: "mastiff/chassis/output/chs_ipa"
+                name: "Camera-3"
+                manufacture_by: "AngStrong"
+                type: "USB-camera-Angstrong"
+                topic1: "rgbd_rgb"
+                topic2: "rgbd_depth"
+                topic3: "rgbd_pcl"
             }
         }
         ca {
@@ -327,7 +360,7 @@ camera_dev: [
             number: 1
         }
         camera_conf {
-            dev_name: "usb-camera-right"
+            dev_name: "usb-as-camera-3"
             conf: [
                 {
                     sensor_name: "HBV-1780-2 S2.0"
@@ -341,6 +374,83 @@ camera_dev: [
             ]
         }
         used: false
+    },
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_SOC
+            type: E_DEVICE_CAMERA
+            port: E_COMM_PORT_USB
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Camera-4"
+                manufacture_by: "AngStrong"
+                type: "USB-camera-Angstrong"
+                topic1: "rgbd_rgb"
+                topic2: "rgbd_depth"
+                topic3: "rgbd_pcl"
+            }
+        }
+        ca {
+            height: 100
+            set_angle: 90.0f
+            locate: 10.0f
+            iface: E_ITF_USB
+            number: 1
+        }
+        camera_conf {
+            dev_name: "usb-as-camera-4"
+            conf: [
+                {
+                    sensor_name: "HBV-1780-2 S2.0"
+                    interface: "usb"
+                    cam_dev: "/dev/video11"
+                    format: "mjpeg"
+                    width: 1280
+                    height: 480
+                    fps: 7
+                }
+            ]
+        }
+        used: false
+    },
+
+    {
+        sn_ind {
+            dev_main: EE_DEV_MAIN_SOC
+            type: E_DEVICE_CAMERA
+            port: E_COMM_PORT_USB
+            status: E_STATUS_UNINITIALIZED
+            ihi {
+                name: "Camera-Double-Eye"
+                manufacture_by: "Luxison"
+                type: "USB-camera-Oak"
+                topic1: "rgbd_rgb"
+                topic4: "monol"
+                topic5: "monor"
+            }
+        }
+        ca {
+            height: 100
+            set_angle: 90.0f
+            locate: 10.0f
+            iface: E_ITF_USB
+            number: 1
+        }
+        camera_conf {
+            dev_name: "usb-oak-camera-2eyes"
+            conf: [
+                {
+                    sensor_name: "Oak-Depthai"
+                    interface: "usb"
+                    cam_dev: "/dev/videoxx"
+                    format: "mjpeg"
+                    width: 1280
+                    height: 480
+                    fps: 7
+                }
+            ]
+        }
+        used: true
     }
 ]
 
@@ -723,15 +833,17 @@ chs_topic_conf {
     output_imu_topic_name: "imu"
     output_odom_topic_name: "odometry"
     output_lpa_topic_name: "point_cloud"
-    output_lla_topic_name: "point_cloud_tof"
+    output_lla_topic_name: "tof_pcl"
     output_cmd_topic_name: "mastiff/chassis/output/chs_cmd"
     output_cfd_topic_name: "mastiff/chassis/output/chs_cfd"
-    output_irgb_topic_name: "mastiff/chassis/output/chs_irgb"
-    output_idep_topic_name: "mastiff/chassis/output/chs_idep"
-    output_ipa_topic_name: "mastiff/chassis/output/chs_ipa"
+    output_irgb_topic_name: "rgbd_rgb"
+    output_idep_topic_name: "rgbd_depth"
+    output_ipa_topic_name: "rgbd_pcl"
+    output_imonol_topic_name: "rgbd_monol"
+    output_imonor_topic_name: "rgbd_monor"
     output_hcr_topic_name: "mastiff/chassis/output/chs_hcr"
 
     chassis_input_channel: "robot/subscribe"
     input_crtl_topic_name: "mastiff/chassis/input/chs_ctrl"
-    input_move_topic_name: "cmd_vel"
+    input_move_topic_name: "/cmd_vel"
 }

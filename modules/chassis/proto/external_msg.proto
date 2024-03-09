@@ -24,4 +24,7 @@ message CameraPopDatas {
     ventura.common_msgs.sensor_msgs.Image rgb = 2;
     ventura.common_msgs.sensor_msgs.Image depth = 3;
     ventura.common_msgs.sensor_msgs.PointCloud2 pcl = 4;
+
+    ventura.common_msgs.sensor_msgs.Image mono_l = 5;
+    ventura.common_msgs.sensor_msgs.Image mono_r = 6;
 }

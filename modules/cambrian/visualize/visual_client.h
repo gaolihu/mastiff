@@ -19,10 +19,10 @@ namespace visual {
             //send message out to remote side
             int SyncRemoteMap(const std::shared_ptr<OccupancyGrid>&);
             int SyncRemotePath(const std::shared_ptr<MarkerArray>&);
-            int SyncRemoteRawImu(const std::shared_ptr<IMUdata>&);
-            int SyncRemoteRawOdom(const std::shared_ptr<OdomData>&);
-            int SyncRemoteRawLaser(const std::shared_ptr<LaserData>&);
-            int SyncRemoteRawMisc(const std::shared_ptr<ChassisMixData>&);
+            //int SyncRemoteRawImu(const std::shared_ptr<IMUdata>&);
+            //int SyncRemoteRawOdom(const std::shared_ptr<OdomData>&);
+            //int SyncRemoteRawLaser(const std::shared_ptr<LaserData>&);
+            //int SyncRemoteRawMisc(const std::shared_ptr<ChassisMixData>&);
             //void CacheFactory(const std::shared_ptr<ChassisFacotryData>&);
             //void UpdateImageRaw(const std::shared_ptr<CameraCaptureFrame>&);
             //void SyncRemoteObject(const std::shared_ptr<AiOutputResult>&);

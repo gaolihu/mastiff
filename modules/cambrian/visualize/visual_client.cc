@@ -127,6 +127,7 @@ namespace visual {
         return 0;
     }
 
+    /*
     int VisualClient::SyncRemoteRawImu(const
             std::shared_ptr<IMUdata>& msg) {
         AINFO << "update imu";
@@ -166,6 +167,7 @@ namespace visual {
 
         return 0;
     }
+    */
 
     /*
     void VisualClient::CacheFactory(const

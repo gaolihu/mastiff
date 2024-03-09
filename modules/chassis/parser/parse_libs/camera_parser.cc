@@ -82,6 +82,16 @@ namespace parser {
                     <ventura::common_msgs::sensor_msgs::PointCloud2>(cam.pcl()),
                     CommonItf::Instance()->GetTopic3(s_idc_));
         }
+        if (cam.has_mono_l()) {
+            frame_processor_sp_(std::make_shared
+                    <ventura::common_msgs::sensor_msgs::Image>(cam.mono_l()),
+                    CommonItf::Instance()->GetTopic4(s_idc_));
+        }
+        if (cam.has_mono_r()) {
+            frame_processor_sp_(std::make_shared
+                    <ventura::common_msgs::sensor_msgs::Image>(cam.mono_r()),
+                    CommonItf::Instance()->GetTopic5(s_idc_));
+        }
 
         return 0;
     }

@@ -536,7 +536,8 @@ void tty_stop()
                       "yes" : "no";
 #endif
             brk = iter_th->next == tty_handle_list_head ? true : false;
-            free(iter_th);
+            if (iter_th)
+                free(iter_th);
 
             if (brk)
                 break;

@@ -46,7 +46,8 @@ namespace device {
 
             inline int MessageReceive(const
                     std::shared_ptr<Message>& msg) override {
-#ifdef CHSS_PKG_DBG
+#if 0
+//#ifdef CHSS_PKG_DBG
                 AINFO << "receiving msg: \"" <<
                     cyber::message::GetMessageName<MessageT>() << "\"";
 #endif

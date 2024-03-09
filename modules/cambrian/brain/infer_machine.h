@@ -35,6 +35,14 @@ namespace brain {
 
             std::shared_ptr<Message> ExposeStatMode();
 
+            inline bool IsNeedExecJob() {
+                return sm_mode_stat_->exec();
+            }
+
+            inline bool IsNewJob() {
+                return sm_mode_stat_->mission_new();
+            }
+
             void RestoreJobState() {
 #ifdef CAMB_PKG_DBG
                 //AINFO << "restore infer machine status";
@@ -47,11 +55,19 @@ namespace brain {
                 }
             }
 
+            EE_ROBOT_MODE GetCurrentMode() {
+                return mode_;
+            }
+
+            EE_ROBOT_STATUS GetCurrentStat() {
+                return status_;
+            }
+
         public:
             //virtual APIs
-            virtual void RequestChassisInfo() = 0;
-            virtual void PlanWorkingFlowPath() = 0;
-            virtual void UpdateMultiZonesParam() = 0;
+            virtual void InferQueryInfos() = 0;
+            virtual void InferPlanWorkingFlow() = 0;
+            virtual void InferUpdateMultiZones() = 0;
 
         private:
             std::string GetDriveString(

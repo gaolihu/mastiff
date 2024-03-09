@@ -135,7 +135,7 @@ message CambrianTopicConfig {
     google.protobuf.StringValue input_chs_cmd_name = 10;
     google.protobuf.StringValue input_chs_cfd_name = 11;
     google.protobuf.StringValue input_chs_img_name = 12;
-    google.protobuf.StringValue input_chs_hcr_name = 13;
+    google.protobuf.StringValue input_chs_misc_name = 13;
     //slam
     google.protobuf.StringValue input_slam_grid_name = 14;
     google.protobuf.StringValue input_slam_path_name = 15;
